@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Players now cannot captchalogue items if they contain certain nested item components. This replaces the bugged maximum data system introduced in the last update
+
+### Fixed
+
+- Fixed players starting off with no captcha cards
+
+### Contributors for this release
+
+- Dweblenod
+
 ## [1.21.1-1.14.0.0] - 2026-04-13
 
 ### Added

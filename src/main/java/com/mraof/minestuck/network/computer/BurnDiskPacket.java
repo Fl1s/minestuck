@@ -50,10 +50,8 @@ public record BurnDiskPacket(BlockPos computerPos, int diskType) implements MSPa
 		Item disk;
 		if (this.diskType == 0){
 			disk = MSItems.CLIENT_DISK.get();
-		} else if  (this.diskType == 1){
+		} else{
 			disk = MSItems.SERVER_DISK.get();
-		} else {
-			disk = MSItems.TORRENT_DISK.get();
 		}
 		Level level = computer.getLevel();
 		if(level == null)

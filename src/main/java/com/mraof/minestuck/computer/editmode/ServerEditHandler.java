@@ -97,8 +97,11 @@ public final class ServerEditHandler    //TODO Consider splitting this class int
 	 */
 	public static void onPlayerExit(Player player)
 	{
-		if(!player.level().isClientSide)
+		if(!player.level().isClientSide){
 			reset(getData(player));
+		if(player.isInvisible())
+			player.setInvisible(true);
+		}
 	}
 	
 	@SubscribeEvent
@@ -213,6 +216,8 @@ public final class ServerEditHandler    //TODO Consider splitting this class int
 				player.sendSystemMessage(Component.literal("Failed to activate edit mode.").withStyle(ChatFormatting.RED));
 				return;
 			}
+			if(MinestuckConfig.SERVER.editInvisibility.get())
+				player.setInvisible(true);
 			if(targetData.getEditmodeInventory() != null)
 				player.getInventory().load(targetData.getEditmodeInventory());
 			decoy.level().addFreshEntity(decoy);

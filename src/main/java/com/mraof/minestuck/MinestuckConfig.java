@@ -121,6 +121,7 @@ public class MinestuckConfig
 		public final IntValue overworldEditRange;
 		public final IntValue landEditRange;
 		public final BooleanValue giveItems;
+		public final BooleanValue editInvisibility;
 		
 		private Server(Builder builder)
 		{
@@ -185,6 +186,8 @@ public class MinestuckConfig
 					.defineInRange("overworldEditRange", 15, 1, Integer.MAX_VALUE);
 			landEditRange = builder.comment("A number that determines how far away from the center of the brought land that an editmode player may be after entry.")
 					.defineInRange("landEditRange", 30, 1, Integer.MAX_VALUE);
+			editInvisibility = builder.comment("Setting this to true turns the server player invisible while they are editing the client's land.")
+					.define("editInvisibility", true);
 			builder.pop();
 			
 			builder.push("machines");

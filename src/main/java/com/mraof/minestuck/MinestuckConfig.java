@@ -187,7 +187,7 @@ public class MinestuckConfig
 			landEditRange = builder.comment("A number that determines how far away from the center of the brought land that an editmode player may be after entry.")
 					.defineInRange("landEditRange", 30, 1, Integer.MAX_VALUE);
 			editInvisibility = builder.comment("Setting this to true turns the server player invisible while they are editing the client's land.")
-					.define("editInvisibility", true);
+					.define("editInvisibility", false);
 			builder.pop();
 			
 			builder.push("machines");

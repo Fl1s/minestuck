@@ -3584,6 +3584,7 @@
   "status.strife.strifeDeckFull": "%s is full!",
   "status.strife.unlockSwitcher": "Strife Specibus Quick-Switcher unlocked!",
   "status.strife.weaponMismatch": "%s doesn't match any specibus in your portfolio.",
+  "status.strife.noPortfolio": "You haven't assigned a Kind Abstratus yet.",
   "store.block.minecraft.cactus.tooltip": "It's the quenchiest!",
   "store.block.minecraft.melon.tooltip": "How about something juicy? Melons sure are juicy.",
   "store.block.minecraft.obsidian": "Black Stone",

@@ -2,11 +2,11 @@ package com.mraof.minestuck.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mraof.minestuck.Minestuck;
-import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.network.StrifePackets;
 import com.mraof.minestuck.player.KindAbstratusType;
 import com.mraof.minestuck.player.StrifePortfolioData;
 import com.mraof.minestuck.player.StrifeSpecibus;
+import com.mraof.minestuck.strife.StrifePortfolioHandler;
 import com.mraof.minestuck.util.MSAttachments;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -58,7 +58,7 @@ public final class StrifeSwitcherHud
 		offhandMode = offhand;
 		
 		ItemStack main = mc.player.getMainHandItem();
-		boolean armed = !main.isEmpty() && main.has(MSItemComponents.STRIFE_ASSIGNED.get());
+		boolean armed = StrifePortfolioHandler.isHeldWeapon(mc.player, main);
 		boolean hasItem = !main.isEmpty() && !armed;
 		
 		StrifePortfolioData data = mc.player.getData(MSAttachments.STRIFE_PORTFOLIO.get());
@@ -68,6 +68,16 @@ public final class StrifeSwitcherHud
 			PacketDistributor.sendToServer(
 					new StrifePackets.AssignStrifePacket(InteractionHand.MAIN_HAND));
 			showSwitcher = false;
+			return;
+		}
+		
+		// Player is holding a raw weapon but hasn't assigned any Kind Abstratus yet - there's
+		// nothing to assign it into. Previously this fell straight through to an empty switcher HUD
+		// with no explanation at all.
+		if(!offhandMode && hasItem && data.isPortfolioEmpty())
+		{
+			mc.player.displayClientMessage(
+					net.minecraft.network.chat.Component.translatable("status.strife.noPortfolio"), true);
 			return;
 		}
 		

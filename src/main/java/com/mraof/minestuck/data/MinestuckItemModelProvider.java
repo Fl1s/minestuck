@@ -27,7 +27,7 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		DreamerMoonBlocksData.addItems(this);
 		
 		// Specibuses
-		simpleItem(MSItems.STRIFE_CARD);
+		// i shot and killed  strife_card sorrysssssssssssssssssssssss
 		
 		//Hammers
 		handheldItem(MSItems.CLAW_HAMMER);
@@ -616,7 +616,7 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		simpleItem(MSItems.SCALEMATE_WITNESS);
 		
 		simpleItem(MSItems.PLUSH_MUTATED_CAT);
-	
+		
 		//Incredibly Useful Items
 		handheldItem(MSItems.URANIUM_POWERED_STICK);
 		simpleItem(MSItems.IRON_BOAT);

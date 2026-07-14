@@ -10,7 +10,6 @@ import com.mraof.minestuck.player.*;
 import com.mraof.minestuck.strife.StrifePortfolioHandler;
 import com.mraof.minestuck.util.MSAttachments;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -65,34 +64,20 @@ public final class StrifeEventHandler
 	{
 		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
 		
-		if(!data.isArmed())
-		{
-			clearStrayAssigned(player);
-			return;
-		}
+		if(!data.isArmed()) return;
 		
 		StrifeSpecibus selSp = data.getSelectedSpecibus();
-		if(selSp == null || selSp.getContents().isEmpty())
+		if(selSp == null)
 		{
 			data.setArmed(false);
 			StrifePortfolioHandler.syncToClient(player);
 			return;
 		}
 		
-		int wIdx = data.getSelectedWeaponIndex();
-		if(wIdx < 0 || wIdx >= selSp.getContents().size())
-		{
-			data.setArmed(false);
-			StrifePortfolioHandler.syncToClient(player);
-			return;
-		}
-		
-		ItemStack deckWeapon = selSp.getContents().get(wIdx);
 		ItemStack mainHand = player.getMainHandItem();
+		boolean weaponHeld = StrifePortfolioHandler.isHeldWeapon(player, mainHand);
 		
-		boolean weaponHeld = StrifePortfolioHandler.isAssigned(mainHand) && ItemStack.isSameItemSameComponents(withoutAssigned(mainHand), withoutAssigned(deckWeapon));
-		
-		if(!weaponHeld && !mainHand.isEmpty() && !StrifePortfolioHandler.isAssigned(mainHand) && player.containerMenu == player.inventoryMenu)
+		if(!weaponHeld && !mainHand.isEmpty() && player.containerMenu == player.inventoryMenu)
 		{
 			StrifeSpecibus moved = StrifePortfolioHandler.moveSelectedWeapon(player, mainHand);
 			weaponHeld = (moved != null);
@@ -103,49 +88,6 @@ public final class StrifeEventHandler
 			data.setArmed(false);
 			StrifePortfolioHandler.syncToClient(player);
 		}
-		
-		clearStrayAssigned(player);
-	}
-	
-	/**
-	 * Strips STRIFE_ASSIGNED from every inventory slot that shouldn't have it.
-	 */
-	private static void clearStrayAssigned(ServerPlayer player)
-	{
-		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
-		boolean armed = data.isArmed();
-		
-		// Main inventory
-		for(int i = 0; i < player.getInventory().getContainerSize(); i++)
-		{
-			ItemStack stack = player.getInventory().getItem(i);
-			if(!StrifePortfolioHandler.isAssigned(stack)) continue;
-			
-			boolean isArmedWeapon = armed && i == player.getInventory().selected && matchesArmedWeapon(stack, data);
-			
-			if(!isArmedWeapon) stack.remove(MSItemComponents.STRIFE_ASSIGNED.get());
-		}
-		
-		// Offhand
-		ItemStack offhand = player.getOffhandItem();
-		if(StrifePortfolioHandler.isAssigned(offhand) && !armed) offhand.remove(MSItemComponents.STRIFE_ASSIGNED.get());
-	}
-	
-	private static boolean matchesArmedWeapon(ItemStack stack, StrifePortfolioData data)
-	{
-		StrifeSpecibus sp = data.getSelectedSpecibus();
-		if(sp == null || sp.getContents().isEmpty()) return false;
-		int wIdx = data.getSelectedWeaponIndex();
-		if(wIdx < 0 || wIdx >= sp.getContents().size()) return false;
-		return ItemStack.isSameItemSameComponents(withoutAssigned(stack), withoutAssigned(sp.getContents().get(wIdx)));
-	}
-	
-	private static ItemStack withoutAssigned(ItemStack stack)
-	{
-		if(stack.isEmpty() || !StrifePortfolioHandler.isAssigned(stack)) return stack;
-		ItemStack copy = stack.copy();
-		copy.remove(MSItemComponents.STRIFE_ASSIGNED.get());
-		return copy;
 	}
 	
 	private static void checkAbstrataSwitcherUnlock(ServerPlayer player)
@@ -177,7 +119,6 @@ public final class StrifeEventHandler
 		if(!(attacker instanceof ServerPlayer player) || attacker instanceof FakePlayer) return;
 		
 		ItemStack held = player.getMainHandItem();
-		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
 		
 		if(event.getEntity() instanceof UnderlingEntity)
 		{
@@ -186,12 +127,15 @@ public final class StrifeEventHandler
 		}
 		
 		if(!MinestuckConfig.SERVER.restrictedStrife.get()) return;
-		if(data.isPortfolioEmpty()) return;
 		
 		// Empty hand is allowed
 		if(held.isEmpty()) return;
 		
-		if(!StrifePortfolioHandler.isAssigned(held)) event.setAmount(0f); // cancel attack
+		if(!StrifePortfolioHandler.isHeldWeapon(player, held))
+		{
+			event.setAmount(0f);
+			event.setCanceled(true); // cancel attack
+		}
 	}
 	
 	/**
@@ -209,7 +153,7 @@ public final class StrifeEventHandler
 		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
 		
 		if(data.isPortfolioEmpty()) return;
-		if(StrifePortfolioHandler.isAssigned(held)) return; // correctly armed weapon
+		if(StrifePortfolioHandler.isHeldWeapon(player, held)) return; // correctly armed weapon
 		
 		float mult = MinestuckConfig.SERVER.weaponAttackMultiplier.get().floatValue();
 		event.setNewDamage(event.getNewDamage() * mult);
@@ -223,7 +167,7 @@ public final class StrifeEventHandler
 		
 		ItemStack from = event.getOriginal();
 		if(!from.isDamageableItem()) return;
-		if(!StrifePortfolioHandler.isAssigned(from)) return;
+		if(!StrifePortfolioHandler.isHeldWeapon(player, from)) return;
 		
 		Item halfItem = getHalfBlade(from);
 		if(halfItem == null) return;
@@ -239,9 +183,8 @@ public final class StrifeEventHandler
 		// Build half-sword with same enchantments
 		ItemStack halfStack = new ItemStack(halfItem);
 		EnchantmentHelper.updateEnchantments(halfStack, mutable -> EnchantmentHelper.getEnchantmentsForCrafting(from).keySet().forEach(ench -> mutable.set(ench, EnchantmentHelper.getEnchantmentsForCrafting(from).getLevel(ench))));
-		halfStack.set(MSItemComponents.STRIFE_ASSIGNED.get(), Unit.INSTANCE);
 		
-		selSp.getContents().set(wIdx, halfStack);
+		selSp.getContents().set(wIdx, halfStack.copy());
 		
 		// Upgrade specibus to half_sword (drops nothing since half-sword matches half_sword kind)
 		List<ItemStack> dropped = selSp.switchKindAbstratus(KindAbstratusList.HALF_SWORD);
@@ -271,9 +214,9 @@ public final class StrifeEventHandler
 	@SubscribeEvent
 	public static void onPlayerDropItem(ItemTossEvent event)
 	{
-		ItemEntity dropped = event.getEntity();
-		if(StrifePortfolioHandler.isAssigned(dropped.getItem()))
-			dropped.getItem().remove(MSItemComponents.STRIFE_ASSIGNED.get());
+		ItemStack dropped = event.getEntity().getItem();
+		if(dropped.has(MSItemComponents.STRIFE_ASSIGNED.get()))
+			dropped.remove(MSItemComponents.STRIFE_ASSIGNED.get());
 	}
 	
 	/**
@@ -282,11 +225,9 @@ public final class StrifeEventHandler
 	@SubscribeEvent
 	public static void onItemPickup(ItemEntityPickupEvent.Post event)
 	{
-		if(!(event.getPlayer() instanceof ServerPlayer player)) return;
-		
-		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
-		
-		if(!data.isArmed()) event.getCurrentStack().remove(MSItemComponents.STRIFE_ASSIGNED.get());
+		ItemStack stack = event.getCurrentStack();
+		if(stack.has(MSItemComponents.STRIFE_ASSIGNED.get()))
+			stack.remove(MSItemComponents.STRIFE_ASSIGNED.get());
 	}
 	
 	
@@ -297,7 +238,7 @@ public final class StrifeEventHandler
 		
 		StrifePortfolioData data = StrifePortfolioHandler.getData(player);
 		
-		event.getDrops().removeIf(e -> StrifePortfolioHandler.isAssigned(e.getItem()));
+		event.getDrops().removeIf(e -> StrifePortfolioHandler.isHeldWeapon(player, e.getItem()));
 		data.setArmed(false);
 		
 		if(!MinestuckConfig.SERVER.keepPortfolioOnDeath.get())

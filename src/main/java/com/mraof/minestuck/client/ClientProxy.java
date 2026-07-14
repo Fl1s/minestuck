@@ -29,6 +29,7 @@ import com.mraof.minestuck.item.StructureScannerItem;
 import com.mraof.minestuck.item.armor.MSArmorItem;
 import com.mraof.minestuck.item.components.CardStoredItemComponent;
 import com.mraof.minestuck.item.components.MSItemComponents;
+import com.mraof.minestuck.player.StrifeSpecibus;
 import com.mraof.minestuck.item.components.StoneTabletTextComponent;
 import com.mraof.minestuck.item.weapon.MusicPlayerWeapon;
 import com.mraof.minestuck.util.MSParticleType;
@@ -149,6 +150,15 @@ public class ClientProxy
 		ItemProperties.register(MSItems.CAPTCHA_CARD.get(), Minestuck.id("punched"), encoded);
 		ItemProperties.register(MSItems.CAPTCHA_CARD.get(), Minestuck.id("content"), (stack, level, holder, seed) -> stack.has(MSItemComponents.CARD_STORED_ITEM) ? 1 : 0);
 		ItemProperties.register(MSItems.CAPTCHA_CARD.get(), Minestuck.id("ghost"), (stack, level, holder, seed) -> stack.getOrDefault(MSItemComponents.CARD_STORED_ITEM, CardStoredItemComponent.EMPTY).isGhostItem() ? 1 : 0);
+		
+		ItemProperties.register(MSItems.STRIFE_CARD.get(), Minestuck.id("assigned"), (stack, level, holder, seed) -> {
+			StrifeSpecibus sp = stack.get(MSItemComponents.STRIFE_SPECIBUS_DATA.get());
+			return (sp != null && sp.getAbstratusName() != null && sp.getKindAbstratus() != null) ? 1 : 0;
+		});
+		ItemProperties.register(MSItems.STRIFE_CARD.get(), Minestuck.id("invalid"), (stack, level, holder, seed) -> {
+			StrifeSpecibus sp = stack.get(MSItemComponents.STRIFE_SPECIBUS_DATA.get());
+			return (sp != null && sp.getAbstratusName() != null && sp.getKindAbstratus() == null) ? 1 : 0;
+		});
 		
 		ItemProperties.register(MSItems.BOONDOLLARS.get(), Minestuck.id("count"), (stack, level, holder, seed) -> BoondollarsItem.getCount(stack));
 		ItemProperties.register(MSItems.FROG.get(), Minestuck.id("type"), (stack, level, holder, seed) -> stack.has(MSItemComponents.FROG_TRAITS) ? stack.get(MSItemComponents.FROG_TRAITS).variant().orElse(FrogEntity.FrogVariants.DEFAULT).ordinal() : FrogEntity.FrogVariants.DEFAULT.ordinal());

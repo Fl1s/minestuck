@@ -153,6 +153,11 @@ public class StrifeSpecibus
 		return weapons;
 	}
 	
+	public static boolean sameWeapon(ItemStack a, ItemStack b)
+	{
+		return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItemSameComponents(a, b);
+	}
+	
 	public String getCustomName()
 	{
 		return customName;
@@ -183,6 +188,41 @@ public class StrifeSpecibus
 		String name = hasCustomName() ? customName : (getKindAbstratus() != null ? getKindAbstratus().getDisplayName().getString() : "");
 		name = name.toLowerCase();
 		return name.length() > 12 ? name.substring(0, 9) + "..." : name;
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if(this == obj) return true;
+		if(!(obj instanceof StrifeSpecibus other)) return false;
+		
+		if(!java.util.Objects.equals(abstratusName, other.abstratusName)) return false;
+		if(!java.util.Objects.equals(customName, other.customName)) return false;
+		if(weapons.size() != other.weapons.size()) return false;
+		
+		for(int i = 0; i < weapons.size(); i++)
+		{
+			ItemStack a = weapons.get(i);
+			ItemStack b = other.weapons.get(i);
+			if(a.getCount() != b.getCount() || !ItemStack.isSameItemSameComponents(a, b))
+				return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		int result = java.util.Objects.hash(abstratusName, customName);
+		for(ItemStack stack : weapons)
+			result = 31 * result + stackHashCode(stack);
+		return result;
+	}
+	
+	private static int stackHashCode(ItemStack stack)
+	{
+		if(stack.isEmpty()) return 0;
+		return java.util.Objects.hash(stack.getItem(), stack.getCount(), stack.getComponentsPatch());
 	}
 	
 	@Override

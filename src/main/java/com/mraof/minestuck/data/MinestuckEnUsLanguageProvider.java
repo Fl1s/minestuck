@@ -2272,9 +2272,10 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add("status.strife.assignWeapon", "Assigned %s to %s.");
 		add("status.strife.strifeDeckFull", "%s is full!");
 		add("status.strife.weaponMismatch", "%s doesn't match any specibus in your portfolio.");
+		add("status.strife.noPortfolio", "You haven't assigned a Kind Abstratus yet.");
 		add("status.strife.unlockSwitcher", "Strife Specibus Quick-Switcher unlocked!");
 		add("item.minestuck.strife_card.blank", "Blank! Right-click to assign a weapon type");
-
+		
 		add(StrifePortfolioScreen.TITLE, "Strife Portfolio");
 		add("gui.strifePortfolio.deck", "Weapon Deck");
 		add("gui.strifePortfolio.specibus", "strife specibus");
@@ -2598,7 +2599,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(MSKeyHandler.CAPTCHALOGUE, "Captchalogue Held Item");
 		add(MSKeyHandler.ASPECT_EFFECT_TOGGLE, "Toggle Aspect Effects");
 		add(MSKeyHandler.SYLLADEX, "Open Sylladex");
-
+		
 		add(MSKeyHandler.STRIFE, "Manage Strife Switcher");
 		add(MSKeyHandler.STRIFE_LEFT, "Previous Weapon");
 		add(MSKeyHandler.STRIFE_RIGHT, "Next Weapon");

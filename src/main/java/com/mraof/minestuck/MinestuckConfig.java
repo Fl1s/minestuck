@@ -1,6 +1,8 @@
 package com.mraof.minestuck;
 
 import com.mraof.minestuck.computer.editmode.DeployList;
+import com.mraof.minestuck.player.Rungs;
+import com.sun.jdi.FloatValue;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -92,8 +94,16 @@ public class MinestuckConfig
 		public final EnumValue<AvailableOptions> hashmapChatModusSetting;
 		public final EnumValue<AvailableOptions> arrayChatModusSetting;
 		
+		//Strife
+		public final BooleanValue restrictedStrife;
+		public final BooleanValue keepPortfolioOnDeath;
+		public final IntValue strifeDeckMaxSize;
+		public final IntValue abstrataSwitcherRung;
+		public final DoubleValue weaponAttackMultiplier;
+		
 		//Mechanics
 		public final BooleanValue hardMode;
+		public final IntValue maxSpecibusCount;
 		public final BooleanValue echeladderProgress;
 		public final BooleanValue playerSelectedTitle;
 		public final BooleanValue rungHealthOnRespawn;
@@ -112,11 +122,14 @@ public class MinestuckConfig
 		public final BooleanValue privateComputers;
 		public final BooleanValue globalSession;
 		public final EnumValue<PermissionType> dataCheckerPermission;
+		public final EnumValue<TorrentVisibility> gristTorrentVisibility;
+		public final BooleanValue gristTorrentSeedAll;
 		
 		//Edit Mode
 		public final BooleanValue showGristChanges;
 		public final BooleanValue gristRefund;
 		public final BooleanValue deployCard;
+		public final BooleanValue deployDisk;
 		public final BooleanValue portableMachines;
 		public final IntValue overworldEditRange;
 		public final IntValue landEditRange;
@@ -125,6 +138,8 @@ public class MinestuckConfig
 		private Server(Builder builder)
 		{
 			builder.push("mechanics");
+			maxSpecibusCount = builder.comment("Maximum number of Kind Abstratuses a player can select. Damage bonus decreases with each additional abstratus selected.")
+					.defineInRange("maxSpecibusCount", 4, 1, 12);
 			echeladderProgress = builder.comment("If this is true, players will be able to see their progress towards the next rung. This is server side and will only be active in multiplayer if the server/Lan host has it activated.")
 					.define("echeladderProgress", true);
 			rungHealthOnRespawn = builder.comment("If true, players will respawn with full health, rung bonuses included. If false, health will be left alone (typically meaning that you respawn with 10 hearts)")
@@ -142,6 +157,27 @@ public class MinestuckConfig
 					"- Fireballs will rain around players entering the medium",
 					"- Medium dungeons spawners contain Liches instead of Imps",
 					"- Underlings have a 50% chance to have the artifact grist").define("hardMode", false);
+			restrictedStrife = builder
+					.comment("Prevents players from attacking or using right-click abilities with a weapon " +
+							"that is not assigned to their Strife Portfolio.")
+					.define("restrictedStrife", true);
+			keepPortfolioOnDeath = builder
+					.comment("If true, the Strife Portfolio is kept on death. " +
+							"Otherwise all specibus slots are dropped as Strife Cards.")
+					.define("keepPortfolioOnDeath", true);
+			strifeDeckMaxSize = builder
+					.comment("Maximum number of weapons that can be stored in a single Strife Deck slot. " +
+							"Set to -1 to remove the limit.")
+					.defineInRange("strifeDeckMaxSize", 20, -1, Integer.MAX_VALUE);
+			abstrataSwitcherRung = builder
+					.comment("Echeladder rung required to unlock the Strife Specibus Quick-Switcher " +
+							"(hold strife key + scroll to switch specibus slots). " +
+							"Set to -1 to allow all players, or to " + Rungs.finalRung() + " to disable entirely.")
+					.defineInRange("abstrataSwitcherRung", 17, -1, Rungs.finalRung());
+			weaponAttackMultiplier = builder
+					.comment("When restrictedStrife is enabled, this is the fraction of normal damage dealt " +
+							"when attacking with an unassigned weapon (0.15 = 15% damage).")
+					.defineInRange("weaponAttackMultiplier", 0.15F, 0.0F, 1.0F);
 			builder.pop();
 			
 			builder.push("sylladex");
@@ -168,6 +204,10 @@ public class MinestuckConfig
 					.define("globalSession",false);
 			dataCheckerPermission = builder.comment("Determines who's allowed to access the data checker. \"none\": No one is allowed. \"ops\": only those with a command permission of level 2 or more may access the data ckecker. (for single player, that would be if cheats are turned on) \"gamemode\": Only players with the creative or spectator gamemode may view the data checker. \"ops_or_gamemode\": Both ops and players in creative or spectator mode may view the data checker. \"anyone\": No access restrictions are used.")
 					.defineEnum("dataCheckerPermission", PermissionType.OPS_OR_GAMEMODE);
+			gristTorrentVisibility = builder.comment("Determines the scope of players that are able to connect via GristTorrent. \"none\": GristTorrent is completely disabled. \"land\": GristTorrent only works for accounts from the same Land. \"session\": Only players within the same Session can connect. \"global\": Any players can connect.")
+					.defineEnum("gristTorrentVisibility", TorrentVisibility.SESSION);
+			gristTorrentSeedAll = builder.comment("Whether players will seed all grist types initially. Will seed nothing initially if false.")
+					.define("gristTorrentSeedAll", true);
 			builder.pop();
 			
 			builder.push("editMode");
@@ -177,6 +217,8 @@ public class MinestuckConfig
 					.define("gristRefund", false);
 			deployCard = builder.comment("Determines if a card with a captcha card punched on it should be added to the deploy list.")
 					.define("deployCard",false);
+			deployDisk = builder.comment("Determines if a disk with a program on it should be added to the deploy list.")
+					.define("deployDisk",false);
 			portableMachines = builder.comment("Determines if the small portable machines should be included in the deploy list.")
 					.define("portableMachines", false);
 			giveItems = builder.comment("Setting this to true replaces editmode with the old Give Items button.")
@@ -305,6 +347,14 @@ public class MinestuckConfig
 		GAMEMODE,
 		OPS_OR_GAMEMODE,
 		ANYONE
+	}
+	
+	public enum TorrentVisibility
+	{
+		NONE,
+		LAND,
+		SESSION,
+		GLOBAL
 	}
 	
 	public enum AnimationSpeed

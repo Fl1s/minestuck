@@ -6,17 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- GristTorrent Computer App
+- Strife Portfolio
+
+### Changed
+
+- Updated Grist Cache gui texture
+- Laptops can now be picked up
+- The range at which the Kernelsprite detects and travels to blocks has increased
+
+### Fixed
+
+- Fixed server tick crash related to kernelsprite dialogue
+
+### Contributors for this release
+
+- Dweblenod, Cibernet, Riotmode, kirderf1, Caldw3ll, Fl1s
+
+## [1.21.1-1.14.0.1] - 2026-06-01
+
+### Added
+
+- Language files for biomes and dimensions
+
 ### Changed
 
 - Players now cannot captchalogue items if they contain certain nested item components. This replaces the bugged maximum data system introduced in the last update
+- Uranium fuel is now data driven
+- Uranium power is now a neoforge capability, add-ons will have to update their machines
+- Weapons with additionnal knockback now use the Attack Knockback attribute
+- Cakemix now spawning in supply chests and much more often in The Land of Desserts
 
 ### Fixed
 
 - Fixed players starting off with no captcha cards
+- Fixed a dupe exploit with a fully sylladex
+- Fixed client side crash when trying to widget a captcha card holding another captcha card
 
 ### Contributors for this release
 
-- Dweblenod
+- Dweblenod, medsal15, Fl1s
 
 ## [1.21.1-1.14.0.0] - 2026-04-13
 
@@ -186,6 +217,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Computer interaction sound effects
 - New computer related advancement
 - Message when entering edit mode to remind players of the exit keybind
+- Added 2 tracks october and endless chasm by triagegremlin
+- Added 2 tracks the note desolation plays and desolate strife by Caldw3ll
 - Computer programs now have a tooltip when hovered over in computer gui
 - Data files for echeladder rungs and rung effects
 - Echeladder now provides fall damage resistance

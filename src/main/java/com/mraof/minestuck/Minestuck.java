@@ -16,6 +16,7 @@ import com.mraof.minestuck.computer.editmode.DeployList;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.entity.MSAttributes;
 import com.mraof.minestuck.entity.MSEntityTypes;
+import com.mraof.minestuck.entity.ai.brain.MSPoiTypes;
 import com.mraof.minestuck.entity.dialogue.Triggers;
 import com.mraof.minestuck.entity.dialogue.condition.Conditions;
 import com.mraof.minestuck.entry.BlockCopier;
@@ -32,7 +33,6 @@ import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.item.crafting.MSRecipeTypes;
 import com.mraof.minestuck.item.loot.MSLootTables;
 import com.mraof.minestuck.player.EcheladderExpSources;
-import com.mraof.minestuck.player.KindAbstratusList;
 import com.mraof.minestuck.util.MSAttachments;
 import com.mraof.minestuck.util.MSParticleType;
 import com.mraof.minestuck.util.MSSoundEvents;
@@ -79,6 +79,7 @@ public class Minestuck
 		MSFluids.TYPE_REGISTER.register(eventBus);
 		MSBlockEntityTypes.REGISTER.register(eventBus);
 		MSEntityTypes.REGISTER.register(eventBus);
+		MSPoiTypes.REGISTER.register(eventBus);
 		MSMenuTypes.REGISTER.register(eventBus);
 		GristTypes.register(eventBus);
 		MSEffects.REGISTER.register(eventBus);
@@ -143,7 +144,6 @@ public class Minestuck
 	{
 		MSSuggestionProviders.register();
 		
-		KindAbstratusList.registerTypes();
 		DeployList.registerItems();
 		MSDispenserBehaviours.registerBehaviours();
 		

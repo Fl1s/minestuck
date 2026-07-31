@@ -26,6 +26,9 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 	{
 		DreamerMoonBlocksData.addItems(this);
 		
+		// Specibuses
+		// i shot and killed  strife_card sorrysssssssssssssssssssssss
+		
 		//Hammers
 		handheldItem(MSItems.CLAW_HAMMER);
 		handheldItem(MSItems.SLEDGE_HAMMER);
@@ -83,6 +86,13 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		handheldItem(MSItems.CHAINSAW_KATANA);
 		handheldItem(MSItems.THORN_IN_YOUR_SIDE);
 		handheldItem(MSItems.ROSE_PROTOCOL);
+		
+		//1/2 Blades
+		handheldItem(MSItems.HALF_KATANA);
+		handheldItem(MSItems.HALF_CALEDFWLCH);
+		handheldItem(MSItems.HALF_SCARLET_RIBBITAR);
+		handheldItem(MSItems.HALF_CALEDSCRATCH);
+		handheldItem(MSItems.HALF_ROYAL_DERINGER);
 		
 		//Knives
 		knifeWeapon(MSItems.DAGGER);
@@ -434,6 +444,7 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		simpleItem(MSItems.BLANK_DISK);
 		simpleItem(MSItems.CLIENT_DISK);
 		simpleItem(MSItems.SERVER_DISK);
+		simpleItem(MSItems.TORRENT_DISK);
 		
 		simpleItem(MSItems.ARRAY_MODUS_CARD);
 		simpleItem(MSItems.STACK_MODUS_CARD);
@@ -605,7 +616,7 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		simpleItem(MSItems.SCALEMATE_WITNESS);
 		
 		simpleItem(MSItems.PLUSH_MUTATED_CAT);
-	
+		
 		//Incredibly Useful Items
 		handheldItem(MSItems.URANIUM_POWERED_STICK);
 		simpleItem(MSItems.IRON_BOAT);

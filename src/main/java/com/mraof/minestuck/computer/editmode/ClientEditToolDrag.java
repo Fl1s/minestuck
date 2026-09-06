@@ -1,7 +1,9 @@
 package com.mraof.minestuck.computer.editmode;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.block.machine.EditmodeDestroyable;
@@ -50,12 +52,14 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Class for handling the click-and-drag editmode tools (Revise, Recycle, Select) and the Move/Copy
+/**
+ * Class for handling the click-and-drag editmode tools (Revise, Recycle, Select) and the Move/Copy
  * preview + commit flow on the client-side.
  * (Based on code from the Minestuck Universe addon, with Cibernet's permission.)
+ *
+ * @author Caldw3ll, Cibernet
  * @see EditmodeDragPackets for the tool's server-sided block-placing code.
  * @see ServerEditHandler for server-sided code that handles the sburb-cursor.
- * @author Caldw3ll, Cibernet
  */
 @EventBusSubscriber(modid = Minestuck.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientEditToolDrag
@@ -74,7 +78,7 @@ public class ClientEditToolDrag
 	{
 		Minecraft mc = Minecraft.getInstance();
 		Player player = mc.player;
-		if (player == null || !player.isAlive() || !ClientEditmodeData.isInEditmode())
+		if(player == null || !player.isAlive() || !ClientEditmodeData.isInEditmode())
 			return;
 		
 		EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
@@ -166,17 +170,17 @@ public class ClientEditToolDrag
 	                                     MultiBufferSource.BufferSource previewBuffer, BlockPos dest, BlockState state,
 	                                     double camX, double camY, double camZ, float alpha)
 	{
-			poseStack.pushPose();
-			poseStack.translate(dest.getX() - camX, dest.getY() - camY, dest.getZ() - camZ);
-			
-			for(RenderType ignored : ItemBlockRenderTypes.getRenderLayers(state))
-			{
-				VertexConsumer raw = previewBuffer.getBuffer(RenderType.translucent());
-				VertexConsumer wrapped = new SelectedPreviewRenderer(raw, alpha);
-				blockRenderer.renderBatched(state, dest, level, poseStack, wrapped, false, PREVIEW_RANDOM);
-			}
-			
-			poseStack.popPose();
+		poseStack.pushPose();
+		poseStack.translate(dest.getX() - camX, dest.getY() - camY, dest.getZ() - camZ);
+		
+		for(RenderType ignored : ItemBlockRenderTypes.getRenderLayers(state))
+		{
+			VertexConsumer raw = previewBuffer.getBuffer(RenderType.translucent());
+			VertexConsumer wrapped = new SelectedPreviewRenderer(raw, alpha);
+			blockRenderer.renderBatched(state, dest, level, poseStack, wrapped, false, PREVIEW_RANDOM);
+		}
+		
+		poseStack.popPose();
 	}
 	
 	private static boolean isRemotePreviewRenderable(RemoteEditSessions.Session remote)
@@ -186,6 +190,7 @@ public class ClientEditToolDrag
 	
 	/**
 	 * Resets the drag tool, and removes the server-cursor if the given edit tool is active.
+	 *
 	 * @param cap The current edit-tools capability.
 	 */
 	private static void cancelDrag(EditTools cap)
@@ -200,31 +205,32 @@ public class ClientEditToolDrag
 	/**
 	 * Attempts to get the currently highlighted block.
 	 * If the player is highlighting a block, initialize the target edit-tool's parameters.
+	 *
 	 * @param targetTool The tool to begin using. Must be a drag tool (Revise, Recycle or Select).
-	 * @param cap The current edit-tools capability.
-	 * @param player Current client-side player.
+	 * @param cap        The current edit-tools capability.
+	 * @param player     Current client-side player.
 	 * @return True if the ray hits a block. False if it doesn't
 	 */
 	private static boolean tryBeginDrag(EditTools.ToolMode targetTool, EditTools cap, Player player)
 	{
 		BlockHitResult blockHit = getPlayerPOVHitResult(player.level(), player);
-		if (blockHit.getType() == BlockHitResult.Type.BLOCK)
+		if(blockHit.getType() == BlockHitResult.Type.BLOCK)
 		{
 			cap.beginDragTools(targetTool, blockHit, player);
 			return true;
-		}
-		else
+		} else
 			return false;
 	}
 	
 	/**
 	 * Sets/updates the second selection point according to the given tool,
 	 * and sends a packet to create/update the sburb cursor.
+	 *
 	 * @param targetTool The tool you want to update. Must be a drag tool (Revise, Recycle or Select).
-	 * @param cap The current edit-tools capability.
-	 * @param player Current client-side player.
-	 * @param isActive Whether the tool is currently in-progress, the physical key being held for
-	 *                 drag-style tools, or the click-style armed state for tools that support it.
+	 * @param cap        The current edit-tools capability.
+	 * @param player     Current client-side player.
+	 * @param isActive   Whether the tool is currently in-progress, the physical key being held for
+	 *                   drag-style tools, or the click-style armed state for tools that support it.
 	 */
 	private static void updateDragPosition(EditTools.ToolMode targetTool, EditTools cap, Player player, boolean isActive)
 	{
@@ -250,9 +256,10 @@ public class ClientEditToolDrag
 	/**
 	 * When the player releases the given tool's key, if a selection is active, a packet for filling/destroying the selected blocks and removing the cursor will be sent.
 	 * Also creates the particles and block sounds on the client-side, whereas the packet handles broadcasting those to other players.
+	 *
 	 * @param targetTool The tool you want to finish. Must be a drag tool (Revise or Recycle).
-	 * @param cap The current edit-tools capability.
-	 * @param player Current client-side player.
+	 * @param cap        The current edit-tools capability.
+	 * @param player     Current client-side player.
 	 */
 	private static void finishDragging(EditTools.ToolMode targetTool, EditTools cap, Player player)
 	{
@@ -267,9 +274,15 @@ public class ClientEditToolDrag
 		cap.resetDragTools();
 	}
 	
-	public static boolean isValidDragToolOrNull(EditTools.ToolMode toolMode) { return toolMode == null || isValidDragTool(toolMode); }
+	public static boolean isValidDragToolOrNull(EditTools.ToolMode toolMode)
+	{
+		return toolMode == null || isValidDragTool(toolMode);
+	}
 	
-	public static boolean isValidDragTool(EditTools.ToolMode toolMode) { return toolMode == EditTools.ToolMode.REVISE || toolMode == EditTools.ToolMode.RECYCLE || toolMode == EditTools.ToolMode.SELECT; }
+	public static boolean isValidDragTool(EditTools.ToolMode toolMode)
+	{
+		return toolMode == EditTools.ToolMode.REVISE || toolMode == EditTools.ToolMode.RECYCLE || toolMode == EditTools.ToolMode.SELECT;
+	}
 	
 	/**
 	 * Handles code for the revise tool on the client-side.
@@ -277,7 +290,7 @@ public class ClientEditToolDrag
 	public static void doReviseCode(Minecraft mc, Player player, EditTools cap)
 	{
 		//Return early if there IS a tool active and it ISN'T revise.
-		if (cap.getToolMode() != null && cap.getToolMode() != EditTools.ToolMode.REVISE)
+		if(cap.getToolMode() != null && cap.getToolMode() != EditTools.ToolMode.REVISE)
 			return;
 		
 		KeyMapping toolKey = mc.options.keyUse;
@@ -306,6 +319,7 @@ public class ClientEditToolDrag
 	
 	/**
 	 * Determines whether the player can use the revise tool when right-clicking, based on the block that they are holding.
+	 *
 	 * @param player The client-side player.
 	 * @return True if you are in editmode and holding a non-deployable block, else false.
 	 */
@@ -324,7 +338,7 @@ public class ClientEditToolDrag
 	public static void doRecycleCode(Minecraft mc, Player player, EditTools cap)
 	{
 		//Return early if there IS a tool active and it ISN'T recycle.
-		if (cap.getToolMode() != null && cap.getToolMode() != EditTools.ToolMode.RECYCLE)
+		if(cap.getToolMode() != null && cap.getToolMode() != EditTools.ToolMode.RECYCLE)
 			return;
 		
 		KeyMapping toolKey = mc.options.keyAttack;
@@ -348,7 +362,7 @@ public class ClientEditToolDrag
 		//If key has just been released, finish drag.
 		if(!toolKey.isDown() && cap.getEditPos1() != null)
 			finishDragging(EditTools.ToolMode.RECYCLE, cap, player);
-
+		
 	}
 	
 	/**
@@ -379,8 +393,7 @@ public class ClientEditToolDrag
 				shouldCommit = true; //If second press then lock the selection in
 			
 			active = selectClickArmed;
-		}
-		else
+		} else
 		{
 			active = toolKey.isDown();
 			shouldCommit = selectKeyWasDown && !toolKey.isDown();
@@ -469,13 +482,11 @@ public class ClientEditToolDrag
 					clickModeActiveIsCopy = false; //arm move
 				else if(canPreview && copyPressedEdge)
 					clickModeActiveIsCopy = true; //arm copy
-			}
-			else if(!clickModeActiveIsCopy && movePressedEdge)
+			} else if(!clickModeActiveIsCopy && movePressedEdge)
 			{
 				commitMove = true;
 				clickModeActiveIsCopy = null;
-			}
-			else if(clickModeActiveIsCopy && copyPressedEdge)
+			} else if(clickModeActiveIsCopy && copyPressedEdge)
 			{
 				commitCopy = true;
 				clickModeActiveIsCopy = null;
@@ -483,8 +494,7 @@ public class ClientEditToolDrag
 			
 			moveDown = clickModeActiveIsCopy != null && !clickModeActiveIsCopy;
 			copyDown = clickModeActiveIsCopy != null && clickModeActiveIsCopy;
-		}
-		else
+		} else
 		{
 			moveDown = canPreview && moveKey.isDown() && !copyKey.isDown();
 			copyDown = canPreview && copyKey.isDown() && !moveKey.isDown();
@@ -541,8 +551,7 @@ public class ClientEditToolDrag
 			
 			if(ClientEditmodeData.isBroadcastEnabled())
 				PacketDistributor.sendToServer(new EditmodeBroadcastPackets.BroadcastPreviewTransform(true, minCorner, cap.getPreviewRotation(), copyDown));
-		}
-		else
+		} else
 		{
 			if(ClientEditmodeData.isBroadcastEnabled() && (wasPreviewingMove || wasPreviewingCopy))
 				PacketDistributor.sendToServer(new EditmodeBroadcastPackets.BroadcastPreviewTransform(false, BlockPos.ZERO, 0, false));
@@ -644,6 +653,7 @@ public class ClientEditToolDrag
 	/**
 	 * Determines whether the player can use the recycle tool when left-clicking,
 	 * based on the block that they are looking at.
+	 *
 	 * @param player The client-side editmode player.
 	 * @return True if you are in editmode and NOT looking directly at a multiblock or unbreakable block. Else false.
 	 */
@@ -680,8 +690,7 @@ public class ClientEditToolDrag
 						anyBlockEdited = true;
 						
 						player.level().addDestroyBlockEffect(pos, player.level().getBlockState(pos));
-					}
-					else if(fill && player.level().getBlockState(pos).canBeReplaced() && ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ClientEditHandler.itemCost(stack, player.level())))
+					} else if(fill && player.level().getBlockState(pos).canBeReplaced() && ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ClientEditHandler.itemCost(stack, player.level())))
 					{
 						anyBlockEdited = true;
 					}
@@ -699,24 +708,24 @@ public class ClientEditToolDrag
 	 * based on whether the player is pointing at a block or not,
 	 * and the distance from the player to the block they first highlighted
 	 * at the start of the selection.
-	 * @param player The client-side editmode player.
-	 * @param reachDistance The editReachDistance of the EditTool capability
+	 *
+	 * @param player            The client-side editmode player.
+	 * @param reachDistance     The editReachDistance of the EditTool capability
 	 * @param shouldBlockOffset Whether the endpoint should be inside the highlighted block, or off to the side.
 	 * @return The BlockPos of the second corner of the revise/recycle selection box.
 	 */
 	private static BlockPos getSelectionEndPoint(Player player, double reachDistance, boolean shouldBlockOffset)
 	{
 		BlockHitResult blockHit = getPlayerPOVHitResult(player.level(), player);
-
+		
 		//if not looking directly at a block, use the position where the player is looking at with the initial distance of editPos1 from the camera
-		if (blockHit.getType() == BlockHitResult.Type.MISS)
+		if(blockHit.getType() == BlockHitResult.Type.MISS)
 		{
 			Vec3 eyePosition = player.getEyePosition();
 			Vec3 lookDirection = player.getLookAngle();
 			Vec3 selectionPosition = eyePosition.add(lookDirection.x * reachDistance, lookDirection.y * reachDistance, lookDirection.z * reachDistance);
 			return BlockPos.containing(selectionPosition.x, selectionPosition.y, selectionPosition.z);
-		}
-		else
+		} else
 		{
 			if(shouldBlockOffset)
 				return player.level().getBlockState(blockHit.getBlockPos()).canBeReplaced() ? blockHit.getBlockPos() : blockHit.getBlockPos().offset(blockHit.getDirection().getNormal());
@@ -727,18 +736,20 @@ public class ClientEditToolDrag
 	
 	/**
 	 * Determines whether the block that the player is holding is deployable or not.
+	 *
 	 * @param player The client-side editmode player.
 	 * @return True if item is in the deploy list, a block-item, and a machine.
 	 */
 	private static boolean isBlockDeployable(Player player)
 	{
-			ItemStack stack	= player.getMainHandItem();
+		ItemStack stack = player.getMainHandItem();
 		
-			return ClientDeployList.getEntry(stack) != null && stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof MachineBlock;
+		return ClientDeployList.getEntry(stack) != null && stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof MachineBlock;
 	}
 	
 	/**
 	 * Determines whether the block that the player is highlighting is a destroyable multiblock or not.
+	 *
 	 * @param player The client-side editmode player.
 	 * @return True if the player is looking at a block, and the block implements EditmodeDestroyable.
 	 */
@@ -753,7 +764,8 @@ public class ClientEditToolDrag
 	 * Casts a ray from the player's camera, in the direction that they're looking, and returns the result.
 	 * The ray has the same length as the player's reach distance.
 	 * Based on the Item class function of the same name.
-	 * @param level The level the player is in.
+	 *
+	 * @param level  The level the player is in.
 	 * @param player The current editmode player.
 	 * @return The raycast result of the block the player is highlighting, if there is one within reach.
 	 * getType() is BlockHitResult.Type.MISS if no highlighted block.
@@ -919,17 +931,17 @@ public class ClientEditToolDrag
 		PoseStack.Pose pose = poseStack.last();
 		Matrix4f matrix4f = pose.pose();
 		shapeIn.forAllEdges((startX, startY, startZ, endX, endY, endZ) -> {
-			float dX = (float)(endX - startX);
-			float dY = (float)(endY - startY);
-			float dZ = (float)(endZ - startZ);
+			float dX = (float) (endX - startX);
+			float dY = (float) (endY - startY);
+			float dZ = (float) (endZ - startZ);
 			float length = Mth.sqrt(dX * dX + dY * dY + dZ * dZ);
 			dX /= length;
 			dY /= length;
 			dZ /= length;
-			bufferIn.addVertex(matrix4f, (float)(startX + xIn), (float)(startY + yIn), (float)(startZ + zIn))
+			bufferIn.addVertex(matrix4f, (float) (startX + xIn), (float) (startY + yIn), (float) (startZ + zIn))
 					.setColor(red, green, blue, alpha)
 					.setNormal(pose, dX, dY, dZ);
-			bufferIn.addVertex(matrix4f, (float)(endX + xIn), (float)(endY + yIn), (float)(endZ + zIn))
+			bufferIn.addVertex(matrix4f, (float) (endX + xIn), (float) (endY + yIn), (float) (endZ + zIn))
 					.setColor(red, green, blue, alpha)
 					.setNormal(pose, dX, dY, dZ);
 		});

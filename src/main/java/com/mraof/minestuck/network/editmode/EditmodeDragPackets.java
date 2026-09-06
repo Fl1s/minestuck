@@ -114,7 +114,8 @@ public final class EditmodeDragPackets
 	}
 	
 	
-	public record Fill(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector, Direction side) implements MSPacket.PlayToServer
+	public record Fill(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector,
+	                   Direction side) implements MSPacket.PlayToServer
 	{
 		public static final Type<Fill> ID = new Type<>(Minestuck.id("editmode_drag/fill"));
 		public static final StreamCodec<FriendlyByteBuf, Fill> STREAM_CODEC = StreamCodec.composite(
@@ -194,9 +195,14 @@ public final class EditmodeDragPackets
 		}
 	}
 	
-	private record Captured(BlockPos sourcePos, BlockState state, CompoundTag blockEntityTag, GristSet.Immutable blockCost) {}
+	private record Captured(BlockPos sourcePos, BlockState state, CompoundTag blockEntityTag,
+	                        GristSet.Immutable blockCost)
+	{
+	}
 	
-	private record ItemCostResult(GristSet.Immutable cost, boolean truncated) {}
+	private record ItemCostResult(GristSet.Immutable cost, boolean truncated)
+	{
+	}
 	
 	private static ItemCostResult computeItemStackCost(ItemStack stack, SburbPlayerData playerData, Level level, int depth)
 	{
@@ -288,6 +294,7 @@ public final class EditmodeDragPackets
 		
 		announceResult(player, level, min, max, anchor, sizeX, sizeZ, isCopy, rotation);
 	}
+	
 	private static boolean validateVolume(ServerPlayer player, BlockPos min, BlockPos max, int sizeX, int sizeZ)
 	{
 		long volume = (long) sizeX * (max.getY() - min.getY() + 1) * sizeZ;
@@ -300,7 +307,9 @@ public final class EditmodeDragPackets
 		return true;
 	}
 	
-	private record CaptureResult(List<Captured> captured, GristSet.Immutable worstCaseCost) {}
+	private record CaptureResult(List<Captured> captured, GristSet.Immutable worstCaseCost)
+	{
+	}
 	
 	private static CaptureResult captureBlocks(ServerPlayer player, EditData data, Level level, BlockPos min, BlockPos max, boolean isCopy)
 	{
@@ -522,8 +531,7 @@ public final class EditmodeDragPackets
 			
 			if(MinestuckConfig.SERVER.visualsToOthers.get())
 				PacketDistributor.sendToPlayersTrackingEntity(player, new EditmodeBroadcastPackets.ClientSelectionBox(player.getUUID(), true, newMin, newMax));
-		}
-		else
+		} else
 		{
 			PacketDistributor.sendToPlayer(player, new ServerEditPackets.SelectionUpdate(true, BlockPos.ZERO, BlockPos.ZERO));
 			
@@ -542,7 +550,7 @@ public final class EditmodeDragPackets
 		return !level.getEntities((Entity) null, box, entity -> !entity.isSpectator()).isEmpty();
 	}
 	
-/*	*//** 5% of the item normal cost per grist type rounded; floor of 1 per type present. *//*
+	/*	*//** 5% of the item normal cost per grist type rounded; floor of 1 per type present. *//*
 	private static GristSet.Immutable moveCost(GristSet fullCost)
 	{
 		long totalValue = 0;
@@ -562,7 +570,8 @@ public final class EditmodeDragPackets
 		return GristTypes.BUILD.get().amount(amount);
 	}
 	
-	public record MoveSelection(BlockPos corner1, BlockPos corner2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
+	public record MoveSelection(BlockPos corner1, BlockPos corner2, BlockPos anchor,
+	                            int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<MoveSelection> ID = new Type<>(Minestuck.id("editmode_drag/move_selection"));
 		public static final StreamCodec<FriendlyByteBuf, MoveSelection> STREAM_CODEC = StreamCodec.composite(
@@ -574,7 +583,10 @@ public final class EditmodeDragPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -586,7 +598,8 @@ public final class EditmodeDragPackets
 		}
 	}
 	
-	public record CopySelection(BlockPos corner1, BlockPos corner2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
+	public record CopySelection(BlockPos corner1, BlockPos corner2, BlockPos anchor,
+	                            int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<CopySelection> ID = new Type<>(Minestuck.id("editmode_drag/copy_selection"));
 		public static final StreamCodec<FriendlyByteBuf, CopySelection> STREAM_CODEC = StreamCodec.composite(
@@ -598,7 +611,10 @@ public final class EditmodeDragPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -610,7 +626,8 @@ public final class EditmodeDragPackets
 		}
 	}
 	
-	public record Destroy(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector, Direction side) implements MSPacket.PlayToServer
+	public record Destroy(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector,
+	                      Direction side) implements MSPacket.PlayToServer
 	{
 		public static final Type<Destroy> ID = new Type<>(Minestuck.id("editmode_drag/destroy"));
 		public static final StreamCodec<FriendlyByteBuf, Destroy> STREAM_CODEC = StreamCodec.composite(

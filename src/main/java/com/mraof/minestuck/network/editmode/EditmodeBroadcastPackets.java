@@ -157,7 +157,8 @@ public final class EditmodeBroadcastPackets
 		}
 	}
 	
-	public record BroadcastMoveTransition(BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
+	public record BroadcastMoveTransition(BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor,
+	                                      int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<BroadcastMoveTransition> ID = new Type<>(Minestuck.id("editmode_broadcast/move_transition"));
 		public static final StreamCodec<FriendlyByteBuf, BroadcastMoveTransition> STREAM_CODEC = StreamCodec.composite(
@@ -169,7 +170,10 @@ public final class EditmodeBroadcastPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -181,7 +185,8 @@ public final class EditmodeBroadcastPackets
 		}
 	}
 	
-	public record ClientMoveTransition(UUID editorId, BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor, int rotation) implements MSPacket.PlayToClient
+	public record ClientMoveTransition(UUID editorId, BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor,
+	                                   int rotation) implements MSPacket.PlayToClient
 	{
 		public static final Type<ClientMoveTransition> ID = new Type<>(Minestuck.id("editmode_broadcast/client_move_transition"));
 		public static final StreamCodec<FriendlyByteBuf, ClientMoveTransition> STREAM_CODEC = StreamCodec.composite(
@@ -194,7 +199,10 @@ public final class EditmodeBroadcastPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context)

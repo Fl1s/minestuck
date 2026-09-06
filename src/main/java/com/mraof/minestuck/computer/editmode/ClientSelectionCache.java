@@ -14,7 +14,9 @@ import java.util.List;
  */
 public final class ClientSelectionCache
 {
-	public record Entry(BlockPos localOffset, BlockState state) {}
+	public record Entry(BlockPos localOffset, BlockState state)
+	{
+	}
 	
 	private static List<Entry> entries = List.of();
 	private static int sizeX = 1, sizeY = 1, sizeZ = 1;
@@ -64,8 +66,23 @@ public final class ClientSelectionCache
 		sizeZ = newSizeZ;
 	}
 	
-	public static List<Entry> getEntries() { return entries; }
-	public static int getSizeX() { return sizeX; }
-	public static int getSizeY() { return sizeY; }
-	public static int getSizeZ() { return sizeZ; }
+	public static List<Entry> getEntries()
+	{
+		return entries;
+	}
+	
+	public static int getSizeX()
+	{
+		return sizeX;
+	}
+	
+	public static int getSizeY()
+	{
+		return sizeY;
+	}
+	
+	public static int getSizeZ()
+	{
+		return sizeZ;
+	}
 }

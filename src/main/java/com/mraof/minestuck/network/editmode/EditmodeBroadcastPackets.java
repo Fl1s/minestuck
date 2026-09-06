@@ -3,6 +3,7 @@ package com.mraof.minestuck.network.editmode;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.computer.editmode.ClientMoveTransitions;
+import com.mraof.minestuck.computer.editmode.EditTools;
 import com.mraof.minestuck.computer.editmode.RemoteEditSessions;
 import com.mraof.minestuck.computer.editmode.ServerEditHandler;
 import com.mraof.minestuck.network.MSPacket;
@@ -212,7 +213,7 @@ public final class EditmodeBroadcastPackets
 				return;
 			
 			BlockPos min = new BlockPos(Math.min(oldPos1.getX(), oldPos2.getX()), Math.min(oldPos1.getY(), oldPos2.getY()), Math.min(oldPos1.getZ(), oldPos2.getZ()));
-			Rotation rot = Rotation.values()[Math.floorMod(rotation, 4)];
+			Rotation rot = EditTools.getRotationFromInt(rotation);
 			
 			List<BlockPos> from = new ArrayList<>();
 			List<BlockPos> to = new ArrayList<>();

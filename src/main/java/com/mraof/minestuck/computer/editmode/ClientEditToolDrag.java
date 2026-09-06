@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.datafixers.util.Pair;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.block.machine.EditmodeDestroyable;
@@ -46,6 +47,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
@@ -64,6 +66,8 @@ import java.util.List;
 @EventBusSubscriber(modid = Minestuck.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class ClientEditToolDrag
 {
+	private static final double DEFLATE_AMOUNT = 0.002;
+	
 	private static boolean moveKeyWasDown = false;
 	private static boolean copyKeyWasDown = false;
 	private static boolean selectKeyWasDown = false;
@@ -134,7 +138,7 @@ public class ClientEditToolDrag
 			{
 				int sizeX = ClientSelectionCache.getSizeX();
 				int sizeZ = ClientSelectionCache.getSizeZ();
-				Rotation rot = Rotation.values()[Math.floorMod(cap.getPreviewRotation(), 4)];
+				Rotation rot = EditTools.getRotationFromInt(cap.getPreviewRotation());
 				BlockPos minCorner = cap.getPreviewAnchor();
 				
 				for(ClientSelectionCache.Entry entry : ClientSelectionCache.getEntries())
@@ -151,7 +155,7 @@ public class ClientEditToolDrag
 			if(!isRemotePreviewRenderable(remote))
 				continue;
 			
-			Rotation rot = Rotation.values()[Math.floorMod(remote.previewRotation, 4)];
+			Rotation rot = EditTools.getRotationFromInt(remote.previewRotation);
 			for(RemoteEditSessions.PreviewEntry entry : remote.previewBlocks)
 			{
 				BlockPos dest = remote.previewAnchor.offset(EditmodeDragPackets.rotateOffset(entry.localOffset(), remote.previewSizeX, remote.previewSizeZ, rot));
@@ -527,30 +531,7 @@ public class ClientEditToolDrag
 		
 		if(moveDown || copyDown)
 		{
-			double distance = cap.getPreviewDistance();
-			if(MSKeyHandler.zoomInKey.isDown())
-				distance += 0.6;
-			if(MSKeyHandler.zoomOutKey.isDown())
-				distance -= 0.6;
-			cap.setPreviewDistance(Mth.clamp(distance, 1.0, MinestuckConfig.CLIENT.toolsDistance.get()));
-			
-			Vec3 eye = player.getEyePosition();
-			Vec3 look = player.getLookAngle();
-			Vec3 target = eye.add(look.scale(cap.getPreviewDistance()));
-			BlockPos aimPoint = BlockPos.containing(target.x, target.y, target.z);
-			
-			Rotation rot = Rotation.values()[Math.floorMod(cap.getPreviewRotation(), 4)];
-			boolean swapXZ = rot == Rotation.CLOCKWISE_90 || rot == Rotation.COUNTERCLOCKWISE_90;
-			int footprintX = swapXZ ? ClientSelectionCache.getSizeZ() : ClientSelectionCache.getSizeX();
-			int footprintZ = swapXZ ? ClientSelectionCache.getSizeX() : ClientSelectionCache.getSizeZ();
-			
-			BlockPos minCorner = aimPoint.offset(-(footprintX / 2), -(ClientSelectionCache.getSizeY() / 2), -(footprintZ / 2));
-			
-			cap.setPreview(copyDown, minCorner);
-			lastAnchor = minCorner;
-			
-			if(ClientEditmodeData.isBroadcastEnabled())
-				PacketDistributor.sendToServer(new EditmodeBroadcastPackets.BroadcastPreviewTransform(true, minCorner, cap.getPreviewRotation(), copyDown));
+			lastAnchor = modifyLastAnchor(player, cap, copyDown);
 		} else
 		{
 			if(ClientEditmodeData.isBroadcastEnabled() && (wasPreviewingMove || wasPreviewingCopy))
@@ -569,6 +550,33 @@ public class ClientEditToolDrag
 		
 		moveKeyWasDown = moveKey.isDown();
 		copyKeyWasDown = copyKey.isDown();
+	}
+	
+	private static @NotNull BlockPos modifyLastAnchor(Player player, EditTools cap, boolean copyDown)
+	{
+		BlockPos lastAnchor;
+		double distance = cap.getPreviewDistance();
+		if(MSKeyHandler.zoomInKey.isDown())
+			distance += 0.6;
+		if(MSKeyHandler.zoomOutKey.isDown())
+			distance -= 0.6;
+		cap.setPreviewDistance(Mth.clamp(distance, 1.0, MinestuckConfig.CLIENT.toolsDistance.get()));
+		
+		Vec3 eye = player.getEyePosition();
+		Vec3 look = player.getLookAngle();
+		Vec3 target = eye.add(look.scale(cap.getPreviewDistance()));
+		BlockPos aimPoint = BlockPos.containing(target.x, target.y, target.z);
+		
+		Pair<Integer, Integer> footprintXZ = EditTools.getRotatedXZ(cap.getPreviewRotation(), ClientSelectionCache.getSizeX(), ClientSelectionCache.getSizeZ());
+		
+		BlockPos minCorner = aimPoint.offset(-(footprintXZ.getFirst() / 2), -(ClientSelectionCache.getSizeY() / 2), -(footprintXZ.getSecond() / 2));
+		
+		cap.setPreview(copyDown, minCorner);
+		lastAnchor = minCorner;
+		
+		if(ClientEditmodeData.isBroadcastEnabled())
+			PacketDistributor.sendToServer(new EditmodeBroadcastPackets.BroadcastPreviewTransform(true, minCorner, cap.getPreviewRotation(), copyDown));
+		return lastAnchor;
 	}
 	
 	public static void clearSelection()
@@ -638,7 +646,7 @@ public class ClientEditToolDrag
 	{
 		BlockPos min = new BlockPos(Math.min(oldPos1.getX(), oldPos2.getX()), Math.min(oldPos1.getY(), oldPos2.getY()), Math.min(oldPos1.getZ(), oldPos2.getZ()));
 		int sizeX = ClientSelectionCache.getSizeX(), sizeZ = ClientSelectionCache.getSizeZ();
-		Rotation rot = Rotation.values()[Math.floorMod(rotation, 4)];
+		Rotation rot = EditTools.getRotationFromInt(rotation);
 		
 		List<BlockPos> from = new ArrayList<>();
 		List<BlockPos> to = new ArrayList<>();
@@ -676,25 +684,22 @@ public class ClientEditToolDrag
 		ItemStack stack = player.getMainHandItem().isEmpty() ? player.getOffhandItem() : player.getMainHandItem();
 		
 		boolean anyBlockEdited = false;
-		for(int x = Math.min(positionStart.getX(), positionEnd.getX()); x <= Math.max(positionStart.getX(), positionEnd.getX()); x++)
+		
+		for(BlockPos pos : BlockPos.betweenClosed(positionStart, positionEnd))
 		{
-			for(int y = Math.min(positionStart.getY(), positionEnd.getY()); y <= Math.max(positionStart.getY(), positionEnd.getY()); y++)
+			ClientPlayerData.ClientCache gristCache = ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE);
+			BlockState blockState = player.level().getBlockState(pos);
+			boolean validNoFill = !fill && !blockState.isAir()
+					&& (gristCache.canAfford(ServerEditHandler.blockBreakCost())
+					|| ClientDeployList.getEntry(blockState.getCloneItemStack(null, player.level(), pos, player)) != null);
+			
+			if(validNoFill)
 			{
-				for(int z = Math.min(positionStart.getZ(), positionEnd.getZ()); z <= Math.max(positionStart.getZ(), positionEnd.getZ()); z++)
-				{
-					BlockPos pos = new BlockPos(x, y, z);
-					if(!fill && !player.level().getBlockState(pos).isAir()
-							&& (ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ServerEditHandler.blockBreakCost())
-							|| ClientDeployList.getEntry(player.level().getBlockState(pos).getCloneItemStack(null, player.level(), pos, player)) != null))
-					{
-						anyBlockEdited = true;
-						
-						player.level().addDestroyBlockEffect(pos, player.level().getBlockState(pos));
-					} else if(fill && player.level().getBlockState(pos).canBeReplaced() && ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ClientEditHandler.itemCost(stack, player.level())))
-					{
-						anyBlockEdited = true;
-					}
-				}
+				anyBlockEdited = true;
+				player.level().addDestroyBlockEffect(pos, blockState);
+			} else if(fill && blockState.canBeReplaced() && gristCache.canAfford(ClientEditHandler.itemCost(stack, player.level())))
+			{
+				anyBlockEdited = true;
 			}
 		}
 		
@@ -793,15 +798,15 @@ public class ClientEditToolDrag
 	public static void renderOutlines(RenderLevelStageEvent event)
 	{
 		Minecraft mc = Minecraft.getInstance();
+		Player player = mc.player;
 		
-		if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS || mc.player == null
-				|| mc.getCameraEntity() != mc.player || !mc.player.isAlive())
+		if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS || player == null
+				|| mc.getCameraEntity() != player || !player.isAlive())
 			return;
 		
 		if(!ClientEditmodeData.isInEditmode() && RemoteEditSessions.allSessions().isEmpty() && !ClientMoveTransitions.hasActive())
 			return;
 		
-		Player player = mc.player;
 		Vec3 camPos = event.getCamera().getPosition();
 		PoseStack poseStack = event.getPoseStack();
 		
@@ -831,14 +836,14 @@ public class ClientEditToolDrag
 		//:1 selection outline
 		if(cap.getSelectionPos1() != null && cap.getSelectionPos2() != null)
 		{
-			AABB selectionBox = boxFromCorners(cap.getSelectionPos1(), cap.getSelectionPos2()).move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
+			AABB selectionBox = boxFromCorners(cap.getSelectionPos1(), cap.getSelectionPos2()).move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
 			drawBoxOutline(poseStack, lineBuffer, selectionBox, 0, 1, 1, 1);
 		}
 		
 		//:2 active drag box outline
 		if(isValidDragTool(cap.getToolMode()) && cap.getEditPos1() != null && cap.getEditPos2() != null)
 		{
-			AABB boundingBox = boxFromCorners(cap.getEditPos1(), cap.getEditPos2()).move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
+			AABB boundingBox = boxFromCorners(cap.getEditPos1(), cap.getEditPos2()).move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
 			
 			float red = cap.getToolMode() == EditTools.ToolMode.RECYCLE ? 1f : (cap.getToolMode() == EditTools.ToolMode.SELECT ? 0.2f : 0f);
 			float green = cap.getToolMode() == EditTools.ToolMode.REVISE ? 1f : (cap.getToolMode() == EditTools.ToolMode.SELECT ? 0.4f : 0f);
@@ -850,25 +855,27 @@ public class ClientEditToolDrag
 		//:3 floating move/copy ghost preview footprint
 		if(cap.isPreviewing() && cap.getPreviewAnchor() != null && !ClientSelectionCache.getEntries().isEmpty())
 		{
-			int sizeX = ClientSelectionCache.getSizeX();
-			int sizeY = ClientSelectionCache.getSizeY();
-			int sizeZ = ClientSelectionCache.getSizeZ();
-			Rotation rot = Rotation.values()[Math.floorMod(cap.getPreviewRotation(), 4)];
-			BlockPos minCorner = cap.getPreviewAnchor();
-			
-			boolean swapXZ = rot == Rotation.CLOCKWISE_90 || rot == Rotation.COUNTERCLOCKWISE_90;
-			int footprintX = swapXZ ? sizeZ : sizeX;
-			int footprintZ = swapXZ ? sizeX : sizeZ;
-			
-			float r = cap.isPreviewCopy() ? 0.1f : 1f;
-			float g = cap.isPreviewCopy() ? 0.85f : 0.75f;
-			float b = cap.isPreviewCopy() ? 0.75f : 0f;
-			
-			AABB footprintBox = new AABB(minCorner.getX(), minCorner.getY(), minCorner.getZ(),
-					minCorner.getX() + footprintX, minCorner.getY() + sizeY, minCorner.getZ() + footprintZ)
-					.move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
-			drawBoxOutline(poseStack, lineBuffer, footprintBox, r, g, b, 1f);
+			ghostPreviewFootprint(poseStack, lineBuffer, camPos, cap);
 		}
+	}
+	
+	private static void ghostPreviewFootprint(PoseStack poseStack, VertexConsumer lineBuffer, Vec3 camPos, EditTools cap)
+	{
+		int sizeX = ClientSelectionCache.getSizeX();
+		int sizeY = ClientSelectionCache.getSizeY();
+		int sizeZ = ClientSelectionCache.getSizeZ();
+		BlockPos minCorner = cap.getPreviewAnchor();
+		
+		Pair<Integer, Integer> footprintXZ = EditTools.getRotatedXZ(cap.getPreviewRotation(), sizeX, sizeZ);
+		
+		float r = cap.isPreviewCopy() ? 0.1f : 1f;
+		float g = cap.isPreviewCopy() ? 0.85f : 0.75f;
+		float b = cap.isPreviewCopy() ? 0.75f : 0f;
+		
+		AABB footprintBox = new AABB(minCorner.getX(), minCorner.getY(), minCorner.getZ(),
+				minCorner.getX() + footprintXZ.getFirst(), minCorner.getY() + sizeY, minCorner.getZ() + footprintXZ.getSecond())
+				.move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
+		drawBoxOutline(poseStack, lineBuffer, footprintBox, r, g, b, 1f);
 	}
 	
 	private static void renderMoveTransitionOutlines(PoseStack poseStack, VertexConsumer lineBuffer, Vec3 camPos)
@@ -886,13 +893,13 @@ public class ClientEditToolDrag
 		{
 			if(remote.selectionActive && remote.selectionPos1 != null && remote.selectionPos2 != null)
 			{
-				AABB box = boxFromCorners(remote.selectionPos1, remote.selectionPos2).move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
+				AABB box = boxFromCorners(remote.selectionPos1, remote.selectionPos2).move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
 				drawBoxOutline(poseStack, lineBuffer, box, 0, 1, 1, 1);
 			}
 			
 			if(remote.dragActive && remote.dragPos1 != null && remote.dragPos2 != null)
 			{
-				AABB box = boxFromCorners(remote.dragPos1, remote.dragPos2).move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
+				AABB box = boxFromCorners(remote.dragPos1, remote.dragPos2).move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
 				float red = remote.toolKind == 1 ? 1f : (remote.toolKind == 2 ? 0.2f : 0f);
 				float green = remote.toolKind == 0 ? 1f : (remote.toolKind == 2 ? 0.4f : 0f);
 				float blue = remote.toolKind == 2 ? 1f : 0f;
@@ -901,18 +908,15 @@ public class ClientEditToolDrag
 			
 			if(isRemotePreviewRenderable(remote))
 			{
-				Rotation rot = Rotation.values()[Math.floorMod(remote.previewRotation, 4)];
-				boolean swapXZ = rot == Rotation.CLOCKWISE_90 || rot == Rotation.COUNTERCLOCKWISE_90;
-				int footprintX = swapXZ ? remote.previewSizeZ : remote.previewSizeX;
-				int footprintZ = swapXZ ? remote.previewSizeX : remote.previewSizeZ;
+				Pair<Integer, Integer> footprintXZ = EditTools.getRotatedXZ(remote.previewRotation, remote.previewSizeX, remote.previewSizeZ);
 				
 				float r = remote.previewIsCopy ? 0.1f : 1f;
 				float g = remote.previewIsCopy ? 0.85f : 0.75f;
 				float b = remote.previewIsCopy ? 0.75f : 0f;
 				
 				AABB footprintBox = new AABB(remote.previewAnchor.getX(), remote.previewAnchor.getY(), remote.previewAnchor.getZ(),
-						remote.previewAnchor.getX() + footprintX, remote.previewAnchor.getY() + remote.previewSizeY, remote.previewAnchor.getZ() + footprintZ)
-						.move(-camPos.x, -camPos.y, -camPos.z).deflate(0.002);
+						remote.previewAnchor.getX() + footprintXZ.getFirst(), remote.previewAnchor.getY() + remote.previewSizeY, remote.previewAnchor.getZ() + footprintXZ.getSecond())
+						.move(-camPos.x, -camPos.y, -camPos.z).deflate(DEFLATE_AMOUNT);
 				drawBoxOutline(poseStack, lineBuffer, footprintBox, r, g, b, 1f);
 			}
 		}
@@ -925,9 +929,13 @@ public class ClientEditToolDrag
 				Math.max(a.getX(), b.getX()) + 1, Math.max(a.getY(), b.getY()) + 1, Math.max(a.getZ(), b.getZ()) + 1);
 	}
 	
-	//taken directly from machineOutlineRenderer's drawPhernaliaPlacementOutline function, which was taken from LevelRenderer's drawShape function
-	private static void drawReviseToolOutline(PoseStack poseStack, VertexConsumer bufferIn, VoxelShape shapeIn, double xIn, double yIn, double zIn, float red, float green, float blue, float alpha)
+	/**
+	 * Code based on drawPhernaliaPlacementOutline() in {@link com.mraof.minestuck.client.renderer.MachineOutlineRenderer}, which was based on drawShape() in {@link net.minecraft.client.renderer.LevelRenderer}
+	 */
+	private static void drawBoxOutline(PoseStack poseStack, VertexConsumer buffer, AABB box, float r, float g, float b, float a)
 	{
+		VoxelShape shapeIn = Shapes.create(box);
+		
 		PoseStack.Pose pose = poseStack.last();
 		Matrix4f matrix4f = pose.pose();
 		shapeIn.forAllEdges((startX, startY, startZ, endX, endY, endZ) -> {
@@ -938,18 +946,13 @@ public class ClientEditToolDrag
 			dX /= length;
 			dY /= length;
 			dZ /= length;
-			bufferIn.addVertex(matrix4f, (float) (startX + xIn), (float) (startY + yIn), (float) (startZ + zIn))
-					.setColor(red, green, blue, alpha)
+			buffer.addVertex(matrix4f, (float) (startX), (float) (startY), (float) (startZ))
+					.setColor(r, g, b, a)
 					.setNormal(pose, dX, dY, dZ);
-			bufferIn.addVertex(matrix4f, (float) (endX + xIn), (float) (endY + yIn), (float) (endZ + zIn))
-					.setColor(red, green, blue, alpha)
+			buffer.addVertex(matrix4f, (float) (endX), (float) (endY), (float) endZ)
+					.setColor(r, g, b, a)
 					.setNormal(pose, dX, dY, dZ);
 		});
-	}
-	
-	private static void drawBoxOutline(PoseStack poseStack, VertexConsumer buffer, AABB box, float r, float g, float b, float a)
-	{
-		drawReviseToolOutline(poseStack, buffer, Shapes.create(box), 0, 0, 0, r, g, b, a);
 	}
 	
 	public static void cancelClickSessions()

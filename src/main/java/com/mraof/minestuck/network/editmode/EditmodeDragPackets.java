@@ -1,5 +1,6 @@
 package com.mraof.minestuck.network.editmode;
 
+import com.mojang.datafixers.util.Pair;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.alchemy.GristHelper;
@@ -249,9 +250,10 @@ public final class EditmodeDragPackets
 			target.add(amount.type(), amount.amount() * count);
 	}
 	
-	private static void executeSelectionTransfer(ServerPlayer player, EditData data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, Rotation rotation)
+	private static void executeSelectionTransfer(ServerPlayer player, EditData data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, int rotationInt)
 	{
 		Level level = player.level();
+		Rotation rotation = EditTools.getRotationFromInt(rotationInt);
 		
 		BlockPos min = new BlockPos(Math.min(corner1.getX(), corner2.getX()), Math.min(corner1.getY(), corner2.getY()), Math.min(corner1.getZ(), corner2.getZ()));
 		BlockPos max = new BlockPos(Math.max(corner1.getX(), corner2.getX()), Math.max(corner1.getY(), corner2.getY()), Math.max(corner1.getZ(), corner2.getZ()));
@@ -520,13 +522,11 @@ public final class EditmodeDragPackets
 		
 		if(isCopy)
 		{
-			boolean swapXZ = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
-			int rotatedSizeX = swapXZ ? sizeZ : sizeX;
-			int rotatedSizeZ = swapXZ ? sizeX : sizeZ;
+			Pair<Integer, Integer> rotatedXZ = EditTools.getRotatedXZ(rotation, sizeX, sizeZ);
 			int sizeY = max.getY() - min.getY() + 1;
 			
 			BlockPos newMin = anchor;
-			BlockPos newMax = anchor.offset(rotatedSizeX - 1, sizeY - 1, rotatedSizeZ - 1);
+			BlockPos newMax = anchor.offset(rotatedXZ.getFirst() - 1, sizeY - 1, rotatedXZ.getSecond() - 1);
 			PacketDistributor.sendToPlayer(player, new ServerEditPackets.SelectionUpdate(false, newMin, newMax));
 			
 			if(MinestuckConfig.SERVER.visualsToOthers.get())
@@ -594,7 +594,7 @@ public final class EditmodeDragPackets
 			EditData data = ServerEditHandler.getData(player);
 			if(data == null)
 				return;
-			executeSelectionTransfer(player, data, corner1, corner2, anchor, false, Rotation.values()[Math.floorMod(rotation, 4)]);
+			executeSelectionTransfer(player, data, corner1, corner2, anchor, false, rotation);
 		}
 	}
 	
@@ -622,7 +622,7 @@ public final class EditmodeDragPackets
 			EditData data = ServerEditHandler.getData(player);
 			if(data == null)
 				return;
-			executeSelectionTransfer(player, data, corner1, corner2, anchor, true, Rotation.values()[Math.floorMod(rotation, 4)]);
+			executeSelectionTransfer(player, data, corner1, corner2, anchor, true, rotation);
 		}
 	}
 	

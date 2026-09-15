@@ -237,7 +237,8 @@ public final class SburbHandler
 			// Player may not be able to enter
 			// Could be an item that just implements it separately, keep it just in case
 			// Could also be a mistake by the person who added it to the minestuck:cruxite_artifacts tag
-			LOGGER.warn("Random artifact {} for player {} is not of CruxiteArtifactItem class, keeping it in case it still works", artifact.get(), playerData.playerId().getPlayer(mcServer).getName());
+			// Worst case scenario, edit the player's data in minestuck_skaianet.nbt
+			LOGGER.warn("Random artifact {} for player {} does not extend CruxiteArtifactItem class, keeping it in case it is implemented in its own way", artifact.get(), playerData.playerId().getPlayer(mcServer).getName());
 			playerData.artifactType = new ItemStack(artifact.get(), 1);
 		}
 		else

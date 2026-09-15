@@ -9,6 +9,8 @@ import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.network.computer.SkaianetInfoPackets;
 import com.mraof.minestuck.player.IdentifierHandler;
 import com.mraof.minestuck.player.PlayerIdentifier;
+
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -43,7 +45,7 @@ public final class SburbPlayerData
 	private boolean hasEntered = false;
 	@Nullable
 	private ResourceKey<Level> landKey;
-	ArtifactType artifactType;
+	ItemStack artifactType;
 	private GristType baseGrist;
 	
 	private final Set<String> givenItemList = new HashSet<>();
@@ -56,7 +58,7 @@ public final class SburbPlayerData
 		this.mcServer = mcServer;
 	}
 	
-	void read(CompoundTag tag)
+	void read(CompoundTag tag, HolderLookup.Provider pRegistries)
 	{
 		if(tag.contains("inventory", Tag.TAG_LIST))
 			this.lastEditmodeInventory = tag.getList("inventory", Tag.TAG_COMPOUND);
@@ -72,12 +74,19 @@ public final class SburbPlayerData
 			this.hasEntered = tag.getBoolean("has_entered");
 		}
 		
-		this.artifactType = ArtifactType.fromInt(tag.getInt("artifact"));
+		if(tag.contains("artifact", Tag.TAG_INT))
+		{
+			this.artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
+		}
+		else
+		{
+			this.artifactType = ItemStack.parseOptional(pRegistries, tag);
+		}
 		this.baseGrist = GristHelper.parseGristType(tag.get("base_grist"))
 				.orElseGet(() -> SburbHandler.generateGristType(new Random()));
 	}
 	
-	void write(CompoundTag tag)
+	void write(CompoundTag tag, HolderLookup.Provider pRegistries)
 	{
 		if(this.lastEditmodeInventory != null)
 			tag.put("inventory", this.lastEditmodeInventory);
@@ -94,11 +103,11 @@ public final class SburbPlayerData
 			tag.putBoolean("has_entered", this.hasEntered);
 		}
 		
-		tag.putInt("artifact", this.artifactType.ordinal());
+		tag.put("artifact", this.artifactType.save(pRegistries));
 		tag.put("base_grist", GristHelper.encodeGristType(this.baseGrist));
 	}
 	
-	void readOldData(CompoundTag tag)
+	void readOldData(CompoundTag tag, HolderLookup.Provider pRegistries)
 	{
 		if(tag.contains("Inventory", Tag.TAG_LIST))
 			lastEditmodeInventory = tag.getList("Inventory", Tag.TAG_COMPOUND);
@@ -116,7 +125,14 @@ public final class SburbPlayerData
 			hasEntered = tag.getBoolean("has_entered");
 		}
 		
-		artifactType = ArtifactType.fromInt(tag.getInt("artifact"));
+		if(tag.contains("artifact", Tag.TAG_INT))
+		{
+			artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
+		}
+		else
+		{
+			artifactType = ItemStack.parseOptional(pRegistries, tag);
+		}
 		baseGrist = GristHelper.parseGristType(tag.get("base_grist"))
 				.orElseGet(() -> SburbHandler.generateGristType(new Random()));
 	}
@@ -252,6 +268,7 @@ public final class SburbPlayerData
 		return SkaianetData.get(mcServer).allPlayerData().stream().filter(data -> data.getLandDimension() == level).findAny();
 	}
 	
+	@Deprecated 
 	enum ArtifactType {
 		APPLE(MSItems.CRUXITE_APPLE),
 		POTION(MSItems.CRUXITE_POTION);

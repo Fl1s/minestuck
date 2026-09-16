@@ -11,12 +11,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Terrain Flatenator can now flatten terrain
 - Computer themes can have custom buttons
 - Anomalocaris hat and alien boppers
+- New Cruxite Artifacts (Shears, Disk, Disc)
 
 ### Changed
 
 - Laptops can now be picked up
 - The range at which the Kernelsprite detects and travels to blocks has increased
 - Data checker is now available to everyone by default and has been visually overhauled
+- The Cruxite Artifacts now controls valid artifacts for entry
 
 ### Fixed
 

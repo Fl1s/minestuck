@@ -12,6 +12,7 @@ import com.mraof.minestuck.item.armor.MSArmorItem;
 import com.mraof.minestuck.item.armor.GeoArmorItem;
 import com.mraof.minestuck.item.artifact.CruxiteAppleItem;
 import com.mraof.minestuck.item.artifact.CruxitePotionItem;
+import com.mraof.minestuck.item.artifact.CruxiteShearsItem;
 import com.mraof.minestuck.item.block.*;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.item.components.PosterComponent;
@@ -482,6 +483,8 @@ public class MSItems
 	
 	public static final DeferredItem<Item> CRUXITE_APPLE = REGISTER.register("cruxite_apple", () -> new CruxiteAppleItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 	public static final DeferredItem<Item> CRUXITE_POTION = REGISTER.register("cruxite_potion", () -> new CruxitePotionItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+	public static final DeferredItem<Item> CRUXITE_SHEARS = REGISTER.register("cruxite_shears", () -> new CruxiteShearsItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+	//TODO cruxite disk (enters on use on computer), cruxite disc (enters on use on jukebox)
 	
 	public static final DeferredItem<Item> SBURB_CODE = REGISTER.register("sburb_code", () -> new IncompleteSburbCodeItem(new Item.Properties().stacksTo(1)));
 	public static final DeferredItem<Item> COMPLETED_SBURB_CODE = REGISTER.register("completed_sburb_code", () -> new ReadableSburbCodeItem.Completed(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));

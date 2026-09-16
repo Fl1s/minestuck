@@ -22,7 +22,7 @@ public final class ColorHandler
     public static void onItemColors(RegisterColorHandlersEvent.Item event)
     {
         event.register((stack, tintIndex) -> BlockColorCruxite.handleColorTint(com.mraof.minestuck.util.ColorHandler.getColorFromStack(stack), tintIndex),
-                MSBlocks.CRUXITE_DOWEL.get(), MSItems.CRUXITE_APPLE.get(), MSItems.CRUXITE_POTION.get());
+                MSBlocks.CRUXITE_DOWEL.get(), MSItems.CRUXITE_APPLE.get(), MSItems.CRUXITE_POTION.get(), MSItems.CRUXITE_SHEARS.get());
         event.register(new FrogItemColor(), MSItems.FROG.get());
     }
     

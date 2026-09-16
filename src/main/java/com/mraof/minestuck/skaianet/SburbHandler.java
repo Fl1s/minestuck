@@ -232,17 +232,14 @@ public final class SburbHandler
 			LOGGER.error("Failed to generate an artifact for player {}, defaulting to Cruxite Apple",  playerData.playerId().getPlayer(mcServer).getName());
 			playerData.artifactType = MSItems.CRUXITE_APPLE.toStack();
 		}
-		else if (!(artifact.get().value() instanceof CruxiteArtifactItem))
-		{
-			// Player may not be able to enter
-			// Could be an item that just implements it separately, keep it just in case
-			// Could also be a mistake by the person who added it to the minestuck:cruxite_artifacts tag
-			// Worst case scenario, edit the player's data in minestuck_skaianet.nbt
-			LOGGER.warn("Random artifact {} for player {} does not extend CruxiteArtifactItem class, keeping it in case it is implemented in its own way", artifact.get(), playerData.playerId().getPlayer(mcServer).getName());
-			playerData.artifactType = new ItemStack(artifact.get(), 1);
-		}
 		else
 		{
+			if(!(artifact.get().value() instanceof CruxiteArtifactItem))
+				// Player may not be able to enter
+				// Could be an item that just implements it separately, keep it just in case
+				// Could also be a mistake by the person who added it to the minestuck:cruxite_artifacts tag
+				// Worst case scenario, edit the player's data in minestuck_skaianet.nbt
+				LOGGER.warn("Random artifact {} for player {} does not extend CruxiteArtifactItem class, keeping it in case it is implemented in its own way", artifact.get(), playerData.playerId().getPlayer(mcServer).getName());
 			playerData.artifactType = new ItemStack(artifact.get(), 1);
 		}
 		playerData.setBaseGrist(generateGristType(rand));

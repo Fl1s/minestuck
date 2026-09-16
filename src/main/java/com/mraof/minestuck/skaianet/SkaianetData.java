@@ -22,6 +22,7 @@ import java.util.*;
 
 /**
  * This class is the centerpoint of various sburb-related data, which all goes in the "minestuck_skaianet.dat" data file.
+ *
  * @author kirderf1
  */
 @ParametersAreNonnullByDefault
@@ -129,6 +130,7 @@ public final class SkaianetData extends SavedData
 	
 	/**
 	 * Gets/creates an instance of predefine data for the given player.
+	 *
 	 * @return An empty optional if data can no longer be predefined for this player.
 	 */
 	public Optional<PredefineData> getOrCreatePredefineData(PlayerIdentifier player)
@@ -157,7 +159,7 @@ public final class SkaianetData extends SavedData
 		predefineData.remove(player);
 	}
 	
-	private static final String DATA_NAME = Minestuck.MOD_ID+"_skaianet";
+	private static final String DATA_NAME = Minestuck.MOD_ID + "_skaianet";
 	
 	public static SkaianetData get(MinecraftServer server)
 	{

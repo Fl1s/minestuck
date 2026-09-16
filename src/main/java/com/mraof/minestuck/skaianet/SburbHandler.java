@@ -229,10 +229,9 @@ public final class SburbHandler
 		if(artifact.isEmpty())
 		{
 			// Check the minestuck:cruxite_artifacts tag if this happens, it might be empty or invalid
-			LOGGER.error("Failed to generate an artifact for player {}, defaulting to Cruxite Apple",  playerData.playerId().getPlayer(mcServer).getName());
+			LOGGER.error("Failed to generate an artifact for player {}, defaulting to Cruxite Apple", playerData.playerId().getPlayer(mcServer).getName());
 			playerData.artifactType = MSItems.CRUXITE_APPLE.toStack();
-		}
-		else
+		} else
 		{
 			if(!(artifact.get().value() instanceof CruxiteArtifactItem))
 				// Player may not be able to enter

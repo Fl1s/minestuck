@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 
 /**
  * Contains various player-specific data that were originally stored in {@code SburbConnection}.
+ *
  * @author kirderf1
  */
 public final class SburbPlayerData
@@ -77,8 +78,7 @@ public final class SburbPlayerData
 		if(tag.contains("artifact", Tag.TAG_INT))
 		{
 			this.artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
-		}
-		else
+		} else
 		{
 			this.artifactType = ItemStack.parseOptional(pRegistries, tag);
 		}
@@ -128,8 +128,7 @@ public final class SburbPlayerData
 		if(tag.contains("artifact", Tag.TAG_INT))
 		{
 			artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
-		}
-		else
+		} else
 		{
 			artifactType = ItemStack.parseOptional(pRegistries, tag);
 		}
@@ -268,8 +267,9 @@ public final class SburbPlayerData
 		return SkaianetData.get(mcServer).allPlayerData().stream().filter(data -> data.getLandDimension() == level).findAny();
 	}
 	
-	@Deprecated 
-	enum ArtifactType {
+	@Deprecated
+	enum ArtifactType
+	{
 		APPLE(MSItems.CRUXITE_APPLE),
 		POTION(MSItems.CRUXITE_POTION);
 		

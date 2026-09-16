@@ -77,6 +77,7 @@ public final class Session
 	
 	/**
 	 * Creates a list with all players in the session.
+	 *
 	 * @return Returns a list with the players identifiers.
 	 */
 	public Set<PlayerIdentifier> getPlayers()
@@ -160,7 +161,7 @@ public final class Session
 		}
 		
 		double gutterMultiplier = newSession.gutter.gutterMultiplierForSession();
-		MutableGristSet takenGrist = this.gutter.takeFraction(gutterMultiplier/originalGutterMultiplier);
+		MutableGristSet takenGrist = this.gutter.takeFraction(gutterMultiplier / originalGutterMultiplier);
 		newSession.gutter.addGristFrom(takenGrist);
 		
 		return newSession;

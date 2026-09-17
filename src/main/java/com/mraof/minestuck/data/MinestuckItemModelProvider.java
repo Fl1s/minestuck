@@ -620,6 +620,7 @@ public class MinestuckItemModelProvider extends ItemModelProvider
 		cruxiteArtifact(MSItems.CRUXITE_POTION);
 		cruxiteArtifact(MSItems.CRUXITE_SHEARS);
 		cruxiteArtifact(MSItems.CRUXITE_DISK);
+		cruxiteArtifact(MSItems.CRUXITE_DISC);
 		
 		//Music Discs/Cassettes
 		simpleItem(MSItems.MUSIC_DISC_EMISSARY_OF_DANCE, "record_emissary");

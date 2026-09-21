@@ -162,7 +162,7 @@ public class EcheladderScreen extends PlayerStatsScreen
 		float scrollPercentage = (float) scroll / maxScroll;
 		guiGraphics.blit(guiEcheladder, xOffset + 86, (int) (yOffset + 42 + (130F * (1F - scrollPercentage))), 0, 243, 7, 13);
 		
-		if (MinestuckConfig.CLIENT.echeladderPlayerFrameBorders.get())
+		if (!MinestuckConfig.CLIENT.echeladderPlayerFrameBorders.get())
 		{
 			renderPlayerBeyondBorders(guiGraphics, mouseX, mouseY);
 		} else {

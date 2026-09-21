@@ -59,7 +59,7 @@ public class MinestuckConfig
 			echeladderAnimation = builder.comment("Allows control of standard speed for the echeladder rung \"animation\", or if it should have one in the first place.")
 					.defineEnum("echeladderAnimation", AnimationSpeed.NORMAL);
 			echeladderPlayerFrameBorders = builder.comment("Determines whether a player model on the echeladder screen would render beyond or within the borders.")
-					.define("echeladderPlayerFrameBorders", true);
+					.define("echeladderPlayerFrameBorders", false);
 			npcDialogueTextColors = builder.comment("Determines whether an NPC will use their custom formatted color value when talking in a dialogue screen.")
 					.define("npcDialogueTextColors", true);
 			builder.pop();

@@ -138,7 +138,6 @@ public class TorrentSession
 				TorrentHelper.handleTorrent(torrentSession, server);
 			}
 			sendOutUpdates(sessions, server);
-//			TorrentHelper.debugStuff(server, data);
 		}
 	}
 	

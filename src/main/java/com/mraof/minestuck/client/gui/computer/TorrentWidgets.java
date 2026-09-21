@@ -661,8 +661,7 @@ public class TorrentWidgets
 			
 			//down
 			MutableComponent downText = speedAppend(typeDownSpeedRange.getFirst());
-//		.append(" - ").append(speedAppend(typeDownSpeedRange.getSecond()))
-			
+		
 			guiGraphics.drawString(font, downText, scale(getX() + 21), scale(getY() + TEXT_Y_OFFSET), GristTorrentGui.LIGHT_BLUE, false);
 			
 			//up
@@ -795,7 +794,6 @@ public class TorrentWidgets
 		{
 			double relativeY = mouseY - getY();
 
-//			int index = (int) (mouseY - getY() - 5) / ROW_HEIGHT;
 			int index = (int) (relativeY - 5) / ROW_HEIGHT;
 			GristTorrentGui.TorrentFilter[] filters = GristTorrentGui.TorrentFilter.values();
 			if(index >= 0 && index < filters.length)

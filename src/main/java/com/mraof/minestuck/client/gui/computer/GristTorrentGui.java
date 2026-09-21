@@ -205,7 +205,6 @@ public final class GristTorrentGui extends Screen implements ProgramGui<ProgramT
 			gatesContainer.setPlayers(visibleTorrentData);
 			statsContainer.trackDownloads();
 			
-			//TODO update gutter bar data
 			if(!gutterGrist.equals(previousGutterGrist))
 			{
 				updateGutterBars();

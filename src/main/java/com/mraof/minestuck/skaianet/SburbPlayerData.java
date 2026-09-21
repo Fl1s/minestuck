@@ -80,7 +80,7 @@ public final class SburbPlayerData
 			this.artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
 		} else
 		{
-			this.artifactType = ItemStack.parseOptional(pRegistries, tag);
+			this.artifactType = ItemStack.parseOptional(pRegistries, tag.getCompound("artifact"));
 		}
 		this.baseGrist = GristHelper.parseGristType(tag.get("base_grist"))
 				.orElseGet(() -> SburbHandler.generateGristType(new Random()));
@@ -103,7 +103,8 @@ public final class SburbPlayerData
 			tag.putBoolean("has_entered", this.hasEntered);
 		}
 		
-		tag.put("artifact", this.artifactType.save(pRegistries));
+		if(!artifactType.isEmpty())
+			tag.put("artifact", this.artifactType.save(pRegistries));
 		tag.put("base_grist", GristHelper.encodeGristType(this.baseGrist));
 	}
 	
@@ -130,7 +131,7 @@ public final class SburbPlayerData
 			artifactType = ArtifactType.fromInt(tag.getInt("artifact")).createItemStack();
 		} else
 		{
-			artifactType = ItemStack.parseOptional(pRegistries, tag);
+			artifactType = ItemStack.parseOptional(pRegistries, tag.getCompound("artifact"));
 		}
 		baseGrist = GristHelper.parseGristType(tag.get("base_grist"))
 				.orElseGet(() -> SburbHandler.generateGristType(new Random()));

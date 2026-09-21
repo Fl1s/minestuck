@@ -225,7 +225,7 @@ public final class SburbHandler
 	{
 		Random rand = new Random();    //TODO seed?
 		Registry<Item> itemRegistry = mcServer.getLevel(Level.OVERWORLD).registryAccess().registryOrThrow(Registries.ITEM);
-		Optional<Holder<Item>> artifact = itemRegistry.getRandomElementOf(MSTags.Items.CRUXITE_ARTIFACTS, playerData.playerId().getPlayer(mcServer).getRandom());
+		Optional<Holder<Item>> artifact = itemRegistry.getRandomElementOf(MSTags.Items.CRUXITE_ARTIFACTS, mcServer.getLevel(Level.OVERWORLD).getRandom());
 		if(artifact.isEmpty())
 		{
 			// Check the minestuck:cruxite_artifacts tag if this happens, it might be empty or invalid

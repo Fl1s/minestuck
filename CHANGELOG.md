@@ -6,17 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Terrain Flatenator can now flatten terrain
+- Computer themes can have custom buttons
+- Anomalocaris hat and alien boppers
+
+### Changed
+
+- Laptops can now be picked up
+- The range at which the Kernelsprite detects and travels to blocks has increased
+- Data checker is now available to everyone by default and has been visually overhauled
+
+### Fixed
+
+- Fixed server tick crash related to kernelsprite dialogue
+- Fixed certain block not being in their relevant tag
+- Fixed items sometimes disappearing when closing the sylladex
+
+### Contributors for this release
+
+- Fl1s, Dweblenod, medsal15, Emma "Dilemma"
+
+## [1.21.1-1.14.0.1] - 2026-06-01
+
+### Added
+
+- Language files for biomes and dimensions
+
 ### Changed
 
 - Players now cannot captchalogue items if they contain certain nested item components. This replaces the bugged maximum data system introduced in the last update
+- Uranium fuel is now data driven
+- Uranium power is now a neoforge capability, add-ons will have to update their machines
+- Weapons with additionnal knockback now use the Attack Knockback attribute
+- Cakemix now spawning in supply chests and much more often in The Land of Desserts
 
 ### Fixed
 
 - Fixed players starting off with no captcha cards
+- Fixed a dupe exploit with a fully sylladex
+- Fixed client side crash when trying to widget a captcha card holding another captcha card
 
 ### Contributors for this release
 
-- Dweblenod
+- Dweblenod, medsal15, Fl1s
 
 ## [1.21.1-1.14.0.0] - 2026-04-13
 

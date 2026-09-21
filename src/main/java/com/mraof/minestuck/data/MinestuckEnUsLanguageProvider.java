@@ -31,6 +31,7 @@ import com.mraof.minestuck.computer.theme.MSComputerThemes;
 import com.mraof.minestuck.data.dialogue.DialogueProvider;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.entity.LotusFlowerEntity;
+import com.mraof.minestuck.entity.MSAttributes;
 import com.mraof.minestuck.entity.MSEntityTypes;
 import com.mraof.minestuck.entity.dialogue.Dialogue;
 import com.mraof.minestuck.entry.EntryProcess;
@@ -1538,6 +1539,10 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addItem(MSItems.AMPHIBEANIE, "Amphibeanie");
 		addItem(MSItems.NOSTRILDAMUS, "Nostrildamus");
 		addItem(MSItems.PONYTAIL, "Ponytail");
+		addItem(MSItems.ANOMALOCARIS_HAT, "Anomalocaris Hat");
+		addItemTooltip(MSItems.ANOMALOCARIS_HAT, "An anomalocaris does their best!");
+		addItem(MSItems.ALIEN_BOPPERS, "Alien Boppers");
+		addItemTooltip(MSItems.ALIEN_BOPPERS, "They call outwards to the stars, signaling a message of friendliness.");
 		addItem(MSItems.BOONDOLLARS, "Boondollars");
 		addItemExtra(MSItems.BOONDOLLARS, "amount", "Amount: %s");
 		addItem(MSItems.RAW_CRUXITE, "Raw Cruxite");
@@ -2219,13 +2224,34 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addLand(TowersLandType.TOWERS, "Towers");
 		add(LandTypePair.FORMAT, "Land of %s and %s");
 		add(SburbHandler.CHAT_LAND_ENTRY, "Welcome to %s.");
+		addDimension("skaia", "The Battlefield");
+		addDimension("veil", "The Veil");
+		addDimension("prospit", "Prospit");
+		addDimension("derse", "Derse");
+		addBiome("skaia", "The Battlefield");
+		addBiome("veil", "The Veil");
+		addBiome("prospit", "Prospit");
+		addBiome("derse", "Derse");
+		addBiome("land_default_ocean", "Land Ocean");
+		addBiome("land_default_normal", "Land Normal");
+		addBiome("land_default_rough", "Land Rough");
+		addBiome("land_high_humid_ocean", "Land Ocean");
+		addBiome("land_high_humid_normal", "Land Normal");
+		addBiome("land_high_humid_rough", "Land Rough");
+		addBiome("land_no_rain_ocean", "Land Ocean");
+		addBiome("land_no_rain_normal", "Land Normal");
+		addBiome("land_no_rain_rough", "Land Rough");
+		addBiome("land_snow_ocean", "Land Ocean");
+		addBiome("land_snow_normal", "Land Normal");
+		addBiome("land_snow_rough", "Land Rough");
 		
 		addEffect(MSEffects.CREATIVE_SHOCK, "Creative Shock");
-		addEffectDescription(MSEffects.CREATIVE_SHOCK, "Prevents various actions depending on the level:\n" +
-				"- Level I: Prevents placing and mining blocks\n" +
-				"- Level II: Prevents opening redstone machinery GUIs\n" +
-				"- Level III: Prevents usage of some mobility items\n" +
-				"- Levels IV, V, and VI apply level I, II, and III respectively to creative players"
+		addEffectDescription(MSEffects.CREATIVE_SHOCK, """
+				Prevents various actions depending on the level:
+				- Level I: Prevents placing and mining blocks
+				- Level II: Prevents opening redstone machinery GUIs
+				- Level III: Prevents usage of some mobility items
+				- Levels IV, V, and VI apply level I, II, and III respectively to creative players"""
 		);
 		addEffect(MSEffects.SUSPICION, "Suspicion");
 		addEffectDescription(MSEffects.SUSPICION, "Pushes entities away and prevents them from riding or being ridden.");
@@ -2644,5 +2670,9 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addPainting("spades", "Spades", "kirderf1");
 		addPainting("diamonds", "Diamonds", "kirderf1");
 		addPainting("hearts", "Hearts", "kirderf1");
+		
+		addAttribute(MSAttributes.CAPTCHALOGUE_CAPACITY, "Captchalogue Capacity");
+		addAttribute(MSAttributes.UNDERLING_DAMAGE_MODIFIER, "Damage Against Underlings");
+		addAttribute(MSAttributes.UNDERLING_PROTECTION_MODIFIER, "Damage From Underlings");
 	}
 }

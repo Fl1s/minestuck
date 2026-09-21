@@ -156,6 +156,8 @@ public abstract class PlayerStatsContainerScreen<T extends AbstractContainerMenu
 	{
 		if(MSKeyHandler.statKey.isActiveAndMatches(InputConstants.getKey(keyCode, scanCode)))
 		{
+			if(mode)
+				this.onClose();
 			minecraft.setScreen(null);
 			return true;
 		}

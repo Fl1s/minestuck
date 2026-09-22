@@ -36,8 +36,7 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 	private static final EntityDataAccessor<BlockPos> TARGET_POS = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BLOCK_POS);
 	private static final EntityDataAccessor<Boolean> IN_DASH_PHASE = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Integer> TICKS_ELAPSED = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.INT);
-	public static final double MAX_WORLD_HEIGHT_LIMIT = 380.0;
-	public static final double HEIGHT_ABOVE_TARGET = 300.0;
+	public static final double HEIGHT_ABOVE_TARGET = 1000.0;
 	
 	private BlockPos targetPos = BlockPos.ZERO;
 	private PlayerIdentifier owner;
@@ -113,22 +112,12 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 		
 		Vec3 target = Vec3.atCenterOf(targetPos);
 		double startHeightY = getSpawnHeightY(targetPos);
+		double totalDistance = startHeightY - target.y;
 		
-		if(!dashPhase)
-		{
-			setPos(target.x, startHeightY, target.z);
-		} else
-		{
-			int remainingTicks = Math.max(1, MeteorManager.TOTAL_TICKS - ticksElapsed);
-			double currentY = this.getY();
-			double remainingDistance = currentY - target.y;
-			double newY = currentY - remainingDistance / remainingTicks;
-			
-			if(newY < target.y) newY = target.y;
-			
-			setPos(target.x, newY, target.z);
-		}
+		float progress = getUnifiedProgress(ticksElapsed);
+		double newY = startHeightY - totalDistance * progress;
 		
+		setPos(target.x, newY, target.z);
 		applyRotation();
 	}
 	
@@ -178,8 +167,7 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 	
 	public static double getSpawnHeightY(BlockPos targetPos)
 	{
-		double calculatedY = targetPos.getY() + HEIGHT_ABOVE_TARGET;
-		return Math.min(calculatedY, MAX_WORLD_HEIGHT_LIMIT);
+		return targetPos.getY() + HEIGHT_ABOVE_TARGET;
 	}
 	
 	private float getUnifiedProgress(int ticksElapsed)

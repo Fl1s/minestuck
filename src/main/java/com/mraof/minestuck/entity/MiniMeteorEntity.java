@@ -205,12 +205,12 @@ public class MiniMeteorEntity extends ThrowableProjectile implements ItemSupplie
 	@Override
 	public ItemStack getItem()
 	{
-		return new ItemStack(Items.FIRE_CHARGE);
+		return ItemStack.EMPTY;
 	}
 	
 	@Override
 	public ItemStack getPickResult()
 	{
-		return new ItemStack(Items.FIRE_CHARGE);
+		return ItemStack.EMPTY;
 	}
 }

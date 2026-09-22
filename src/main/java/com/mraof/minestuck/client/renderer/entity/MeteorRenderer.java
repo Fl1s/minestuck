@@ -49,8 +49,6 @@ public class MeteorRenderer extends GeoEntityRenderer<MeteorEntity>
 	@Override
 	public void render(MeteorEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight)
 	{
-		if(!entity.isDashPhase())
-			return;
 		super.render(entity, entityYaw, partialTick, poseStack, bufferSource, 0xF000F0);
 	}
 	

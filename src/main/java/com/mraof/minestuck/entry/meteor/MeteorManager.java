@@ -11,11 +11,13 @@ import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.skaianet.Session;
 import com.mraof.minestuck.skaianet.SkaianetData;
 import com.mraof.minestuck.util.MSAttachments;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -46,7 +48,7 @@ import static net.neoforged.neoforge.network.PacketDistributor.sendToPlayer;
  */
 public class MeteorManager extends SavedData
 {
-	
+	public static final String METEOR_EXCEPTION = "minestuck.meteor.exception";
 	/**
 	 * Total countdown: 4 min 13 sec = 253 seconds = 5060 ticks
 	 */
@@ -56,9 +58,9 @@ public class MeteorManager extends SavedData
 	 */
 	public static final int MUSIC_TRIGGER_TICKS = TOTAL_TICKS - 1200;
 	/**
-	 * Final acceleration phase: 10-15 seconds before impact = ~300 ticks
+	 * Final acceleration phase: 20 seconds before impact = ~400 ticks
 	 */
-	public static final int DASH_PHASE_TICKS = TOTAL_TICKS - 300;
+	public static final int DASH_PHASE_TICKS = TOTAL_TICKS - 400;
 	private static final int CRATER_BLOCKS_PER_TICK_TOTAL = 1_500;
 	private static final int MIN_CRATER_BLOCKS_PER_TICK = 200;
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -276,7 +278,19 @@ public class MeteorManager extends SavedData
 				}
 			} catch(Exception e)
 			{
+				LOGGER.error("Exception while ticking meteor countdown for {}", key, e);
 				toRemove.add(key);
+				
+				MeteorEntity meteor = findMeteorEntity(cd);
+				if(meteor != null) meteor.discard();
+				
+				ServerPlayer player = cd.getOwner().getPlayer(mcServer);
+				if(player != null)
+				{
+					sendToPlayer(player, new PlayMeteorMusic(false));
+					sendToPlayer(player, new MeteorRemoved(cd.getMeteorEntityId()));
+					player.sendSystemMessage(Component.translatable(METEOR_EXCEPTION).withStyle(ChatFormatting.RED));
+				}
 			}
 		}
 		

@@ -11,6 +11,7 @@ import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.skaianet.Session;
 import com.mraof.minestuck.skaianet.SkaianetData;
 import com.mraof.minestuck.util.MSAttachments;
+import com.mraof.minestuck.world.MSDimensions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -154,6 +155,9 @@ public class MeteorManager extends SavedData
 	 */
 	public void startCountdown(PlayerIdentifier player, BlockPos cruxtruderPos, ResourceKey<Level> levelKey)
 	{
+		if(!isValidMeteorDimension(levelKey))
+			return;
+		
 		String key = player.getCommandString();
 		if(countdowns.containsKey(key))
 		{
@@ -165,6 +169,15 @@ public class MeteorManager extends SavedData
 		countdowns.put(key, countdown);
 		spawnMeteorEntity(countdown);
 		sendCountdownStart(countdown);
+	}
+	
+	private boolean isValidMeteorDimension(ResourceKey<Level> levelKey)
+	{
+		if(levelKey == Level.NETHER || levelKey == Level.END)
+			return false;
+		if(MSDimensions.isLandDimension(mcServer, levelKey))
+			return false;
+		return true;
 	}
 	
 	public void cancelCountdown(PlayerIdentifier playerId)

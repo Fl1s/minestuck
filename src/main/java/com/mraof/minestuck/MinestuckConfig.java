@@ -121,6 +121,7 @@ public class MinestuckConfig
 		public final IntValue artifactRange;
 		public final BooleanValue meteorShower;
 		public final IntValue miniMeteorsCount;
+		public final BooleanValue miniMeteorsDestroyMachines;
 		
 		//Computer
 		public final BooleanValue privateComputers;
@@ -232,6 +233,8 @@ public class MinestuckConfig
 					.define("meteorShower",true);
 			miniMeteorsCount = builder.comment("Determines the count of maximum spawn rate of mini meteors at once.")
 					.defineInRange("miniMeteorsCount", 4,1, 8);
+			miniMeteorsDestroyMachines = builder.comment("If true, mini meteor explosions can destroy machine blocks. If false, these blocks are immune to mini meteor blasts, but still destroyed by the main meteor impact.")
+					.define("miniMeteorsDestroyMachines", false);
 			builder.pop();
 			
 			builder.push("medium");

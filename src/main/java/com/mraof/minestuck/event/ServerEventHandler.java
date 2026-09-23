@@ -1,10 +1,13 @@
 package com.mraof.minestuck.event;
 
 import com.mraof.minestuck.Minestuck;
+import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.block.MSBlocks;
+import com.mraof.minestuck.block.machine.MachineBlock;
 import com.mraof.minestuck.effects.CreativeShockEffect;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.entity.MSAttributes;
+import com.mraof.minestuck.entity.MiniMeteorEntity;
 import com.mraof.minestuck.entity.underling.UnderlingEntity;
 import com.mraof.minestuck.entry.meteor.MeteorManager;
 import com.mraof.minestuck.inventory.captchalogue.ArrayModus;
@@ -44,6 +47,7 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.furnace.FurnaceFuelBurnTimeEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -83,6 +87,18 @@ public class ServerEventHandler
 	{
 		if(!(event.getEntity() instanceof ServerPlayer player)) return;
 		MeteorManager.get(player.server).resendAllCountdowns(player);
+	}
+	
+	@SubscribeEvent
+	public static void onMiniMeteorExplosion(ExplosionEvent.Detonate event)
+	{
+		if(MinestuckConfig.SERVER.miniMeteorsDestroyMachines.get())
+			return;
+		
+		if(!(event.getExplosion().getDirectSourceEntity() instanceof MiniMeteorEntity))
+			return;
+		
+		event.getAffectedBlocks().removeIf(pos -> event.getLevel().getBlockState(pos).getBlock() instanceof MachineBlock);
 	}
 	
 	@SubscribeEvent(priority=EventPriority.LOWEST, receiveCanceled=false)

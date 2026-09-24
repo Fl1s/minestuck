@@ -82,7 +82,9 @@ public final class MeteorClientHandler
 	public static void onMeteorPosition(MeteorPackets.MeteorPosition packet)
 	{
 		activeMeteorTicks.put(packet.entityId(), packet.ticksElapsed());
-		localPlayerMeteorTicks = packet.ticksElapsed();
+		
+		if(Minecraft.getInstance().level != null)
+			countdownStartGameTime = Minecraft.getInstance().level.getGameTime() - packet.ticksElapsed();
 	}
 	
 	public static boolean hasActiveMeteor()

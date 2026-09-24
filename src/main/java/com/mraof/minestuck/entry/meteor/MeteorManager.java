@@ -23,7 +23,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
@@ -53,7 +56,7 @@ public class MeteorManager extends SavedData
 	/**
 	 * Total countdown: 4 min 13 sec = 253 seconds = 5060 ticks
 	 */
-	public static final int TOTAL_TICKS = 5060;
+	public static final int TOTAL_TICKS = 1300;
 	/**
 	 * Theme starts 1 minute before impact = 1200 ticks before end
 	 */
@@ -64,6 +67,10 @@ public class MeteorManager extends SavedData
 	public static final int DASH_PHASE_TICKS = TOTAL_TICKS - 400;
 	private static final int CRATER_BLOCKS_PER_TICK_TOTAL = 1_500;
 	private static final int MIN_CRATER_BLOCKS_PER_TICK = 200;
+	public static final TicketType<Unit> METEOR_CHUNK_TICKET_TYPE = TicketType.create("meteor", (_left, _right) -> 0);
+	private static final int METEOR_CHUNK_RADIUS = 5;
+	private final Map<ChunkPos, Integer> meteorChunkTickets = new HashMap<>();
+	private final Map<String, MeteorCountdown> pendingChunkUnloads = new HashMap<>();
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final String DATA_NAME = Minestuck.MOD_ID + "_meteors";
 	private final Set<String> impactPending = new HashSet<>();
@@ -106,6 +113,8 @@ public class MeteorManager extends SavedData
 	{
 		for(MeteorCountdown cd : new ArrayList<>(countdowns.values()))
 		{
+			loadMeteorChunks(cd);
+			
 			MeteorEntity existing = findMeteorEntity(cd);
 			if(existing == null)
 			{
@@ -167,6 +176,7 @@ public class MeteorManager extends SavedData
 		
 		MeteorCountdown countdown = new MeteorCountdown(player, cruxtruderPos, levelKey, sessionSize);
 		countdowns.put(key, countdown);
+		loadMeteorChunks(countdown);
 		spawnMeteorEntity(countdown);
 		sendCountdownStart(countdown);
 	}
@@ -189,12 +199,15 @@ public class MeteorManager extends SavedData
 		
 		if(cd == null) return;
 		
+		unloadMeteorChunks(cd);
+		
 		MeteorEntity meteor = findMeteorEntity(cd);
-		if(meteor != null) meteor.discard();
+		if(meteor != null) meteor.startFadeOut();
 		
 		ServerPlayer player = playerId.getPlayer(mcServer);
 		if(player != null)
 		{
+			sendToPlayer(player, new PlayMeteorMusic(false));
 			sendToPlayer(player, new MeteorRemoved(cd.getMeteorEntityId()));
 		}
 	}
@@ -240,6 +253,63 @@ public class MeteorManager extends SavedData
 		countdown.setMeteorEntityId(meteor.getId());
 	}
 	
+	private void loadMeteorChunks(MeteorCountdown countdown)
+	{
+		ServerLevel level = mcServer.getLevel(countdown.getLevelKey());
+		if(level == null) return;
+		
+		ChunkPos center = new ChunkPos(countdown.getCruxtruderPos());
+		int count = meteorChunkTickets.getOrDefault(center, 0);
+		
+		if(count == 0)
+		{
+			level.getChunkSource().addRegionTicket(METEOR_CHUNK_TICKET_TYPE, center, METEOR_CHUNK_RADIUS, Unit.INSTANCE);
+		}
+		
+		meteorChunkTickets.put(center, count + 1);
+	}
+	
+	private void unloadMeteorChunks(MeteorCountdown countdown)
+	{
+		ServerLevel level = mcServer.getLevel(countdown.getLevelKey());
+		if(level == null) return;
+		
+		ChunkPos center = new ChunkPos(countdown.getCruxtruderPos());
+		int count = meteorChunkTickets.getOrDefault(center, 0);
+		
+		if(count <= 1)
+		{
+			meteorChunkTickets.remove(center);
+			level.getChunkSource().removeRegionTicket(METEOR_CHUNK_TICKET_TYPE, center, METEOR_CHUNK_RADIUS, Unit.INSTANCE);
+		} else
+		{
+			meteorChunkTickets.put(center, count - 1);
+		}
+	}
+	
+	private boolean hasRemainingMiniMeteors(MeteorCountdown cd)
+	{
+		ServerLevel level = mcServer.getLevel(cd.getLevelKey());
+		if(level == null) return false;
+		
+		BlockPos center = cd.getCruxtruderPos();
+		int radius = SERVER.artifactRange.get() + 35;
+		
+		AABB nearby = new AABB(
+				center.getX() - radius,
+				center.getY() - 128,
+				center.getZ() - radius,
+				center.getX() + radius,
+				center.getY() + 256,
+				center.getZ() + radius
+		);
+		
+		return !level.getEntities(
+				EntityTypeTest.forClass(MiniMeteorEntity.class),
+				nearby,
+				e -> true
+		).isEmpty();
+	}
 	
 	public void resendAllCountdowns(ServerPlayer player)
 	{
@@ -275,6 +345,7 @@ public class MeteorManager extends SavedData
 				{
 					LOGGER.info("[Meteor] Impact pending for {}, starting impact processing", key);
 					startImpact(cd);
+					pendingChunkUnloads.put(key, cd);
 					toRemove.add(key);
 					continue;
 				}
@@ -293,6 +364,8 @@ public class MeteorManager extends SavedData
 			{
 				LOGGER.error("Exception while ticking meteor countdown for {}", key, e);
 				toRemove.add(key);
+				
+				unloadMeteorChunks(cd);
 				
 				MeteorEntity meteor = findMeteorEntity(cd);
 				if(meteor != null) meteor.discard();
@@ -313,6 +386,18 @@ public class MeteorManager extends SavedData
 		});
 		
 		tickImpacts();
+		
+		Iterator<Map.Entry<String, MeteorCountdown>> unloadIterator = pendingChunkUnloads.entrySet().iterator();
+		while(unloadIterator.hasNext())
+		{
+			MeteorCountdown cd = unloadIterator.next().getValue();
+			
+			if(!hasRemainingMiniMeteors(cd))
+			{
+				unloadMeteorChunks(cd);
+				unloadIterator.remove();
+			}
+		}
 	}
 	
 	private void processMilestones(MeteorCountdown cd)

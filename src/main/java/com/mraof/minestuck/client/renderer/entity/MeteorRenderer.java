@@ -6,10 +6,13 @@ import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.client.model.MeteorModel;
 import com.mraof.minestuck.entity.MeteorEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.util.Color;
 
 
 public class MeteorRenderer extends GeoEntityRenderer<MeteorEntity>
@@ -56,5 +59,29 @@ public class MeteorRenderer extends GeoEntityRenderer<MeteorEntity>
 	protected float getDeathMaxRotation(MeteorEntity entity)
 	{
 		return 0;
+	}
+	
+	@Override
+	public Color getRenderColor(MeteorEntity animatable, float partialTick, int packedLight)
+	{
+		Color color = super.getRenderColor(animatable, partialTick, packedLight);
+		
+		if(animatable.isFading())
+		{
+			int alpha = Math.round(animatable.getFadeAlpha() * 255.0F);
+			return Color.ofARGB(alpha, color.getRed(), color.getGreen(), color.getBlue());
+		}
+		
+		return color;
+	}
+	
+	@Nullable
+	@Override
+	public RenderType getRenderType(MeteorEntity animatable, ResourceLocation texture, @Nullable MultiBufferSource bufferSource, float partialTick)
+	{
+		if(animatable.isFading())
+			return RenderType.entityTranslucent(texture);
+		
+		return super.getRenderType(animatable, texture, bufferSource, partialTick);
 	}
 }

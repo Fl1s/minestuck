@@ -122,6 +122,7 @@ public class MinestuckConfig
 		public final BooleanValue meteorShower;
 		public final IntValue miniMeteorsCount;
 		public final BooleanValue miniMeteorsDestroyMachines;
+//		public final IntValue impactCountdown;
 		
 		//Computer
 		public final BooleanValue privateComputers;
@@ -235,6 +236,9 @@ public class MinestuckConfig
 					.defineInRange("miniMeteorsCount", 4,1, 8);
 			miniMeteorsDestroyMachines = builder.comment("If true, mini meteor explosions can destroy machine blocks. If false, these blocks are immune to mini meteor blasts, but still destroyed by the main meteor impact.")
 					.define("miniMeteorsDestroyMachines", false);
+			// I'll think about it
+/*			impactCountdown = builder.comment("Defines the time between Cruxtruder activation and the meteor impact. In ticks. 5060 = 4 min 13 secs.")
+					.defineInRange("impactCountdown",5060,1200, 72000);*/
 			builder.pop();
 			
 			builder.push("medium");

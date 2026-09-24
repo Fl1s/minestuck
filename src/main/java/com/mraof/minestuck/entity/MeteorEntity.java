@@ -9,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +37,10 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 	private static final EntityDataAccessor<BlockPos> TARGET_POS = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BLOCK_POS);
 	private static final EntityDataAccessor<Boolean> IN_DASH_PHASE = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Integer> TICKS_ELAPSED = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Boolean> FADING = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.BOOLEAN);
+	private static final EntityDataAccessor<Integer> FADE_TICKS = SynchedEntityData.defineId(MeteorEntity.class, EntityDataSerializers.INT);
+	public static final int FADE_DURATION_TICKS = 60;
+	private double fadeFallSpeed = 0;
 	public static final double HEIGHT_ABOVE_TARGET = 1000.0;
 	
 	private BlockPos targetPos = BlockPos.ZERO;
@@ -57,6 +62,8 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 		builder.define(TARGET_POS, BlockPos.ZERO);
 		builder.define(IN_DASH_PHASE, false);
 		builder.define(TICKS_ELAPSED, 0);
+		builder.define(FADING, false);
+		builder.define(FADE_TICKS, 0);
 	}
 	
 	public void setRenderAngles(float yaw, float pitch)
@@ -87,6 +94,8 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 		if(!level().isClientSide)
 		{
 			updateMovement();
+			if(isFading())
+				tickFade();
 		}
 		
 		super.tick();
@@ -125,6 +134,7 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 	{
 		return this.entityData.get(IN_DASH_PHASE);
 	}
+	
 	public int getTicksElapsed()
 	{
 		return this.entityData.get(TICKS_ELAPSED);
@@ -132,12 +142,73 @@ public class MeteorEntity extends Entity implements GeoAnimatable
 	
 	private void updateMovement()
 	{
+		if(isFading())
+		{
+			moveTickFading();
+			applyRotation();
+			return;
+		}
+		
 		var server = ((ServerLevel) level()).getServer();
 		var manager = MeteorManager.get(server);
 		
 		int ticks = manager.getTicksForMeteor(this.getId());
-		
 		moveTick(ticks);
+	}
+	
+	private void moveTickFading()
+	{
+		if(targetPos == null) return;
+		
+		Vec3 target = Vec3.atCenterOf(targetPos);
+		double newY = this.getY() - fadeFallSpeed;
+		setPos(target.x, newY, target.z);
+	}
+	public void startFadeOut()
+	{
+		if(!level().isClientSide)
+		{
+			this.fadeFallSpeed = calculateCurrentSpeed();
+			this.entityData.set(FADING, true);
+			this.entityData.set(FADE_TICKS, 0);
+		}
+	}
+	
+	private double calculateCurrentSpeed()
+	{
+		if(targetPos == null) return 0;
+		
+		Vec3 target = Vec3.atCenterOf(targetPos);
+		double totalDistance = getSpawnHeightY(targetPos) - target.y;
+		
+		float dashPhaseTicks = MeteorManager.TOTAL_TICKS - MeteorManager.DASH_PHASE_TICKS;
+		if(dashPhaseTicks <= 0) return 0;
+		
+		int ticksElapsed = this.entityData.get(TICKS_ELAPSED);
+		float alpha = Mth.clamp((ticksElapsed - MeteorManager.DASH_PHASE_TICKS) / dashPhaseTicks, 0.0F, 1.0F);
+		
+		double speed = totalDistance * 0.90 * 3.0 * (alpha * alpha) / dashPhaseTicks;
+		return Double.isFinite(speed) ? speed : 0;
+	}
+	
+	public boolean isFading()
+	{
+		return this.entityData.get(FADING);
+	}
+	
+	public float getFadeAlpha()
+	{
+		int ticks = this.entityData.get(FADE_TICKS);
+		float progress = (float) ticks / FADE_DURATION_TICKS;
+		return Mth.clamp(1.0F - progress, 0.0F, 1.0F);
+	}
+	
+	private void tickFade()
+	{
+		int ticks = this.entityData.get(FADE_TICKS) + 1;
+		this.entityData.set(FADE_TICKS, ticks);
+		if(ticks >= FADE_DURATION_TICKS)
+			discard();
 	}
 	
 	

@@ -51,6 +51,10 @@ public class MinestuckConfig
 		public final BooleanValue impactScreenShake;
 		public final BooleanValue meteorSkyFog;
 		public final BooleanValue meteorImpactFlash;
+		public final BooleanValue clickToSelect;
+		public final BooleanValue clickToPlace;
+		public final BooleanValue copyFromLastPlacement;
+		public final IntValue toolsDistance;
 		
 		private Client(Builder builder)
 		{
@@ -74,6 +78,17 @@ public class MinestuckConfig
 					.define("meteorSkyFog", true);
 			meteorImpactFlash = builder.comment("Determines whether the screen flashes white in the last few seconds before your meteor impacts (if you haven't entered the Medium yet).")
 					.define("meteorImpactFlash", true);
+			builder.pop();
+			
+			builder.push("editMode");
+			clickToSelect = builder.comment("Determines if the selection tool is triggered in click-style or drag-style.")
+					.define("clickToSelect", true);
+			clickToPlace = builder.comment("Determines if the move/copy tools are triggered in click-style or drag-style.")
+					.define("clickToPlace", true);
+			copyFromLastPlacement = builder.comment("Determines what a repeated copy uses as its source. Last successfully placed copy or always the original selection")
+					.define("copyFromLastPlacement", true);
+			toolsDistance = builder.comment("Determines the distance of move/copy tools")
+					.defineInRange("toolsDistance", 5, 1, 64);
 			builder.pop();
 		}
 	}
@@ -143,6 +158,8 @@ public class MinestuckConfig
 		public final IntValue overworldEditRange;
 		public final IntValue landEditRange;
 		public final BooleanValue giveItems;
+		public final IntValue maxSelectionVolume;
+		public final BooleanValue visualsToOthers;
 		
 		private Server(Builder builder)
 		{
@@ -214,6 +231,10 @@ public class MinestuckConfig
 					.defineInRange("overworldEditRange", 15, 1, Integer.MAX_VALUE);
 			landEditRange = builder.comment("A number that determines how far away from the center of the brought land that an editmode player may be after entry.")
 					.defineInRange("landEditRange", 30, 1, Integer.MAX_VALUE);
+			maxSelectionVolume = builder.comment("A number that determines how many blocks can be moved/copied with the selection tool.")
+					.defineInRange("maxSelectionVolume", 1024, 1, 4096);
+			visualsToOthers = builder.comment("If true, nearby players will also see their server player editmode tools visuals.")
+					.define("visualsToOthers", true);
 			builder.pop();
 			
 			builder.push("machines");

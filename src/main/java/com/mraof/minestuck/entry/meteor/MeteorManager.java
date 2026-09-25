@@ -56,7 +56,7 @@ public class MeteorManager extends SavedData
 	/**
 	 * Total countdown: 4 min 13 sec = 253 seconds = 5060 ticks
 	 */
-	public static final int TOTAL_TICKS = 1300;
+	public static final int TOTAL_TICKS = 5060;
 	/**
 	 * Theme starts 1 minute before impact = 1200 ticks before end
 	 */

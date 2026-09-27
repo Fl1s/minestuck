@@ -58,6 +58,9 @@ public class MSItemTypes
 	public static final Holder<ArmorMaterial> CLOTH_ARMOR = registerArmorMaterial("cloth",
 			Map.of(ArmorItem.Type.BOOTS, 0, ArmorItem.Type.LEGGINGS, 0, ArmorItem.Type.CHESTPLATE, 0, ArmorItem.Type.HELMET, 0),
 			5, SoundEvents.ARMOR_EQUIP_LEATHER, 0.0F, 0F, () -> Ingredient.EMPTY);
+	public static final Holder<ArmorMaterial> GOD_TIER_ARMOR = registerArmorMaterial("god_tier",
+			Map.of(ArmorItem.Type.BOOTS, 0, ArmorItem.Type.LEGGINGS, 0, ArmorItem.Type.CHESTPLATE, 0, ArmorItem.Type.HELMET, 0),
+			15, SoundEvents.ARMOR_EQUIP_LEATHER, 0.0F, 0F, () -> Ingredient.EMPTY);
 	
 	public static final Holder<ArmorMaterial> DREAM_PAJAMAS = registerArmorMaterial("dream_pajamas",
 			Map.of(ArmorItem.Type.BOOTS, 1, ArmorItem.Type.LEGGINGS, 2, ArmorItem.Type.CHESTPLATE, 3, ArmorItem.Type.HELMET, 1),

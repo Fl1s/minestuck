@@ -1,0 +1,6 @@
+{
+  "type": "minestuck:quest_bed",
+  "biomes": "#minestuck:has_structure/quest_bed",
+  "spawn_overrides": {},
+  "step": "surface_structures"
+}

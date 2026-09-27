@@ -7,6 +7,8 @@ import com.mraof.minestuck.block.SkaiaBlocks;
 import com.mraof.minestuck.entity.FrogEntity;
 import com.mraof.minestuck.item.components.FrogTraitsComponent;
 import com.mraof.minestuck.item.components.MSItemComponents;
+import com.mraof.minestuck.item.godtier.GodTierKitItem;
+import com.mraof.minestuck.player.EnumAspect;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -1930,6 +1932,23 @@ public final class MSCreativeTabs
 		output.accept(MSItems.DERSE_SHIRT.get());
 		output.accept(MSItems.DERSE_PANTS.get());
 		output.accept(MSItems.DERSE_SHOES.get());
+		
+		GodTierKitItem.addCreativeTabEntries(output);
+		output.accept(MSItems.GOD_TIER_RESET_CHARM.get());
+		output.accept(MSItems.GOD_TIER_HOOD.get());
+		output.accept(MSItems.GOD_TIER_SHIRT.get());
+		output.accept(MSItems.GOD_TIER_PANTS.get());
+		output.accept(MSItems.GOD_TIER_SHOES.get());
+		output.accept(MSItems.WILDCARD_HERO_STONE.get());
+		output.accept(MSItems.WILDCARD_CHISELED_HERO_STONE.get());
+		output.accept(MSItems.WILDCARD_HERO_STONE_WALL.get());
+		output.accept(MSItems.GLOWING_HERO_STONE.get());
+		for(EnumAspect aspect : EnumAspect.values())
+		{
+			output.accept(MSItems.HERO_STONE_ITEMS.get(aspect).get());
+			output.accept(MSItems.CHISELED_HERO_STONE_ITEMS.get(aspect).get());
+			output.accept(MSItems.HERO_STONE_WALL_ITEMS.get(aspect).get());
+		}
 		
 		output.accept(MSItems.AMPHIBEANIE.get());
 		output.accept(MSItems.NOSTRILDAMUS.get());

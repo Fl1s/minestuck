@@ -7,6 +7,8 @@ import com.mraof.minestuck.world.gen.structure.*;
 import com.mraof.minestuck.world.gen.structure.castle.CastleStructure;
 import com.mraof.minestuck.world.gen.structure.gate.GateStructure;
 import com.mraof.minestuck.world.gen.structure.gate.LandGatePlacement;
+import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPlacement;
+import com.mraof.minestuck.world.gen.structure.questbed.QuestBedStructure;
 import com.mraof.minestuck.world.gen.structure.village.ConsortVillageStructure;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -57,6 +59,8 @@ public final class MSStructureProvider
 		// Land
 		context.register(LAND_GATE, new GateStructure(new Structure.StructureSettings(biomes.getOrThrow(MSTags.Biomes.HAS_LAND_GATE),
 				Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, TerrainAdjustment.NONE)));
+		context.register(QuestBed.KEY, new QuestBedStructure(new Structure.StructureSettings(biomes.getOrThrow(MSTags.Biomes.HAS_QUEST_BED),
+				Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, TerrainAdjustment.NONE)));
 		context.register(SMALL_RUIN, new SmallRuinStructure(new Structure.StructureSettings(biomes.getOrThrow(MSTags.Biomes.HAS_SMALL_RUIN),
 				Map.of(), GenerationStep.Decoration.SURFACE_STRUCTURES, TerrainAdjustment.NONE)));
 		context.register(ARENA, jigsaw(biomes, pools, MSTags.Biomes.HAS_ARENA, TerrainAdjustment.BEARD_THIN, minestuckMobCategoriesSpawnOverride, ARENA_START_POOL));
@@ -94,6 +98,8 @@ public final class MSStructureProvider
 		// Land
 		context.register(key("land_gate"), new StructureSet(structures.getOrThrow(LAND_GATE),
 				new LandGatePlacement()));
+		context.register(key("quest_bed"), new StructureSet(structures.getOrThrow(QuestBed.KEY),
+				new QuestBedPlacement()));
 		
 		// Skaia
 		context.register(key("skaia_castle"), new StructureSet(structures.getOrThrow(SkaiaCastle.KEY),

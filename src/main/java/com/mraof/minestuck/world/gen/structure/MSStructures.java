@@ -7,6 +7,9 @@ import com.mraof.minestuck.world.gen.structure.gate.GateMushroomPiece;
 import com.mraof.minestuck.world.gen.structure.gate.GatePillarPiece;
 import com.mraof.minestuck.world.gen.structure.gate.GateStructure;
 import com.mraof.minestuck.world.gen.structure.gate.LandGatePlacement;
+import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPiece;
+import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPlacement;
+import com.mraof.minestuck.world.gen.structure.questbed.QuestBedStructure;
 import com.mraof.minestuck.world.gen.structure.village.*;
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.core.registries.Registries;
@@ -48,6 +51,26 @@ public final class MSStructures
 	public static final Supplier<StructurePieceType>
 			GATE_PILLAR_PIECE = PIECE_REGISTER.register("land_gate/pillar", () -> contextless(GatePillarPiece::new)),
 			GATE_MUSHROOM_PIECE = PIECE_REGISTER.register("land_gate/mushroom", () -> contextless(GateMushroomPiece::new));
+	
+	public static final class QuestBed
+	{
+		public static final Supplier<StructurePlacementType<QuestBedPlacement>> PLACEMENT =
+				PLACEMENT_REGISTER.register("quest_bed", () -> () -> QuestBedPlacement.CODEC);
+		public static final Supplier<StructureType<QuestBedStructure>> TYPE =
+				TYPE_REGISTER.register("quest_bed", () -> asType(QuestBedStructure.CODEC));
+		public static final ResourceKey<Structure> KEY = key("quest_bed");
+		public static final Supplier<StructurePieceType> PIECE =
+				PIECE_REGISTER.register("quest_bed", () -> contextless(QuestBedPiece::new));
+		
+		private static void init()
+		{
+		}
+	}
+	
+	static
+	{
+		QuestBed.init();
+	}
 	
 	public static final Supplier<StructureType<SmallRuinStructure>> SMALL_RUIN_TYPE =
 			TYPE_REGISTER.register("small_ruin", () -> asType(SmallRuinStructure.CODEC));

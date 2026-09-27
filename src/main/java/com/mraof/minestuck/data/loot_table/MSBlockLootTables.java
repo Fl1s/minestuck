@@ -7,6 +7,7 @@ import com.mraof.minestuck.data.DreamerMoonBlocksData;
 import com.mraof.minestuck.data.SkaiaBlocksData;
 import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
+import com.mraof.minestuck.player.EnumAspect;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -1017,6 +1018,17 @@ public final class MSBlockLootTables extends BlockLootSubProvider
 		dropSelf(HORSE_CLOCK.BOTTOM.get());
 		dropSelf(GLOWYSTONE_DUST.get());
 		dropSelf(MIRROR.get());
+		
+		dropSelf(WILDCARD_HERO_STONE.get());
+		dropSelf(WILDCARD_CHISELED_HERO_STONE.get());
+		dropSelf(WILDCARD_HERO_STONE_WALL.get());
+		dropSelf(GLOWING_HERO_STONE.get());
+		for(EnumAspect aspect : EnumAspect.values())
+		{
+			dropSelf(HERO_STONE.get(aspect).get());
+			dropSelf(CHISELED_HERO_STONE.get(aspect).get());
+			dropSelf(HERO_STONE_WALL.get(aspect).get());
+		}
 	}
 	
 	@Override

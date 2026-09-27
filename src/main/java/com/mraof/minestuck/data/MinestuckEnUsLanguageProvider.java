@@ -2674,5 +2674,31 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addAttribute(MSAttributes.CAPTCHALOGUE_CAPACITY, "Captchalogue Capacity");
 		addAttribute(MSAttributes.UNDERLING_DAMAGE_MODIFIER, "Damage Against Underlings");
 		addAttribute(MSAttributes.UNDERLING_PROTECTION_MODIFIER, "Damage From Underlings");
+		
+		//God Tier
+		add("title.unknown_class", "an unassigned class");
+		add("title.unknown_aspect", "an unassigned aspect");
+		add("status.god_tier_reject", "You are not yet ready to ascend.");
+		add("status.god_tier", "%s has ascended to god tier!");
+		add("status.god_tier_meditation.unlock", "You feel a new potential within you.");
+		
+		add(MSItems.GOD_TIER_KIT.get(), "Quest Bed Kit");
+		add(MSItems.GOD_TIER_RESET_CHARM.get(), "Reset Charm");
+		add(MSItems.GOD_TIER_HOOD.get(), "God Tier Hood");
+		add(MSItems.GOD_TIER_SHIRT.get(), "God Tier Shirt");
+		add(MSItems.GOD_TIER_PANTS.get(), "God Tier Pants");
+		add(MSItems.GOD_TIER_SHOES.get(), "God Tier Shoes");
+		
+		add(MSBlocks.WILDCARD_HERO_STONE.get(), "Hero Stone");
+		add(MSBlocks.WILDCARD_CHISELED_HERO_STONE.get(), "Chiseled Hero Stone");
+		add(MSBlocks.WILDCARD_HERO_STONE_WALL.get(), "Hero Stone Wall");
+		add(MSBlocks.GLOWING_HERO_STONE.get(), "Glowing Hero Stone");
+		for(EnumAspect aspect : EnumAspect.values())
+		{
+			String aspectName = aspect.getSerializedName().substring(0, 1).toUpperCase() + aspect.getSerializedName().substring(1);
+			add(MSBlocks.HERO_STONE.get(aspect).get(), aspectName + " Hero Stone");
+			add(MSBlocks.CHISELED_HERO_STONE.get(aspect).get(), "Chiseled " + aspectName + " Hero Stone");
+			add(MSBlocks.HERO_STONE_WALL.get(aspect).get(), aspectName + " Hero Stone Wall");
+		}
 	}
 }

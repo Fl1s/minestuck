@@ -13,6 +13,7 @@ import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.GristCache;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.Title;
+import com.mraof.minestuck.player.godtier.GodTierState;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -45,6 +46,8 @@ public final class MSAttachments
 	
 	public static final Supplier<AttachmentType<Title>> TITLE = REGISTER.register("title",
 			() -> AttachmentType.<Title>builder(noDefault()).serialize(Title.CODEC).build());
+	public static final Supplier<AttachmentType<GodTierState>> GOD_TIER_STATE = REGISTER.register("god_tier_state",
+			() -> AttachmentType.serializable(restricted(GodTierState::new, PlayerData.class)).build());
 	public static final Supplier<AttachmentType<Boolean>> EFFECT_TOGGLE = REGISTER.register("effect_toggle",
 			() -> AttachmentType.builder(restricted(() -> false, ServerPlayer.class)).serialize(Codec.BOOL).build());
 	

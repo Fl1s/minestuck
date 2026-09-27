@@ -1,0 +1,12 @@
+{
+  "placement": {
+    "type": "minestuck:quest_bed",
+    "salt": 0
+  },
+  "structures": [
+    {
+      "structure": "minestuck:quest_bed",
+      "weight": 1
+    }
+  ]
+}

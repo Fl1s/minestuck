@@ -31,6 +31,8 @@ public final class MSItemComponents
 			builder -> builder.persistent(CaptchaCodeComponent.CODEC).networkSynchronized(CaptchaCodeComponent.STREAM_CODEC));
 	public static final Supplier<DataComponentType<Title>> GOD_TIER_TITLE = REGISTRY.registerComponentType("god_tier_title",
 			builder -> builder.persistent(Title.CODEC).networkSynchronized(Title.STREAM_CODEC));
+	public static final Supplier<DataComponentType<Boolean>> GOD_TIER_HIDE_EXTRAS = REGISTRY.registerComponentType("god_tier_hide_extras",
+			builder -> builder.persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL));
 	
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<FrogTraitsComponent>> FROG_TRAITS = REGISTRY.register("frog_traits", () ->
 			new DataComponentType.Builder<FrogTraitsComponent>()

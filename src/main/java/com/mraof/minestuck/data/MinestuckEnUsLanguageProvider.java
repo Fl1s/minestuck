@@ -2700,5 +2700,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 			add(MSBlocks.CHISELED_HERO_STONE.get(aspect).get(), "Chiseled " + aspectName + " Hero Stone");
 			add(MSBlocks.HERO_STONE_WALL.get(aspect).get(), aspectName + " Hero Stone Wall");
 		}
+		add("status.heroic_death", "%s has died a heroic death.");
+		add("status.just_death", "%s has died a just death.");
 	}
 }

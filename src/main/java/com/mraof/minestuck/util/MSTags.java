@@ -123,7 +123,6 @@ public class MSTags
 	
 	public static class Items
 	{
-		public static final TagKey<Item> WEAPONS = tag("weapons");
 		public static final TagKey<Item> GLOWING_LOGS = tag("logs/glowing");
 		public static final TagKey<Item> FROST_LOGS = tag("logs/frost");
 		public static final TagKey<Item> RAINBOW_LOGS = tag("logs/rainbow");
@@ -165,11 +164,12 @@ public class MSTags
 		public static final TagKey<Item> CRUXITE_ARTIFACTS = tag("cruxite_artifacts");
 		
 		// Kind Abstractuses
+		public static final TagKey<Item> WEAPONS = tag("weapons");
+		public static final TagKey<Item> BLADEKIND_EVOLUTION_BLACKLIST = tag("strife_evolution_blacklist/bladekind");
+		
 		public static final TagKey<Item> KIND_SWORD = tag("kind/sword");
 		public static final TagKey<Item> KIND_KEY = tag("kind/key");
 		public static final TagKey<Item> KIND_HALF_SWORD = tag("kind/half_sword");
-		public static final TagKey<Item> BLADEKIND_EVOLUTION_BLACKLIST = tag("strife_evolution_blacklist/bladekind");
-		
 		public static final TagKey<Item> KIND_BOW = tag("kind/bow");
 		public static final TagKey<Item> KIND_PICKAXE = tag("kind/pickaxe");
 		public static final TagKey<Item> KIND_AXE = tag("kind/axe");

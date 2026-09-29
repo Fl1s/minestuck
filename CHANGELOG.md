@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Strife deck
 - GristTorrent Computer App
 - New /rung add, get, set commands
 - New /grist [args] all command

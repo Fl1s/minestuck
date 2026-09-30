@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Contributors for this release
 
-- Dweblenod, Cibernet, Riotmode, kirderf1, medsal15, Caldw3ll, Fl1s, heartsremedy, Emma "Dilemma"
+- Fl1s, Dweblenod, medsal15, Emma "Dilemma"
 
 ## [1.21.1-1.14.0.1] - 2026-06-01
 

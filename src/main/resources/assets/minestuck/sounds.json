@@ -869,6 +869,48 @@
       "minestuck:random/card_pop_3"
     ]
   },
+  "event.dreamself.swap.prospit":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_prospit",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_prospit"
+    ]
+  },
+  "event.dreamself.swap.prospit.hit":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_prospit_hit",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_prospit_hit"
+    ]
+  },
+  "event.dreamself.swap.prospit.death":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_prospit_hit",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_prospit_death"
+    ]
+  },
+  "event.dreamself.swap.derse":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_derse",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_derse"
+    ]
+  },
+  "event.dreamself.swap.derse.hit":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_derse_hit",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_derse_hit"
+    ]
+  },
+  "event.dreamself.swap.derse.death":    {
+    "category": "ambient",
+    "subtitle": "subtitles.minestuck.dreamself_swap_derse_hit",
+    "sounds":   [
+      "minestuck:random/dreamself_swap_derse_death"
+    ]
+  },
   "event.captchalogue.shuffle": {
     "category": "ambient",
     "subtitle": "subtitles.minestuck.captchalogue_shuffle",

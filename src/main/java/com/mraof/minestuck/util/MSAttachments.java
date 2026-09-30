@@ -12,6 +12,7 @@ import com.mraof.minestuck.inventory.musicplayer.MusicPlaying;
 import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.GristCache;
 import com.mraof.minestuck.player.PlayerData;
+import com.mraof.minestuck.player.dreamself.DreamselfData;
 import com.mraof.minestuck.player.Title;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,6 +44,8 @@ public final class MSAttachments
 	public static final Supplier<AttachmentType<Echeladder>> ECHELADDER = REGISTER.register("echeladder",
 			() -> AttachmentType.serializable(restricted(Echeladder::new, PlayerData.class)).build());
 	
+	public static final Supplier<AttachmentType<DreamselfData>> DREAMSELF = REGISTER.register("dreamself",
+			() -> AttachmentType.serializable(restricted(DreamselfData::new, PlayerData.class)).build());
 	public static final Supplier<AttachmentType<Title>> TITLE = REGISTER.register("title",
 			() -> AttachmentType.<Title>builder(noDefault()).serialize(Title.CODEC).build());
 	public static final Supplier<AttachmentType<Boolean>> EFFECT_TOGGLE = REGISTER.register("effect_toggle",

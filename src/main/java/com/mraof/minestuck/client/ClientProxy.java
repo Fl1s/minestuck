@@ -64,6 +64,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
@@ -90,6 +91,12 @@ public class ClientProxy
 	}
 	
 	@SubscribeEvent
+	public static void registerGuiLayers(RegisterGuiLayersEvent event)
+	{
+		event.registerAboveAll(Minestuck.id("dreamself_fade"), DreamselfFade::renderOverlay);
+	}
+	
+	@SubscribeEvent
 	public static void init(final FMLClientSetupEvent event)
 	{
 		EntityRenderers.register(MSEntityTypes.FROG.get(), FrogRenderer::new);
@@ -113,6 +120,7 @@ public class ClientProxy
 		EntityRenderers.register(MSEntityTypes.GRIST.get(), GristRenderer::new);
 		EntityRenderers.register(MSEntityTypes.VITALITY_GEL.get(), VitalityGelRenderer::new);
 		EntityRenderers.register(MSEntityTypes.PLAYER_DECOY.get(), DecoyRenderer::new);
+		EntityRenderers.register(MSEntityTypes.SLEEPING_SELF.get(), SleepingSelfRenderer::new);
 		EntityRenderers.register(MSEntityTypes.METAL_BOAT.get(), MetalBoatRenderer::new);
 		EntityRenderers.register(MSEntityTypes.BARBASOL_BOMB.get(), ThrownItemRenderer::new);
 		EntityRenderers.register(MSEntityTypes.CONSUMABLE_PROJECTILE.get(), ThrownItemRenderer::new);

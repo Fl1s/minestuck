@@ -5,6 +5,7 @@ import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.client.gui.playerStats.PlayerStatsScreen;
 import com.mraof.minestuck.computer.editmode.ClientEditHandler;
 import com.mraof.minestuck.network.CaptchaDeckPackets;
+import com.mraof.minestuck.network.DreamselfReturnPacket;
 import com.mraof.minestuck.network.ToggleAspectEffectsPacket;
 import com.mraof.minestuck.player.ClientPlayerData;
 import net.minecraft.client.KeyMapping;
@@ -26,6 +27,8 @@ import org.lwjgl.glfw.GLFW;
 public class MSKeyHandler
 {
 	public static final String CATEGORY = "key.categories.minestuck";
+	public static final String DREAMSELF_CATEGORY = "key.categories.minestuck.dreamself";
+	public static final String DREAMSELF_RETURN = "key.minestuck.dreamself_return";
 	public static final String STATS_GUI = "key.minestuck.stats_gui";
 	public static final String EXIT_EDIT_MODE = "key.minestuck.exit_edit_mode";
 	public static final String CAPTCHALOGUE = "key.minestuck.captchalogue";
@@ -37,6 +40,7 @@ public class MSKeyHandler
 	public static KeyMapping captchaKey;
 	public static KeyMapping effectToggleKey;
 	public static KeyMapping sylladexKey;
+	public static KeyMapping dreamselfReturnKey;
 	
 	public static void registerKeys(RegisterKeyMappingsEvent event)
 	{
@@ -53,6 +57,8 @@ public class MSKeyHandler
 		event.register(effectToggleKey);
 		sylladexKey = new KeyMapping(SYLLADEX, GLFW.GLFW_KEY_UNKNOWN, CATEGORY);
 		event.register(sylladexKey);
+		dreamselfReturnKey = new KeyMapping(DREAMSELF_RETURN, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, DREAMSELF_CATEGORY);
+		event.register(dreamselfReturnKey);
 	}
 	
 	@SubscribeEvent
@@ -93,6 +99,9 @@ public class MSKeyHandler
 			
 			if(sylladexKey.isActiveAndMatches(input) && ClientPlayerData.getModus() != null)
 				PlayerStatsScreen.openGui(false);
+			
+			if(dreamselfReturnKey.isActiveAndMatches(input))
+				PacketDistributor.sendToServer(new DreamselfReturnPacket());
 		}
 		
 	}

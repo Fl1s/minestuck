@@ -52,6 +52,7 @@ public final class MSEntityTypes
 	public static final Supplier<EntityType<GristEntity>> GRIST = REGISTER.register("grist", () -> EntityType.Builder.<GristEntity>of(GristEntity::new, MobCategory.MISC).sized(1 / 3F, 1 / 3F).setTrackingRange(4).setUpdateInterval(20).build(Minestuck.id("grist").toString()));
 	public static final Supplier<EntityType<VitalityGelEntity>> VITALITY_GEL = REGISTER.register("vitality_gel", () -> EntityType.Builder.<VitalityGelEntity>of(VitalityGelEntity::new, MobCategory.MISC).sized(1 / 4F, 1 / 4F).setTrackingRange(4).setUpdateInterval(20).build(Minestuck.id("vitality_gel").toString()));
 	public static final Supplier<EntityType<DecoyEntity>> PLAYER_DECOY = REGISTER.register("player_decoy", () -> EntityType.Builder.<DecoyEntity>of(DecoyEntity::new, MobCategory.MISC).noSave().noSummon().build(Minestuck.id("player_decoy").toString()));
+	public static final Supplier<EntityType<SleepingSelfEntity>> SLEEPING_SELF = REGISTER.register("sleeping_self", () -> EntityType.Builder.<SleepingSelfEntity>of(SleepingSelfEntity::new, MobCategory.MISC).noSummon().sized(0.9F, 0.4F).setTrackingRange(16).setUpdateInterval(3).fireImmune().build(Minestuck.id("sleeping_self").toString()));
 	public static final Supplier<EntityType<ServerCursorEntity>> SERVER_CURSOR = REGISTER.register("server_cursor", () -> EntityType.Builder.of(ServerCursorEntity::new, MobCategory.MISC).noSave().noSummon().sized(0.1F, 0.1F).setShouldReceiveVelocityUpdates(false).setTrackingRange(4).fireImmune().build(Minestuck.id("server_cursor").toString()));
 	
 	public static final Supplier<EntityType<KernelspriteEntity>> KERNELSPRITE = REGISTER.register("kernelsprite", () -> EntityType.Builder.of(KernelspriteEntity::new, MobCategory.MISC).sized(0.6F, 0.6F).fireImmune().build(Minestuck.id("kernelsprite").toString()));
@@ -112,6 +113,7 @@ public final class MSEntityTypes
 		event.put(PROSPITIAN_ROOK.get(), RookEntity.rookAttributes().build());
 		
 		event.put(PLAYER_DECOY.get(), Mob.createMobAttributes().build());
+		event.put(SLEEPING_SELF.get(), Mob.createMobAttributes().build());
 		
 		event.put(KERNELSPRITE.get(), KernelspriteEntity.kernelspriteAttributes().build());
 	}

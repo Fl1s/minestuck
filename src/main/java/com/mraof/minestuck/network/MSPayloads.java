@@ -155,9 +155,11 @@ public final class MSPayloads
 		registerPlayToClient(registrar, GristToastPacket.ID, GristToastPacket.STREAM_CODEC);
 		registerPlayToClient(registrar, EntryEffectPackets.Effect.ID, EntryEffectPackets.Effect.STREAM_CODEC);
 		registerPlayToClient(registrar, EntryEffectPackets.Clear.ID, EntryEffectPackets.Clear.STREAM_CODEC);
+		registerPlayToClient(registrar, DreamselfFadePacket.ID, DreamselfFadePacket.STREAM_CODEC);
 		
 		//Miscellaneous Packets
 		registerPlayToServer(registrar, ToggleAspectEffectsPacket.ID, ToggleAspectEffectsPacket.STREAM_CODEC);
+		registerPlayToServer(registrar, DreamselfReturnPacket.ID, DreamselfReturnPacket.STREAM_CODEC);
 		registerPlayToServer(registrar, MiscContainerPacket.ID, MiscContainerPacket.STREAM_CODEC);
 		registerPlayToClient(registrar, StopCreativeShockEffectPacket.ID, StopCreativeShockEffectPacket.STREAM_CODEC);
 		registerPlayToClient(registrar, PushPlayerPacket.ID, PushPlayerPacket.STREAM_CODEC);

@@ -132,6 +132,13 @@ public final class MSSoundEvents
 	public static final Supplier<SoundEvent> BLOCK_CLOCK_TICK = register("block.clock.tick");
 	public static final Supplier<SoundEvent> BLOCK_CLOCK_TOCK = register("block.clock.tock");
 	
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_PROSPIT = register("event.dreamself.swap.prospit");
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_PROSPIT_HIT = register("event.dreamself.swap.prospit.hit");
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_PROSPIT_DEATH = register("event.dreamself.swap.prospit.death");
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_DERSE = register("event.dreamself.swap.derse");
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_DERSE_HIT = register("event.dreamself.swap.derse.hit");
+	public static final Supplier<SoundEvent> DREAMSELF_SWAP_DERSE_DEATH = register("event.dreamself.swap.derse.death");
+	
 	
 	private static DeferredHolder<SoundEvent, SoundEvent> register(String name)
 	{

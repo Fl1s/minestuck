@@ -49,6 +49,7 @@ import com.mraof.minestuck.item.weapon.MusicPlayerWeapon;
 import com.mraof.minestuck.item.weapon.OnHitEffect;
 import com.mraof.minestuck.network.ToggleAspectEffectsPacket;
 import com.mraof.minestuck.player.*;
+import com.mraof.minestuck.player.dreamself.DreamselfHandler;
 import com.mraof.minestuck.skaianet.*;
 import com.mraof.minestuck.util.MSTags;
 import com.mraof.minestuck.world.GateHandler;
@@ -2006,6 +2007,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addEntityTypeExtra(MSEntityTypes.GRIST, "type", "%s Grist");
 		addEntityType(MSEntityTypes.VITALITY_GEL, "Vitality Gel");
 		addEntityType(MSEntityTypes.PLAYER_DECOY, "Player Decoy");
+		addEntityType(MSEntityTypes.SLEEPING_SELF, "Sleeping Self");
 		addEntityType(MSEntityTypes.SERVER_CURSOR, "Server Cursor");
 		addEntityType(MSEntityTypes.METAL_BOAT, "Metal Boat");
 		addEntityType(MSEntityTypes.POSTER, "Poster");
@@ -2445,6 +2447,23 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(SettingsAppGui.DISK_MANAGER, "Disk Manager");
 		add(SettingsAppGui.TITLE, "Sburb Settings");
 		
+		add("minestuck.lunar_sway.prospit", "Prospit");
+		add("minestuck.lunar_sway.derse", "Derse");
+		add(DreamselfHandler.WAKE_UP_BODY, "You fall asleep, and wake up in your body");
+		add(DreamselfHandler.WAKE_UP_DREAM, "You fall asleep, and wake up as a dreamer of %s");
+		add(DreamselfHandler.DREAM_DEATH, "Your dreamself has died. You wake up in your body.");
+		add(DreamselfHandler.DREAMSELF_LOST, "Your dreamself is dead, so there is nothing to dream as anymore");
+		add(DreamselfHandler.NOT_AVAILABLE, "You do not have a dreamself. Enter the medium first.");
+		add(DreamselfHandler.NOT_DREAMING, "You are not in your dreamself");
+		add(DreamselfHandler.EDITMODE, "You cannot switch selves while in editmode");
+		add(DreamselfHandler.FAILED, "Unable to switch selves");
+		add(DreamselfCommand.INFO, "Lunar sway: %s. Currently controlling: %s");
+		add(DreamselfCommand.INFO_DEAD, "Lunar sway: %s. Your dreamself is dead");
+		add(DreamselfCommand.INFO_NONE, "You have no lunar sway or dreamself yet");
+		add("commands.minestuck.dreamself.self_dream", "dreamself");
+		add("commands.minestuck.dreamself.self_body", "waking body");
+		add(DreamselfCommand.SWAP_SUCCESS, "Switched selves");
+		add(DreamselfCommand.SWAY_SET, "Set lunar sway to %s");
 		add(EntryProcess.WRONG_DIMENSION, "Entry not permitted from this dimension");
 		add(EntryProcess.BUSY, "Someone else is already entering");
 		add(EntryProcess.CREATION_FAILED, "Something went wrong while creating your Land. More details in the server console");
@@ -2551,6 +2570,8 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(MSKeyHandler.CAPTCHALOGUE, "Captchalogue Held Item");
 		add(MSKeyHandler.ASPECT_EFFECT_TOGGLE, "Toggle Aspect Effects");
 		add(MSKeyHandler.SYLLADEX, "Open Sylladex");
+		add(MSKeyHandler.DREAMSELF_CATEGORY, "Minestuck (Dreamself)");
+		add(MSKeyHandler.DREAMSELF_RETURN, "Wake Up");
 		
 		add(LotusFlowerEntity.REGROW, "There are no petals on this plant, maybe it will regrow?");
 		

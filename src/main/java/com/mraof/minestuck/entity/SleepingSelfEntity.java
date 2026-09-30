@@ -1,5 +1,6 @@
 package com.mraof.minestuck.entity;
 
+import com.mraof.minestuck.entity.carapacian.CarapacianEntity;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.dreamself.DreamselfData;
 import com.mraof.minestuck.player.dreamself.DreamselfHandler;
@@ -16,6 +17,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,6 +44,9 @@ public class SleepingSelfEntity extends Mob
 	private static final double MOVE_LIMIT_SQR = 0.5 * 0.5;
 	private static final int UNSUPPORTED_TICKS_TO_WAKE = 2;
 	private static final int FAILED_WAKE_COOLDOWN = 40;
+	private static final int AGGRO_INTERVAL = 10;
+	private static final double AGGRO_MAX_RANGE = 32;
+	private static final double DEFAULT_FOLLOW_RANGE = 16;
 	
 	private boolean settled;
 	@Nullable
@@ -195,6 +202,8 @@ public class SleepingSelfEntity extends Mob
 		
 		if(this.origin == null) this.origin = this.position();
 		
+		if(this.tickCount % AGGRO_INTERVAL == 0) this.attractHostileMobs(owner);
+		
 		this.unsupportedTicks = supported ? 0 : this.unsupportedTicks + 1;
 		boolean moved = this.position().distanceToSqr(this.origin) > MOVE_LIMIT_SQR;
 		
@@ -202,6 +211,29 @@ public class SleepingSelfEntity extends Mob
 		{
 			if(!DreamselfHandler.wakeUpFromDisturbance(owner, this)) this.wakeCooldown = FAILED_WAKE_COOLDOWN;
 		}
+	}
+	
+	private void attractHostileMobs(ServerPlayer owner)
+	{
+		if(owner.isCreative() || owner.isSpectator()) return;
+		
+		AABB searchArea = this.getBoundingBox().inflate(AGGRO_MAX_RANGE);
+		for(Mob mob : this.level().getEntitiesOfClass(Mob.class, searchArea, mob -> isPotentialAttacker(mob)))
+		{
+			AttributeInstance followRange = mob.getAttribute(Attributes.FOLLOW_RANGE);
+			double range = Math.min(AGGRO_MAX_RANGE, followRange != null ? followRange.getValue() : DEFAULT_FOLLOW_RANGE);
+			
+			if(mob.distanceToSqr(this) <= range * range && mob.canAttack(this) && mob.hasLineOfSight(this))
+				mob.setTarget(this);
+		}
+	}
+	
+	private boolean isPotentialAttacker(Mob mob)
+	{
+		if(mob == this || !(mob instanceof Enemy) || mob instanceof CarapacianEntity || !mob.isAlive()) return false;
+		
+		LivingEntity currentTarget = mob.getTarget();
+		return currentTarget == null || !currentTarget.isAlive();
 	}
 	
 	private boolean isSupported()

@@ -526,6 +526,12 @@ public final class DreamselfHandler
 		if(data != null && data.isDreamselfDead() && !ServerEditHandler.isInEditmode(player))
 		{
 			playDeathSound(player, data);
+			if(level.isDay())
+			{
+				event.setCanceled(true);
+				event.setCancellationResult(InteractionResult.SUCCESS);
+				player.setRespawnPosition(level.dimension(), event.getPos(), player.getYRot(), false, true);
+			}
 			return;
 		}
 		if(data == null || !ensureInitialized(player) || ServerEditHandler.isInEditmode(player)) return;
@@ -575,7 +581,7 @@ public final class DreamselfHandler
 		ServerLevel dreamLevel = player.serverLevel();
 		
 		player.closeContainer();
-		PacketDistributor.sendToPlayer(player, new DreamselfFadePacket(0, 0, ABRUPT_FADE_IN, hitSound(data.sway()).getLocation()));
+		PacketDistributor.sendToPlayer(player, new DreamselfFadePacket(0, 0, ABRUPT_FADE_IN, deathSound(data.sway()).getLocation()));
 		
 		//Dreamself belongings are dropped where it died, just like it would be for a normal death
 		if(!dreamLevel.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) player.getInventory().dropAll();

@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -27,6 +28,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -38,10 +40,12 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -65,15 +69,12 @@ public final class DreamselfHandler
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	public static final String WAKE_UP_BODY = "minestuck.dreamself.wake_up_body";
-	public static final String WAKE_UP_DREAM = "minestuck.dreamself.wake_up_dream";
-	public static final String DREAM_DEATH = "minestuck.dreamself.dream_death";
+	public static final String DREAMSELF_LOST = "minestuck.dreamself.lost";
 	public static final String NOT_AVAILABLE = "minestuck.dreamself.not_available";
 	public static final String EDITMODE = "minestuck.dreamself.editmode";
 	public static final String NOT_DREAMING = "minestuck.dreamself.not_dreaming";
 	private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 	
-	public static final String DREAMSELF_LOST = "minestuck.dreamself.lost";
 	public static final String FAILED = "minestuck.dreamself.failed";
 	
 	@Nullable
@@ -220,14 +221,19 @@ public final class DreamselfHandler
 	public static void requestReturnToBody(ServerPlayer player)
 	{
 		DreamselfData data = getData(player);
-		if(data == null || !data.isReady() && !data.isDreamselfDead())
+		if(data == null)
 		{
 			player.displayClientMessage(Component.translatable(NOT_AVAILABLE), true);
 			return;
 		}
 		if(data.isDreamselfDead())
 		{
-			player.displayClientMessage(Component.translatable(DREAMSELF_LOST), true);
+			playDeathSound(player, data);
+			return;
+		}
+		if(!data.isReady())
+		{
+			player.displayClientMessage(Component.translatable(NOT_AVAILABLE), true);
 			return;
 		}
 		if(!data.isDreaming())
@@ -244,13 +250,29 @@ public final class DreamselfHandler
 		return (sway == LunarSway.DERSE ? MSSoundEvents.DREAMSELF_SWAP_DERSE : MSSoundEvents.DREAMSELF_SWAP_PROSPIT).get();
 	}
 	
+	private static SoundEvent hitSound(@Nullable LunarSway sway)
+	{
+		return (sway == LunarSway.DERSE ? MSSoundEvents.DREAMSELF_SWAP_DERSE_HIT : MSSoundEvents.DREAMSELF_SWAP_PROSPIT_HIT).get();
+	}
+	
+	private static SoundEvent deathSound(@Nullable LunarSway sway)
+	{
+		return (sway == LunarSway.DERSE ? MSSoundEvents.DREAMSELF_SWAP_DERSE_DEATH : MSSoundEvents.DREAMSELF_SWAP_PROSPIT_DEATH).get();
+	}
+	
+	private static void playDeathSound(ServerPlayer player, DreamselfData data)
+	{
+		player.displayClientMessage(Component.translatable(DREAMSELF_LOST), true);
+		player.playNotifySound(deathSound(data.sway()), SoundSource.PLAYERS, 1.0F, 1.0F);
+	}
+	
 	@Nullable
 	private static DreamselfData checkSwapAllowed(ServerPlayer player, boolean notify)
 	{
 		DreamselfData data = getData(player);
 		if(data != null && data.isDreamselfDead())
 		{
-			if(notify) player.sendSystemMessage(Component.translatable(DREAMSELF_LOST));
+			if(notify) playDeathSound(player, data);
 			return null;
 		}
 		if(data == null || !ensureInitialized(player))
@@ -304,7 +326,7 @@ public final class DreamselfHandler
 		SleepingSelfEntity body = createEntity(currentLevel, player, wasDreaming, current);
 		
 		if(abrupt)
-			PacketDistributor.sendToPlayer(player, new DreamselfFadePacket(0, 0, ABRUPT_FADE_IN, MSSoundEvents.DREAMSELF_SWAP_HIT.get().getLocation()));
+			PacketDistributor.sendToPlayer(player, new DreamselfFadePacket(0, 0, ABRUPT_FADE_IN, hitSound(data.sway()).getLocation()));
 		
 		if(Teleport.teleportEntity(player, targetLevel, target.x, target.y, target.z, target.yRot, target.xRot) == null)
 		{
@@ -320,7 +342,7 @@ public final class DreamselfHandler
 		
 		if(oldEntity != null) oldEntity.discard();
 		
-		player.displayClientMessage(Component.translatable(data.isDreaming() ? WAKE_UP_DREAM : WAKE_UP_BODY, data.sway().getDisplayName()), true);
+		updateFlight(player, data.isDreaming());
 		return true;
 	}
 	
@@ -419,6 +441,58 @@ public final class DreamselfHandler
 		}
 	}
 	
+	private static void updateFlight(ServerPlayer player, boolean dreaming)
+	{
+		Abilities abilities = player.getAbilities();
+		if(dreaming)
+		{
+			if(!abilities.mayfly)
+			{
+				abilities.mayfly = true;
+				player.onUpdateAbilities();
+			}
+		} else if(player.gameMode.getGameModeForPlayer().isSurvival() && abilities.mayfly)
+		{
+			abilities.mayfly = false;
+			abilities.flying = false;
+			player.onUpdateAbilities();
+		}
+	}
+	
+	@SubscribeEvent
+	private static void onPlayerTick(PlayerTickEvent.Post event)
+	{
+		if(!(event.getEntity() instanceof ServerPlayer player) || player.tickCount % 5 != 0) return;
+		
+		DreamselfData data = getData(player);
+		if(data != null && data.isDreaming() && data.isReady()) updateFlight(player, true);
+	}
+	
+	@SubscribeEvent
+	private static void onEntityJoin(EntityJoinLevelEvent event)
+	{
+		if(event.getLevel().isClientSide() || !(event.getEntity() instanceof SleepingSelfEntity sleepingSelf)) return;
+		
+		UUID ownerId = sleepingSelf.getOwnerId();
+		MinecraftServer server = event.getLevel().getServer();
+		if(ownerId == null || server == null) return;
+		
+		ServerPlayer owner = server.getPlayerList().getPlayer(ownerId);
+		DreamselfData data = owner != null ? getData(owner) : null;
+		if(data != null && !sleepingSelf.getUUID().equals(data.sleepingEntity())) event.setCanceled(true);
+	}
+	
+	public static boolean reviveDreamself(ServerPlayer player)
+	{
+		DreamselfData data = getData(player);
+		if(data == null || !data.revive()) return false;
+		
+		if(ensureInitialized(player)) return true;
+		
+		data.killDreamself();
+		return false;
+	}
+	
 	@SubscribeEvent
 	private static void onLogout(PlayerEvent.PlayerLoggedOutEvent event)
 	{
@@ -449,6 +523,11 @@ public final class DreamselfHandler
 			return;
 		
 		DreamselfData data = getData(player);
+		if(data != null && data.isDreamselfDead() && !ServerEditHandler.isInEditmode(player))
+		{
+			playDeathSound(player, data);
+			return;
+		}
 		if(data == null || !ensureInitialized(player) || ServerEditHandler.isInEditmode(player)) return;
 		
 		event.setCanceled(true);
@@ -478,7 +557,7 @@ public final class DreamselfHandler
 	}
 	
 	/**
-	 * Permanently ends the dreamself that the player is currently controlling, and returns the player to the waking body
+	 * Permanently ends the dreamself that the player is currently controlling, and returns the player to the waking body.
 	 *
 	 * @return true if the player was moved to the waking body
 	 */
@@ -496,7 +575,9 @@ public final class DreamselfHandler
 		ServerLevel dreamLevel = player.serverLevel();
 		
 		player.closeContainer();
+		PacketDistributor.sendToPlayer(player, new DreamselfFadePacket(0, 0, ABRUPT_FADE_IN, hitSound(data.sway()).getLocation()));
 		
+		//Dreamself belongings are dropped where it died, just like it would be for a normal death
 		if(!dreamLevel.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) player.getInventory().dropAll();
 		
 		if(Teleport.teleportEntity(player, bodyLevel, body.x, body.y, body.z, body.yRot, body.xRot) == null)
@@ -509,13 +590,14 @@ public final class DreamselfHandler
 		data.killDreamself();
 		PENDING_SWAPS.remove(player.getUUID());
 		
+		//Remove the stand-in of the body that we now control
 		if(bodyEntityId != null)
 		{
 			Entity oldEntity = bodyLevel.getEntity(bodyEntityId);
 			if(oldEntity != null) oldEntity.discard();
 		}
 		
-		player.sendSystemMessage(Component.translatable(DREAM_DEATH));
+		updateFlight(player, false);
 		return true;
 	}
 }

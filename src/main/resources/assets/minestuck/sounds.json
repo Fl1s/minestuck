@@ -885,7 +885,7 @@
   },
   "event.dreamself.swap.prospit.death":    {
     "category": "ambient",
-    "subtitle": "subtitles.minestuck.dreamself_swap_prospit_hit",
+    "subtitle": "subtitles.minestuck.dreamself_swap_prospit_death",
     "sounds":   [
       "minestuck:random/dreamself_swap_prospit_death"
     ]
@@ -906,7 +906,7 @@
   },
   "event.dreamself.swap.derse.death":    {
     "category": "ambient",
-    "subtitle": "subtitles.minestuck.dreamself_swap_derse_hit",
+    "subtitle": "subtitles.minestuck.dreamself_swap_derse_death",
     "sounds":   [
       "minestuck:random/dreamself_swap_derse_death"
     ]

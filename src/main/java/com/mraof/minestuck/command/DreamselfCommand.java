@@ -9,6 +9,7 @@ import com.mraof.minestuck.player.dreamself.DreamselfHandler;
 import com.mraof.minestuck.player.dreamself.LunarSway;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -20,6 +21,10 @@ public final class DreamselfCommand
 	public static final String INFO = "commands.minestuck.dreamself.info";
 	public static final String INFO_DEAD = "commands.minestuck.dreamself.info_dead";
 	public static final String INFO_NONE = "commands.minestuck.dreamself.info_none";
+	public static final String REVIVE_SUCCESS = "commands.minestuck.dreamself.revive";
+	public static final String REVIVE_FAILED = "commands.minestuck.dreamself.revive_failed";
+	public static final String REVIVE_NOT_DEAD = "commands.minestuck.dreamself.revive_not_dead";
+	public static final String SWAP_DEAD = "commands.minestuck.dreamself.swap_dead";
 	public static final String SWAP_SUCCESS = "commands.minestuck.dreamself.swap";
 	public static final String SWAY_SET = "commands.minestuck.dreamself.sway_set";
 	
@@ -29,7 +34,7 @@ public final class DreamselfCommand
 		for(LunarSway sway : LunarSway.values())
 			swayCommand.then(Commands.literal(sway.getSerializedName()).executes(context -> setSway(context, sway)));
 		
-		dispatcher.register(Commands.literal("dreamself").requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(Commands.literal("info").executes(DreamselfCommand::info)).then(Commands.literal("swap").executes(DreamselfCommand::swap)).then(swayCommand));
+		dispatcher.register(Commands.literal("dreamself").requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS)).then(Commands.literal("info").executes(DreamselfCommand::info)).then(Commands.literal("swap").executes(DreamselfCommand::swap)).then(Commands.literal("revive").executes(context -> revive(context, context.getSource().getPlayerOrException())).then(Commands.argument("player", EntityArgument.player()).executes(context -> revive(context, EntityArgument.getPlayer(context, "player"))))).then(swayCommand));
 	}
 	
 	private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
@@ -56,8 +61,32 @@ public final class DreamselfCommand
 	private static int swap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
 	{
 		ServerPlayer player = context.getSource().getPlayerOrException();
+		DreamselfData data = DreamselfHandler.getData(player);
+		if(data != null && data.isDreamselfDead())
+		{
+			context.getSource().sendFailure(Component.translatable(SWAP_DEAD));
+			return 0;
+		}
 		if(!DreamselfHandler.requestSwap(player, null)) return 0;
 		context.getSource().sendSuccess(() -> Component.translatable(SWAP_SUCCESS), false);
+		return 1;
+	}
+	
+	private static int revive(CommandContext<CommandSourceStack> context, ServerPlayer target)
+	{
+		DreamselfData data = DreamselfHandler.getData(target);
+		if(data == null || !data.isDreamselfDead())
+		{
+			context.getSource().sendFailure(Component.translatable(REVIVE_NOT_DEAD, target.getDisplayName()));
+			return 0;
+		}
+		
+		if(!DreamselfHandler.reviveDreamself(target))
+		{
+			context.getSource().sendFailure(Component.translatable(REVIVE_FAILED, target.getDisplayName()));
+			return 0;
+		}
+		context.getSource().sendSuccess(() -> Component.translatable(REVIVE_SUCCESS, target.getDisplayName()), true);
 		return 1;
 	}
 	

@@ -84,6 +84,13 @@ public final class DreamselfData implements INBTSerializable<CompoundTag>
 		this.sleepingEntity = null;
 	}
 	
+	public boolean revive()
+	{
+		if(!dreamselfDead) return false;
+		this.dreamselfDead = false;
+		return true;
+	}
+	
 	/**
 	 * Updates the stored state of the sleeping self without changing which self is asleep.
 	 */

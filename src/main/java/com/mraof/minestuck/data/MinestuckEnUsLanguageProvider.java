@@ -2449,13 +2449,10 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		
 		add("minestuck.lunar_sway.prospit", "Prospit");
 		add("minestuck.lunar_sway.derse", "Derse");
-		add(DreamselfHandler.WAKE_UP_BODY, "You fall asleep, and wake up in your body");
-		add(DreamselfHandler.WAKE_UP_DREAM, "You fall asleep, and wake up as a dreamer of %s");
-		add(DreamselfHandler.DREAM_DEATH, "Your dreamself has died. You wake up in your body.");
 		add(DreamselfHandler.DREAMSELF_LOST, "Your dreamself is dead, so there is nothing to dream as anymore");
 		add(DreamselfHandler.NOT_AVAILABLE, "You do not have a dreamself. Enter the medium first.");
 		add(DreamselfHandler.NOT_DREAMING, "You are not in your dreamself");
-		add(DreamselfHandler.EDITMODE, "You cannot switch selves while in editmode");
+		add(DreamselfHandler.EDITMODE, "You can not switch selves while in editmode");
 		add(DreamselfHandler.FAILED, "Unable to switch selves");
 		add(DreamselfCommand.INFO, "Lunar sway: %s. Currently controlling: %s");
 		add(DreamselfCommand.INFO_DEAD, "Lunar sway: %s. Your dreamself is dead");
@@ -2463,6 +2460,10 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add("commands.minestuck.dreamself.self_dream", "dreamself");
 		add("commands.minestuck.dreamself.self_body", "waking body");
 		add(DreamselfCommand.SWAP_SUCCESS, "Switched selves");
+		add(DreamselfCommand.SWAP_DEAD, "Your dreamself is dead. Use /dreamself revive to bring it back");
+		add(DreamselfCommand.REVIVE_SUCCESS, "Revived the dreamself of %s");
+		add(DreamselfCommand.REVIVE_FAILED, "Unable to revive the dreamself of %s");
+		add(DreamselfCommand.REVIVE_NOT_DEAD, "The dreamself of %s is not dead");
 		add(DreamselfCommand.SWAY_SET, "Set lunar sway to %s");
 		add(EntryProcess.WRONG_DIMENSION, "Entry not permitted from this dimension");
 		add(EntryProcess.BUSY, "Someone else is already entering");

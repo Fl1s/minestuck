@@ -26,8 +26,8 @@ public enum LunarSway implements StringRepresentable
 	 * While this is false, dreamselves spawn on Skaia (the Battlefield).
 	 * Set this to true once the moon dimensions are properly generated!!!!
 	 */
-	// TODO: makr this as true
-	public static final boolean USE_MOON_DIMENSIONS = true;
+	// TODO: makr this as true when Prospit/Derse generation is complete
+	public static final boolean USE_MOON_DIMENSIONS = false;
 	
 	private final String name;
 	
@@ -46,7 +46,8 @@ public enum LunarSway implements StringRepresentable
 	public static LunarSway byName(String name)
 	{
 		for(LunarSway sway : values())
-			if(sway.name.equals(name)) return sway;
+			if(sway.name.equals(name))
+				return sway;
 		return null;
 	}
 	
@@ -60,7 +61,8 @@ public enum LunarSway implements StringRepresentable
 	 */
 	public ResourceKey<Level> getDreamDimension()
 	{
-		if(!USE_MOON_DIMENSIONS) return MSDimensions.SKAIA;
+		if(!USE_MOON_DIMENSIONS)
+			return MSDimensions.SKAIA;
 		return this == PROSPIT ? MSDimensions.PROSPIT : MSDimensions.DERSE;
 	}
 	

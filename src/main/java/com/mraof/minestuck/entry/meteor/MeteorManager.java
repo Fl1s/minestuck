@@ -65,10 +65,10 @@ public class MeteorManager extends SavedData
 	 * Final acceleration phase: 20 seconds before impact = ~400 ticks
 	 */
 	public static final int DASH_PHASE_TICKS = TOTAL_TICKS - 400;
+	public static final int METEOR_CHUNK_RADIUS = 5;
 	private static final int CRATER_BLOCKS_PER_TICK_TOTAL = 1_500;
 	private static final int MIN_CRATER_BLOCKS_PER_TICK = 200;
 	public static final TicketType<Unit> METEOR_CHUNK_TICKET_TYPE = TicketType.create("meteor", (_left, _right) -> 0);
-	private static final int METEOR_CHUNK_RADIUS = 5;
 	private final Map<ChunkPos, Integer> meteorChunkTickets = new HashMap<>();
 	private final Map<String, MeteorCountdown> pendingChunkUnloads = new HashMap<>();
 	private static final Logger LOGGER = LogManager.getLogger();

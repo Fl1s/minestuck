@@ -5,6 +5,9 @@ import com.mraof.minestuck.network.MeteorPackets;
 import com.mraof.minestuck.util.MSSoundEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -20,7 +23,10 @@ import java.util.Map;
 @EventBusSubscriber(modid = Minestuck.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class MeteorClientHandler
 {
-	
+	@Nullable
+	private static BlockPos localCruxtruderPos = null;
+	@Nullable
+	private static ResourceKey<Level> localLevelKey = null;
 	// entityId -> last known ticks elapsed
 	private static final Map<Integer, Integer> activeMeteorTicks = new HashMap<>();
 	@Nullable
@@ -73,6 +79,8 @@ public final class MeteorClientHandler
 		activeMeteorTicks.put(packet.meteorEntityId(), packet.ticksElapsed());
 		localPlayerMeteorKey = packet.playerKey();
 		localPlayerMeteorTicks = packet.ticksElapsed();
+		localCruxtruderPos = packet.cruxtruderPos();
+		localLevelKey = packet.levelKey();
 		
 		if(Minecraft.getInstance().level != null)
 			countdownStartGameTime = Minecraft.getInstance().level.getGameTime() - packet.ticksElapsed();
@@ -101,6 +109,17 @@ public final class MeteorClientHandler
 	{
 		return activeMeteorTicks.keySet().stream().findFirst().orElse(-1);
 	}
+	@Nullable
+	public static BlockPos getLocalCruxtruderPos()
+	{
+		return localCruxtruderPos;
+	}
+	
+	@Nullable
+	public static ResourceKey<Level> getLocalLevelKey()
+	{
+		return localLevelKey;
+	}
 	
 	public static void onMeteorRemoved(int entityId)
 	{
@@ -110,6 +129,8 @@ public final class MeteorClientHandler
 			localPlayerMeteorKey = null;
 			localPlayerMeteorTicks = 0;
 			countdownStartGameTime = -1;
+			localCruxtruderPos = null;
+			localLevelKey = null;
 		}
 	}
 	
@@ -130,6 +151,8 @@ public final class MeteorClientHandler
 		localPlayerMeteorKey = null;
 		localPlayerMeteorTicks = 0;
 		countdownStartGameTime = -1;
+		localCruxtruderPos = null;
+		localLevelKey = null;
 		
 		if(currentMusicInstance != null)
 		{

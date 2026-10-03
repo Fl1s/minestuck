@@ -13,6 +13,7 @@ import com.mraof.minestuck.entity.KernelspriteEntity;
 import com.mraof.minestuck.network.EntryEffectPackets;
 import com.mraof.minestuck.player.IdentifierHandler;
 import com.mraof.minestuck.player.PlayerIdentifier;
+import com.mraof.minestuck.skaianet.LandSelectionHook;
 import com.mraof.minestuck.skaianet.SburbHandler;
 import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.skaianet.TitleSelectionHook;
@@ -133,6 +134,8 @@ public class EntryProcess
 		}
 		
 		if(!TitleSelectionHook.performEntryCheck(player, pos))
+			return;
+		if(!LandSelectionHook.performEntryCheck(player, pos))
 			return;
 		
 		PlayerIdentifier identifier = IdentifierHandler.encode(player);

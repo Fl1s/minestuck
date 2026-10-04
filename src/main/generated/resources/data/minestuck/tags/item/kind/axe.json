@@ -1,4 +1,7 @@
 {
+  "remove": [
+    "#minestuck:kind/saw"
+  ],
   "values": [
     "#minecraft:axes",
     "minestuck:batleacks",

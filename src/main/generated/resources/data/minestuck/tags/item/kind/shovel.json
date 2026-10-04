@@ -1,4 +1,7 @@
 {
+  "remove": [
+    "#minestuck:kind/spoon"
+  ],
   "values": [
     "#minecraft:shovels",
     "minestuck:emerald_shovel"

@@ -5,6 +5,7 @@ import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.player.EnumAspect;
 import com.mraof.minestuck.player.PlayerData;
+import com.mraof.minestuck.network.GodTierDataPacket;
 import com.mraof.minestuck.player.Title;
 import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPiece;
@@ -22,9 +23,12 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @EventBusSubscriber(modid = Minestuck.MOD_ID)
@@ -64,6 +68,7 @@ public final class GodTierTickHandler
 		
 		PlayerData.get(player).ifPresent(playerData -> {
 			GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
+			sendDataPacket(player, playerData);
 			if(!state.isGodTier())
 			{
 				removeGodTierModifiers(player);
@@ -162,6 +167,20 @@ public final class GodTierTickHandler
 		BlockPos origin = questBed.getOrigin();
 		if(player.getY() >= QuestBedPiece.TOP && Math.abs(player.getX() - origin.getX()) < QuestBedPiece.RADIUS && Math.abs(player.getZ() - origin.getZ()) < QuestBedPiece.RADIUS)
 			state.setClimbedTheSpire(true);
+	}
+	
+	private static void sendDataPacket(ServerPlayer player, PlayerData playerData)
+	{
+		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
+		GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
+		GodTierKarma karma = playerData.getData(MSAttachments.GOD_TIER_KARMA);
+		
+		List<GodTierDataPacket.StatData> statData = new ArrayList<>();
+		for(GodTierStat stat : GodTierStat.values())
+			statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
+		
+		PacketDistributor.sendToPlayer(player, new GodTierDataPacket(
+				state.isGodTier(), state.canGodTier(), state.hasClimbedTheSpire(), statData, karma.getTotal()));
 	}
 	
 	private static void updateAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state)

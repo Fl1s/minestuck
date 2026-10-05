@@ -34,6 +34,7 @@ import com.mraof.minestuck.item.crafting.MSRecipeTypes;
 import com.mraof.minestuck.item.loot.MSLootTables;
 import com.mraof.minestuck.player.EcheladderExpSources;
 import com.mraof.minestuck.player.KindAbstratusList;
+import com.mraof.minestuck.player.godtier.skill.SkillRegistry;
 import com.mraof.minestuck.util.MSAttachments;
 import com.mraof.minestuck.util.MSParticleType;
 import com.mraof.minestuck.util.MSSoundEvents;
@@ -83,6 +84,7 @@ public class Minestuck
 		MSPoiTypes.REGISTER.register(eventBus);
 		MSMenuTypes.REGISTER.register(eventBus);
 		GristTypes.register(eventBus);
+		SkillRegistry.register(eventBus);
 		MSEffects.REGISTER.register(eventBus);
 		MSParticleType.REGISTER.register(eventBus);
 		MSSoundEvents.REGISTER.register(eventBus);

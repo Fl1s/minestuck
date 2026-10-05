@@ -48,5 +48,11 @@ public enum GodTierStat implements StringRepresentable
 	
 	public ResourceLocation modifierId() { return modifierId; }
 	
+	public static GodTierStat fromOrdinal(int ordinal)
+	{
+		GodTierStat[] values = values();
+		return ordinal >= 0 && ordinal < values.length ? values[ordinal] : GENERAL;
+	}
+	
 	public boolean hasAttribute() { return attribute != null; }
 }

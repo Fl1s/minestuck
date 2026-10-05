@@ -7,6 +7,7 @@ import com.mraof.minestuck.block.godtier.IGodTierBlock;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
+import com.mraof.minestuck.network.GodTierDataPacket;
 import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.skaianet.SburbPlayerData;
@@ -34,11 +35,14 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -139,7 +143,16 @@ public final class GodTierAscensionHandler
 		
 		state.setClimbedTheSpire(true);
 		state.setGodTier(true);
-		PlayerData.get(player).ifPresent(d -> d.getData(MSAttachments.GOD_TIER_STATS).initializeOnAscension());
+		PlayerData.get(player).ifPresent(d -> {
+			d.getData(MSAttachments.GOD_TIER_STATS).initializeOnAscension();
+			d.getData(MSAttachments.GOD_TIER_KARMA).reset();
+			
+			List<GodTierDataPacket.StatData> statData = new ArrayList<>();
+			GodTierStats stats = d.getData(MSAttachments.GOD_TIER_STATS);
+			for(GodTierStat stat : GodTierStat.values())
+				statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
+			PacketDistributor.sendToPlayer(player, new GodTierDataPacket(true, state.canGodTier(), true, statData, 0));
+		});
 		
 		startCutscene(player, title);
 	}

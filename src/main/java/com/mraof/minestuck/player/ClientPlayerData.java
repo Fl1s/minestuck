@@ -9,6 +9,7 @@ import com.mraof.minestuck.client.gui.MSScreenFactories;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.inventory.captchalogue.Modus;
 import com.mraof.minestuck.network.*;
+import com.mraof.minestuck.player.godtier.GodTierStat;
 import com.mraof.minestuck.network.editmode.EditmodeCacheLimitPacket;
 import com.mraof.minestuck.util.ColorHandler;
 import net.minecraft.client.Minecraft;
@@ -42,6 +43,10 @@ public final class ClientPlayerData
 	private static int playerColor;
 	private static boolean displaySelectionGui;
 	private static boolean dataCheckerAccess;
+	private static boolean godTier, canGodTier, climbedTheSpire;
+	private static int godTierKarma;
+	private static int[] godTierLevels = new int[GodTierStat.values().length];
+	private static float[] godTierXp = new float[GodTierStat.values().length];
 	
 	@SubscribeEvent
 	private static void onLoggedIn(ClientPlayerNetworkEvent.LoggingIn event)
@@ -140,7 +145,49 @@ public final class ClientPlayerData
 	{
 		title = packet.getTitle();
 	}
+	public static void handleDataPacket(GodTierDataPacket packet)
+	{
+		godTier = packet.godTier();
+		canGodTier = packet.canGodTier();
+		climbedTheSpire = packet.climbedTheSpire();
+		godTierKarma = packet.karma();
+		for(GodTierDataPacket.StatData stat : packet.stats())
+		{
+			godTierLevels[stat.stat().ordinal()] = stat.level();
+			godTierXp[stat.stat().ordinal()] = stat.xp();
+		}
+	}
 	
+	public static boolean isGodTier()
+	{
+		return godTier;
+	}
+	
+	public static boolean canGodTier()
+	{
+		return canGodTier;
+	}
+	
+	public static boolean hasClimbedTheSpire()
+	{
+		return climbedTheSpire;
+	}
+	
+	public static int getGodTierKarma()
+	{
+		return godTierKarma;
+	}
+	
+	public static int getGodTierLevel(GodTierStat stat)
+	{
+		return godTierLevels[stat.ordinal()];
+	}
+	
+	public static float getGodTierXp(GodTierStat stat)
+	{
+		return godTierXp[stat.ordinal()];
+	}
+		
 	public static void handleDataPacket(EcheladderDataPacket packet)
 	{
 		rung = packet.getRung();

@@ -41,6 +41,7 @@ public final class MSPayloads
 		registerPlayToClient(registrar, GristCachePacket.ID, GristCachePacket.STREAM_CODEC);
 		registerPlayToClient(registrar, EditmodeCacheLimitPacket.ID, EditmodeCacheLimitPacket.STREAM_CODEC);
 		registerPlayToClient(registrar, TitleDataPacket.ID, TitleDataPacket.STREAM_CODEC);
+		registerPlayToClient(registrar, GodTierDataPacket.ID, GodTierDataPacket.STREAM_CODEC);
 		registerPlayToClient(registrar, LandTypesDataPacket.ID, LandTypesDataPacket.STREAM_CODEC);
 		
 		//Color Selector Packets

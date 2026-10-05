@@ -1,6 +1,7 @@
 package com.mraof.minestuck.world.gen;
 
 import com.mojang.datafixers.util.Pair;
+import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.util.MSTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -42,18 +43,19 @@ public final class LandStructureState extends ChunkGeneratorStructureState
 	public ChunkPos getOrFindQuestBedPosition()
 	{
 		if(this.questBedPosition == null)
-			this.questBedPosition = findQuestBedPosition(this.biomeSource, this.randomState(), RandomSource.create(this.getLevelSeed() ^ QUEST_BED_SEED_SALT));
+		{
+			int minDistance = Math.max(0, MinestuckConfig.SERVER.questBedSpawnDistance.get()) / 16;
+			int area = Math.max(0, MinestuckConfig.SERVER.questBedSpawnArea.get()) / 16;
+			this.questBedPosition = findQuestBedPosition(this.biomeSource, this.randomState(), RandomSource.create(this.getLevelSeed() ^ QUEST_BED_SEED_SALT), minDistance, area);
+		}
 		return this.questBedPosition;
 	}
 	
-	private static final int QUEST_BED_MIN_DISTANCE_CHUNKS = 2500 / 16;
-	private static final int QUEST_BED_SPREAD_CHUNKS = 2500 / 16;
-	
-	private static ChunkPos findQuestBedPosition(BiomeSource biomeSource, RandomState randomState, RandomSource worldRand)
+		private static ChunkPos findQuestBedPosition(BiomeSource biomeSource, RandomState randomState, RandomSource worldRand, int minDistanceChunks, int spreadChunks)
 	{
 		double angle = 2 * Math.PI * worldRand.nextDouble();
-		int radius = QUEST_BED_MIN_DISTANCE_CHUNKS + worldRand.nextInt(QUEST_BED_SPREAD_CHUNKS);
-		int maxRadius = QUEST_BED_MIN_DISTANCE_CHUNKS + QUEST_BED_SPREAD_CHUNKS + 48;
+		int radius = minDistanceChunks + worldRand.nextInt(spreadChunks + 1);
+		int maxRadius = minDistanceChunks + spreadChunks + 48;
 		
 		for(; radius < maxRadius; radius += 6)
 		{

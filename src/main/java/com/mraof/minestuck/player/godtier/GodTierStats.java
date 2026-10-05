@@ -1,5 +1,6 @@
 package com.mraof.minestuck.player.godtier;
 
+import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.player.EnumClass;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -51,10 +52,26 @@ public final class GodTierStats implements INBTSerializable<CompoundTag>
 	private void addTo(GodTierStat stat, float amount, @Nullable EnumClass heroClass)
 	{
 		Data d = data.get(stat);
+		if(stat == GodTierStat.GENERAL)
+		{
+			int maxLevel = MinestuckConfig.SERVER.maxGodTier.get();
+			if(maxLevel >= 0 && d.level >= maxLevel)
+				return;
+		}
+
 		d.xp += amount;
 		int needed;
 		while(d.xp >= (needed = getXpToNextLevel(stat, heroClass)))
 		{
+			if(stat == GodTierStat.GENERAL)
+			{
+				int maxLevel = MinestuckConfig.SERVER.maxGodTier.get();
+				if(maxLevel >= 0 && d.level >= maxLevel)
+				{
+					d.xp = 0;
+					return;
+				}
+			}
 			d.xp -= needed;
 			d.level++;
 		}

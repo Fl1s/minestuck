@@ -14,6 +14,13 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 
 	private boolean pendingReset = false;
 
+	public void reset()
+	{
+		godTier = false;
+		climbedTheSpire = false;
+		pendingReset = true;
+	}
+
 	public boolean isGodTier()
 	{
 		return godTier;

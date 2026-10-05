@@ -2253,6 +2253,8 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 				- Level III: Prevents usage of some mobility items
 				- Levels IV, V, and VI apply level I, II, and III respectively to creative players"""
 		);
+		addEffect(MSEffects.EARTHBOUND, "Earthbound");
+		addEffectDescription(MSEffects.EARTHBOUND, "Prevents god tier flight while under the influence of the quest bed.");
 		addEffect(MSEffects.SUSPICION, "Suspicion");
 		addEffectDescription(MSEffects.SUSPICION, "Pushes entities away and prevents them from riding or being ridden.");
 		addEffect(MSEffects.SOPOR_SICKNESS, "Sopor Stupor");

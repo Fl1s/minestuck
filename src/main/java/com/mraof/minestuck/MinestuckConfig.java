@@ -94,6 +94,18 @@ public class MinestuckConfig
 		
 		//Mechanics
 		public final BooleanValue hardMode;
+		
+		//God Tier
+		public final IntValue requiredRungToGodTier;
+		public final IntValue maxGodTier;
+		public final IntValue godTierXpThreshold;
+		public final IntValue godTierBadgeSlots;
+		public final BooleanValue godTierMasterControl;
+		public final IntValue questBedSpawnDistance;
+		public final IntValue questBedSpawnArea;
+		public final BooleanValue aspectEffects;
+		public final BooleanValue multiAspectUnlocks;
+		
 		public final BooleanValue echeladderProgress;
 		public final BooleanValue playerSelectedTitle;
 		public final BooleanValue rungHealthOnRespawn;
@@ -142,6 +154,26 @@ public class MinestuckConfig
 					"- Fireballs will rain around players entering the medium",
 					"- Medium dungeons spawners contain Liches instead of Imps",
 					"- Underlings have a 50% chance to have the artifact grist").define("hardMode", false);
+			
+			builder.push("godTier");
+			requiredRungToGodTier = builder.comment("Determines the minimum echeladder rung required to ascend. Set to -1 to bypass the requirement.")
+					.defineInRange("requiredRungToGodTier", 20, -1, Integer.MAX_VALUE);
+			maxGodTier = builder.comment("Determines the maximum general god tier level. -1 means no limit.")
+					.defineInRange("maxGodTier", -1, -1, Integer.MAX_VALUE);
+			godTierXpThreshold = builder.comment("Determines the number of experience levels required to upgrade a god tier skill.")
+					.defineInRange("godTierXpThreshold", 30, 0, Integer.MAX_VALUE);
+			godTierBadgeSlots = builder.comment("Determines how many regular badges a god tier player may have enabled.")
+					.defineInRange("godTierBadgeSlots", 10, 0, Integer.MAX_VALUE);
+			godTierMasterControl = builder.comment("If true, god tier players may have all badges available. Intended for testing or server operators.")
+					.define("godTierMasterControl", false);
+			questBedSpawnDistance = builder.comment("Determines how far away the quest bed can spawn from the center of a player's land.")
+					.defineInRange("questBedSpawnDistance", 2500, 0, Integer.MAX_VALUE);
+			questBedSpawnArea = builder.comment("Determines the size of the area in which the quest bed can spawn on a player's land.")
+					.defineInRange("questBedSpawnArea", 2500, 0, Integer.MAX_VALUE);
+			aspectEffects = builder.comment("Determines whether aspect effects should be applied to players in an active Sburb connection.")
+					.define("aspectEffects", true);
+			multiAspectUnlocks = builder.comment("Determines whether skills and abilities from other aspects may be unlocked.")
+					.define("multiAspectUnlocks", true);
 			builder.pop();
 			
 			builder.push("sylladex");

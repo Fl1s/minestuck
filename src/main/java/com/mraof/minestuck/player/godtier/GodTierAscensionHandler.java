@@ -1,6 +1,7 @@
 package com.mraof.minestuck.player.godtier;
 
 import com.mraof.minestuck.Minestuck;
+import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.block.MSBlocks;
 import com.mraof.minestuck.block.godtier.IGodTierBlock;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
@@ -8,7 +9,7 @@ import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.PlayerData;
-import com.mraof.minestuck.player.Rungs;
+import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.player.Title;
 import com.mraof.minestuck.util.MSAttachments;
 import com.mraof.minestuck.util.MSSoundEvents;
@@ -101,8 +102,13 @@ public final class GodTierAscensionHandler
 		
 		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 		
-		boolean maxRung = Echeladder.get(player).getRung() >= Rungs.finalRung();
-		boolean eligible = state.isGodTier() || player.isCreative() || (state.canGodTier() && maxRung);
+		SburbPlayerData sburbData = SburbPlayerData.get(player);
+		if(!sburbData.hasEntered() || sburbData.getLandDimensionIfEntered() != player.level().dimension()) return;
+		
+		int requiredRung = MinestuckConfig.SERVER.requiredRungToGodTier.get();
+		int currentRung = Echeladder.get(player).getRung();
+		boolean rungRequirementMet = requiredRung < 0 || currentRung >= requiredRung;
+		boolean eligible = state.isGodTier() || player.isCreative() || (state.canGodTier() && rungRequirementMet);
 		
 		if(!eligible)
 		{

@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_wall_side_tall",
+  "textures": {
+    "wall": "minestuck:block/hero_stone_wall_base"
+  }
+}

@@ -2,6 +2,11 @@ package com.mraof.minestuck.item;
 
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.block.MSBlocks;
+import com.mraof.minestuck.block.godtier.HeroStoneBlockItem;
+import com.mraof.minestuck.item.godtier.GodTierArmorItem;
+import com.mraof.minestuck.item.godtier.GodTierKitItem;
+import com.mraof.minestuck.item.godtier.GodTierResetCharmItem;
+import com.mraof.minestuck.item.godtier.GodTierSashKitItem;
 import com.mraof.minestuck.computer.ProgramTypes;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.entity.MSEntityTypes;
@@ -43,6 +48,8 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -1694,6 +1701,31 @@ public class MSItems
 	public static final DeferredItem<BlockItem> PERFECTLY_GENERIC_PRESSURE_PLATE = registerBlockItem(MSBlocks.PERFECTLY_GENERIC_PRESSURE_PLATE);
 	public static final DeferredItem<BlockItem> PERFECTLY_GENERIC_DOOR = registerBlockItem(MSBlocks.PERFECTLY_GENERIC_DOOR);
 	public static final DeferredItem<BlockItem> PERFECTLY_GENERIC_TRAPDOOR = registerBlockItem(MSBlocks.PERFECTLY_GENERIC_TRAPDOOR);
+	
+	//God Tier
+	public static final DeferredItem<Item> GOD_TIER_KIT = REGISTER.register("god_tier_kit", () -> new GodTierKitItem(new Item.Properties().stacksTo(1)));
+	public static final DeferredItem<Item> GOD_TIER_RESET_CHARM = REGISTER.register("god_tier_reset_charm", () -> new GodTierResetCharmItem(new Item.Properties().stacksTo(1)));
+	public static final DeferredItem<Item> GOD_TIER_SASH_KIT = REGISTER.register("god_tier_sash_kit", () -> new GodTierSashKitItem(new Item.Properties().stacksTo(1)));
+	public static final DeferredItem<Item> GOD_TIER_HOOD  = REGISTER.register("god_tier_hood",  () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.HELMET, new Item.Properties()));
+	public static final DeferredItem<Item> GOD_TIER_SHIRT = REGISTER.register("god_tier_shirt", () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
+	public static final DeferredItem<Item> GOD_TIER_PANTS = REGISTER.register("god_tier_pants", () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.LEGGINGS, new Item.Properties()));
+	public static final DeferredItem<Item> GOD_TIER_SHOES = REGISTER.register("god_tier_shoes", () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.BOOTS, new Item.Properties()));
+	
+	public static final Map<EnumAspect, DeferredItem<BlockItem>> HERO_STONE_ITEMS = registerHeroStoneItemsPerAspect(MSBlocks.HERO_STONE, "hero_stone");
+	public static final Map<EnumAspect, DeferredItem<BlockItem>> CHISELED_HERO_STONE_ITEMS = registerHeroStoneItemsPerAspect(MSBlocks.CHISELED_HERO_STONE, "chiseled_hero_stone");
+	public static final Map<EnumAspect, DeferredItem<BlockItem>> HERO_STONE_WALL_ITEMS = registerHeroStoneItemsPerAspect(MSBlocks.HERO_STONE_WALL, "hero_stone_wall");
+	public static final DeferredItem<BlockItem> WILDCARD_HERO_STONE = registerBlockItem(MSBlocks.WILDCARD_HERO_STONE, block -> new HeroStoneBlockItem(block, new Item.Properties()));
+	public static final DeferredItem<BlockItem> WILDCARD_CHISELED_HERO_STONE = registerBlockItem(MSBlocks.WILDCARD_CHISELED_HERO_STONE, block -> new HeroStoneBlockItem(block, new Item.Properties()));
+	public static final DeferredItem<BlockItem> WILDCARD_HERO_STONE_WALL = registerBlockItem(MSBlocks.WILDCARD_HERO_STONE_WALL, block -> new HeroStoneBlockItem(block, new Item.Properties()));
+	public static final DeferredItem<BlockItem> GLOWING_HERO_STONE = registerBlockItem(MSBlocks.GLOWING_HERO_STONE);
+	
+	private static <T extends Block> Map<EnumAspect, DeferredItem<BlockItem>> registerHeroStoneItemsPerAspect(Map<EnumAspect, ? extends DeferredBlock<T>> blocks, String baseName)
+	{
+		Map<EnumAspect, DeferredItem<BlockItem>> map = new EnumMap<>(EnumAspect.class);
+		for(EnumAspect aspect : EnumAspect.values())
+			map.put(aspect, registerBlockItem(blocks.get(aspect), block -> new HeroStoneBlockItem(block, new Item.Properties())));
+		return map;
+	}
 	public static final DeferredItem<Item> PERFECTLY_GENERIC_HANGING_SIGN = REGISTER.register("perfectly_generic_hanging_sign", () -> new HangingSignItem(MSBlocks.PERFECTLY_GENERIC_HANGING_SIGN.get(), MSBlocks.PERFECTLY_GENERIC_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
 	public static final DeferredItem<Item> PERFECTLY_GENERIC_SIGN = REGISTER.register("perfectly_generic_sign", () -> new SignItem(new Item.Properties().stacksTo(16), MSBlocks.PERFECTLY_GENERIC_SIGN.get(), MSBlocks.PERFECTLY_GENERIC_WALL_SIGN.get()));
 

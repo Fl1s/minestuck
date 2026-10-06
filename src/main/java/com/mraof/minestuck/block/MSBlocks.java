@@ -6,9 +6,12 @@ import com.mraof.minestuck.block.machine.*;
 import com.mraof.minestuck.block.plant.*;
 import com.mraof.minestuck.block.redstone.*;
 import com.mraof.minestuck.blockentity.MSBlockEntityTypes;
+import com.mraof.minestuck.block.godtier.HeroStoneBlock;
+import com.mraof.minestuck.block.godtier.HeroStoneWallBlock;
 import com.mraof.minestuck.computer.theme.MSComputerThemes;
 import com.mraof.minestuck.fluid.MSFluids;
 import com.mraof.minestuck.item.MSItems;
+import com.mraof.minestuck.player.EnumAspect;
 import com.mraof.minestuck.world.gen.feature.MSCFeatures;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,6 +35,8 @@ import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -1085,6 +1090,36 @@ public final class MSBlocks
 	public static final DeferredBlock<LiquidBlock> CAULK = REGISTER.register("caulk", () -> new MSLiquidBlock(MSFluids.CAULK.get(), false, Block.Properties.of().mapColor(MapColor.COLOR_GRAY).replaceable().pushReaction(PushReaction.DESTROY).liquid().noCollission().strength(100.0F).noLootTable().sound(SoundType.EMPTY)));
 	public static final DeferredBlock<LiquidBlock> MOLTEN_AMBER = REGISTER.register("molten_amber", () -> new MSLiquidBlock(MSFluids.MOLTEN_AMBER.get(), false, Block.Properties.of().mapColor(MapColor.FIRE).replaceable().pushReaction(PushReaction.DESTROY).liquid().noCollission().strength(100.0F).lightLevel(state -> 15).noLootTable().sound(SoundType.EMPTY)));
 	
+	
+	//God Tier (Stage 2: quest bed structure blocks - see HeroStoneBlock/HeroStoneWallBlock for scope notes)
+	
+	public static final Map<EnumAspect, DeferredBlock<HeroStoneBlock>> HERO_STONE = registerPerAspect("hero_stone", aspect -> new HeroStoneBlock(heroStoneProperties(aspect), aspect, false));
+	public static final Map<EnumAspect, DeferredBlock<HeroStoneBlock>> CHISELED_HERO_STONE = registerPerAspect("chiseled_hero_stone", aspect -> new HeroStoneBlock(heroStoneProperties(aspect), aspect, true));
+	public static final Map<EnumAspect, DeferredBlock<HeroStoneWallBlock>> HERO_STONE_WALL = registerPerAspect("hero_stone_wall", aspect -> new HeroStoneWallBlock(heroStoneProperties(aspect), aspect));
+	
+	public static final DeferredBlock<HeroStoneBlock> WILDCARD_HERO_STONE = REGISTER.register("wildcard_hero_stone", () -> new HeroStoneBlock(heroStoneProperties(null), null, false));
+	public static final DeferredBlock<HeroStoneBlock> WILDCARD_CHISELED_HERO_STONE = REGISTER.register("wildcard_chiseled_hero_stone", () -> new HeroStoneBlock(heroStoneProperties(null), null, true));
+	public static final DeferredBlock<HeroStoneWallBlock> WILDCARD_HERO_STONE_WALL = REGISTER.register("wildcard_hero_stone_wall", () -> new HeroStoneWallBlock(heroStoneProperties(null), null));
+	// Old MSU's BlockGlowingHeroStone was just an emissive stone block (the "old.png"/mcmeta leftover
+	// in the asset dump suggests it used to be animated and no longer is) - no custom class needed here.
+	public static final DeferredBlock<Block> GLOWING_HERO_STONE = REGISTER.register("glowing_hero_stone",
+			() -> new Block(heroStoneProperties(null).lightLevel(state -> 15).sound(SoundType.GLASS)));
+	
+	private static BlockBehaviour.Properties heroStoneProperties(EnumAspect aspect)
+	{
+		// Old MSU: setHarvestLevel("pickaxe", 3).setBlockUnbreakable().setResistance(2000.0F)
+		return BlockBehaviour.Properties.of().mapColor(HeroStoneBlock.getAspectMapColor(aspect))
+				.instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops()
+				.strength(-1.0F, 3600000.0F).sound(SoundType.STONE);
+	}
+	
+	private static <T extends Block> Map<EnumAspect, DeferredBlock<T>> registerPerAspect(String baseName, Function<EnumAspect, T> factory)
+	{
+		Map<EnumAspect, DeferredBlock<T>> map = new EnumMap<>(EnumAspect.class);
+		for(EnumAspect aspect : EnumAspect.values())
+			map.put(aspect, REGISTER.register(baseName + "_" + aspect.getSerializedName(), () -> factory.apply(aspect)));
+		return map;
+	}
 	
 	protected static Function<BlockState, MapColor> logColors(MapColor topColor, MapColor barkColor)
 	{

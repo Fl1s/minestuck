@@ -10,6 +10,14 @@ import com.mraof.minestuck.fluid.MSFluidType;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.inventory.musicplayer.MusicPlaying;
 import com.mraof.minestuck.player.*;
+import com.mraof.minestuck.player.Echeladder;
+import com.mraof.minestuck.player.GristCache;
+import com.mraof.minestuck.player.PlayerData;
+import com.mraof.minestuck.player.Title;
+import com.mraof.minestuck.player.godtier.GodTierKarma;
+import com.mraof.minestuck.player.godtier.GodTierState;
+import com.mraof.minestuck.player.godtier.GodTierStats;
+import com.mraof.minestuck.player.godtier.skill.GodTierSkills;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -50,6 +58,14 @@ public final class MSAttachments
 	
 	public static final Supplier<AttachmentType<Title>> TITLE = REGISTER.register("title",
 			() -> AttachmentType.<Title>builder(noDefault()).serialize(Title.CODEC).build());
+	public static final Supplier<AttachmentType<GodTierState>> GOD_TIER_STATE = REGISTER.register("god_tier_state",
+			() -> AttachmentType.serializable(restricted(GodTierState::new, PlayerData.class)).build());
+	public static final Supplier<AttachmentType<GodTierStats>> GOD_TIER_STATS = REGISTER.register("god_tier_stats",
+			() -> AttachmentType.serializable(restricted(GodTierStats::new, PlayerData.class)).build());
+	public static final Supplier<AttachmentType<GodTierKarma>> GOD_TIER_KARMA = REGISTER.register("god_tier_karma",
+			() -> AttachmentType.serializable(restricted(GodTierKarma::new, PlayerData.class)).build());
+	public static final Supplier<AttachmentType<GodTierSkills>> GOD_TIER_SKILLS = REGISTER.register("god_tier_skills",
+			() -> AttachmentType.serializable(restricted(GodTierSkills::new, PlayerData.class)).build());
 	public static final Supplier<AttachmentType<Boolean>> EFFECT_TOGGLE = REGISTER.register("effect_toggle",
 			() -> AttachmentType.builder(restricted(() -> false, ServerPlayer.class)).serialize(Codec.BOOL).build());
 	

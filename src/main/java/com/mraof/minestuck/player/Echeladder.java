@@ -80,6 +80,7 @@ public final class Echeladder implements INBTSerializable<CompoundTag>
 	private int rung;
 	private int progress;
 	private final EnumSet<EcheladderBonusType> usedBonuses = EnumSet.noneOf(EcheladderBonusType.class);
+	private boolean canGainEcheExp = true;
 	
 	public Echeladder(PlayerData playerData)
 	{
@@ -89,6 +90,9 @@ public final class Echeladder implements INBTSerializable<CompoundTag>
 	
 	public void increaseProgress(double exp)
 	{
+		if(!canGainEcheExp)
+			return;
+		
 		//for each rung, the experience is divided and approaches 0. If exp is smaller than 1, there is only a percent chance of contribution
 		exp = (exp / (rung + 1) * 2);
 		ServerPlayer player = identifier.getPlayer(mcServer);
@@ -175,6 +179,16 @@ public final class Echeladder implements INBTSerializable<CompoundTag>
 		return rung;
 	}
 	
+	public boolean isProgressEnabled()
+	{
+		return canGainEcheExp;
+	}
+	
+	public void setProgressEnabled(boolean enabled)
+	{
+		this.canGainEcheExp = enabled;
+	}
+	
 	public float getProgress()
 	{
 		return ((float) progress) / Rungs.getProgressReq(rung);
@@ -193,6 +207,7 @@ public final class Echeladder implements INBTSerializable<CompoundTag>
 		
 		nbt.putInt("rung", rung);
 		nbt.putInt("rungProgress", progress);
+		nbt.putBoolean("rungProgressEnabled", canGainEcheExp);
 		
 		ListTag bonuses = new ListTag();
 		for(EcheladderBonusType bonus : usedBonuses)
@@ -207,6 +222,7 @@ public final class Echeladder implements INBTSerializable<CompoundTag>
 	{
 		rung = nbt.getInt("rung");
 		progress = nbt.getInt("rungProgress");
+		canGainEcheExp = !nbt.contains("rungProgressEnabled") || nbt.getBoolean("rungProgressEnabled");
 		
 		for(Tag tag : nbt.getList("rungBonuses", Tag.TAG_STRING))
 			usedBonuses.add(EcheladderBonusType.fromString(tag.getAsString()));

@@ -16,6 +16,8 @@ public class MSEffects
 	public static final DeferredRegister<MobEffect> REGISTER = DeferredRegister.create(BuiltInRegistries.MOB_EFFECT, Minestuck.MOD_ID);
 	
 	public static final DeferredHolder<MobEffect, CreativeShockEffect> CREATIVE_SHOCK = REGISTER.register("creative_shock", CreativeShockEffect::new);
+	public static final DeferredHolder<MobEffect, EarthboundEffect> EARTHBOUND = REGISTER.register("earthbound", EarthboundEffect::new);
+	public static final DeferredHolder<MobEffect, GodTierLockEffect> GOD_TIER_LOCK = REGISTER.register("god_tier_lock", GodTierLockEffect::new);
 	
 	public static final DeferredHolder<MobEffect, SuspicionEffect> SUSPICION = REGISTER.register("suspicion", SuspicionEffect::new);
 	

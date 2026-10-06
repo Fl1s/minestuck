@@ -13,10 +13,13 @@ import com.mraof.minestuck.client.gui.StrifeCardScreen;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.inventory.captchalogue.Modus;
 import com.mraof.minestuck.network.*;
+import com.mraof.minestuck.player.godtier.GodTierStat;
 import com.mraof.minestuck.network.editmode.EditmodeCacheLimitPacket;
 import com.mraof.minestuck.util.ColorHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -56,6 +59,15 @@ public final class ClientPlayerData
 	private static boolean displaySelectionGui;
 	private static boolean displaySpecibusGui;
 	private static boolean dataCheckerAccess;
+	private static boolean godTier, canGodTier, climbedTheSpire;
+	private static int godTierKarma;
+	private static int[] godTierLevels = new int[GodTierStat.values().length];
+	private static float[] godTierXp = new float[GodTierStat.values().length];
+	private static Map<ResourceLocation, Boolean> godTierSkills = new HashMap<>();
+	private static Map<ResourceLocation, Boolean> godTierPassives = new HashMap<>();
+	private static ResourceLocation masterBadge;
+	private static Component godTierTitle;
+	private static int badgeLimit;
 	
 	@SubscribeEvent
 	private static void onLoggedIn(ClientPlayerNetworkEvent.LoggingIn event)
@@ -181,10 +193,90 @@ public final class ClientPlayerData
 	{
 		title = packet.getTitle();
 	}
+	public static void handleDataPacket(GodTierDataPacket packet)
+	{
+		godTier = packet.godTier();
+		canGodTier = packet.canGodTier();
+		climbedTheSpire = packet.climbedTheSpire();
+		godTierKarma = packet.karma();
+		for(GodTierDataPacket.StatData stat : packet.stats())
+		{
+			godTierLevels[stat.stat().ordinal()] = stat.level();
+			godTierXp[stat.stat().ordinal()] = stat.xp();
+		}
+	}
 	
 	public static void handleDataPacket(StrifePackets.OpenStartingSpecibusPacket packet)
 	{
 		displaySpecibusGui = true;
+	}
+	
+	public static void handleDataPacket(GodTierSkillDataPacket packet)
+	{
+		godTierSkills.clear();
+		godTierPassives.clear();
+		for(GodTierSkillDataPacket.SkillData skill : packet.skills())
+		{
+			godTierSkills.put(skill.id(), skill.enabled());
+			godTierPassives.put(skill.id(), skill.passiveEnabled());
+		}
+		masterBadge = packet.masterBadge().orElse(null);
+		badgeLimit = packet.badgeLimit();
+	}
+	
+	public static boolean isGodTier()
+	{
+		return godTier;
+	}
+	
+	public static boolean canGodTier()
+	{
+		return canGodTier;
+	}
+	
+	public static boolean hasClimbedTheSpire()
+	{
+		return climbedTheSpire;
+	}
+	
+	public static int getGodTierKarma()
+	{
+		return godTierKarma;
+	}
+	
+	public static int getGodTierLevel(GodTierStat stat)
+	{
+		return godTierLevels[stat.ordinal()];
+	}
+	
+	public static boolean hasSkill(ResourceLocation id)
+	{
+		return godTierSkills.containsKey(id);
+	}
+	
+	public static boolean isSkillEnabled(ResourceLocation id)
+	{
+		return godTierSkills.getOrDefault(id, false);
+	}
+	
+	public static Component getGodTierTitle()
+	{
+		return godTierTitle;
+	}
+	
+	public static void setGodTierTitle(Component title)
+	{
+		godTierTitle = title;
+	}
+	
+	public static int getBadgeLimit()
+	{
+		return badgeLimit;
+	}
+	
+	public static float getGodTierXp(GodTierStat stat)
+	{
+		return godTierXp[stat.ordinal()];
 	}
 	
 	public static void handleDataPacket(EcheladderDataPacket packet)

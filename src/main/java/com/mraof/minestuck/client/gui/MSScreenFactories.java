@@ -8,6 +8,8 @@ import com.mraof.minestuck.blockentity.machine.PunchDesignixBlockEntity;
 import com.mraof.minestuck.blockentity.redstone.*;
 import com.mraof.minestuck.client.gui.captchalouge.*;
 import com.mraof.minestuck.client.gui.computer.ComputerScreen;
+import com.mraof.minestuck.client.gui.godtier.GodTierBadgeScreen;
+import com.mraof.minestuck.client.gui.godtier.GodTierMeditationScreen;
 import com.mraof.minestuck.entity.dialogue.Dialogue;
 import com.mraof.minestuck.inventory.MSMenuTypes;
 import com.mraof.minestuck.inventory.captchalogue.Modus;
@@ -153,6 +155,16 @@ public class MSScreenFactories
 	public static void displayLandSelectScreen(List<TerrainLandType> terrainTypes)
 	{
 		Minecraft.getInstance().setScreen(new LandSelectorScreen(terrainTypes));
+	}
+	
+	public static void displayGodTierMeditationScreen()
+	{
+		Minecraft.getInstance().setScreen(new GodTierMeditationScreen());
+	}
+	
+	public static void displayGodTierBadgeScreen()
+	{
+		Minecraft.getInstance().setScreen(new GodTierBadgeScreen());
 	}
 	
 	public static SylladexScreen displaySylladexScreen(Modus modus, int windowId, Inventory playerInventory) throws NoModusFactoryException

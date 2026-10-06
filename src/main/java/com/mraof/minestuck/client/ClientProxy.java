@@ -95,6 +95,7 @@ public class ClientProxy
 		EntityRenderers.register(MSEntityTypes.FROG.get(), FrogRenderer::new);
 		EntityRenderers.register(MSEntityTypes.LOTUS_FLOWER.get(), LotusFlowerRenderer::new);
 		EntityRenderers.register(MSEntityTypes.SERVER_CURSOR.get(), ServerCursorRenderer::new);
+		EntityRenderers.register(MSEntityTypes.LOCATOR_EYE.get(), context -> new com.mraof.minestuck.client.renderer.entity.LocatorEyeRenderer(context));
 		EntityRenderers.register(MSEntityTypes.NAKAGATOR.get(), context -> new ConsortRenderer<>(context, EnumConsort.NAKAGATOR));
 		EntityRenderers.register(MSEntityTypes.SALAMANDER.get(), context -> new ConsortRenderer<>(context, EnumConsort.SALAMANDER));
 		EntityRenderers.register(MSEntityTypes.IGUANA.get(), context -> new ConsortRenderer<>(context, EnumConsort.IGUANA));
@@ -156,6 +157,33 @@ public class ClientProxy
 		ItemProperties.register(MSItems.BOOMBOX_BEATER.get(), Minestuck.id("has_cassette"), (stack, level, holder, seed) -> MusicPlayerWeapon.hasCassette(stack) ? 1 : 0);
 		
 		ItemProperties.register(MSItems.TEMPLE_SCANNER.get(), Minestuck.id("angle"), new CompassItemPropertyFunction((level, stack, entity) -> stack.get(MSItemComponents.TARGET_LOCATION)));
+		
+		//gt armor class texture override
+		for(net.minecraft.world.item.Item armor : new net.minecraft.world.item.Item[] {MSItems.GOD_TIER_HOOD.get(), MSItems.GOD_TIER_SHIRT.get(), MSItems.GOD_TIER_PANTS.get(), MSItems.GOD_TIER_SHOES.get()})
+		{
+			ItemProperties.register(armor, Minestuck.id("armor_class"), (stack, level, holder, seed) -> {
+				var title = stack.get(MSItemComponents.GOD_TIER_TITLE.get());
+				if(title == null) return 15; // default
+				return switch(title.heroClass())
+				{
+					case BARD -> 1;
+					case HEIR -> 2;
+					case KNIGHT -> 3;
+					case MAGE -> 4;
+					case MAID -> 5;
+					case MUSE -> 6;
+					case PAGE -> 7;
+					case PRINCE -> 8;
+					case ROGUE -> 9;
+					case SEER -> 10;
+					case SYLPH -> 11;
+					case THIEF -> 12;
+					case WITCH -> 13;
+					case LORD -> 14;
+					default -> 15;
+				};
+			});
+		}
 		ItemProperties.register(MSItems.TEMPLE_SCANNER.get(), Minestuck.id("powered"), (stack, level, entity, seed) -> StructureScannerItem.isPowered(stack) ? 1 : 0);
 	}
 	

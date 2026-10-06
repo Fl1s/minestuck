@@ -1,6 +1,92 @@
 {
-  "parent": "item/generated",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier_shirt"
-  }
+    "layer0": "minestuck:item/god_tier/shirt/default_shirt"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "minestuck:armor_class": 1
+      },
+      "model": "minestuck:item/god_tier/shirt_bard"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 2
+      },
+      "model": "minestuck:item/god_tier/shirt_heir"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 3
+      },
+      "model": "minestuck:item/god_tier/shirt_knight"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 4
+      },
+      "model": "minestuck:item/god_tier/shirt_mage"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 5
+      },
+      "model": "minestuck:item/god_tier/shirt_maid"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 6
+      },
+      "model": "minestuck:item/god_tier/shirt_muse"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 7
+      },
+      "model": "minestuck:item/god_tier/shirt_page"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 8
+      },
+      "model": "minestuck:item/god_tier/shirt_prince"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 9
+      },
+      "model": "minestuck:item/god_tier/shirt_rogue"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 10
+      },
+      "model": "minestuck:item/god_tier/shirt_seer"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 11
+      },
+      "model": "minestuck:item/god_tier/shirt_sylph"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 12
+      },
+      "model": "minestuck:item/god_tier/shirt_thief"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 13
+      },
+      "model": "minestuck:item/god_tier/shirt_witch"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 14
+      },
+      "model": "minestuck:item/god_tier/shirt_lord"
+    }
+  ]
 }

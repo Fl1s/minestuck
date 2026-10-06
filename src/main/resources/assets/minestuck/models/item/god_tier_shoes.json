@@ -1,6 +1,92 @@
 {
-  "parent": "item/generated",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier_shoes"
-  }
+    "layer0": "minestuck:item/god_tier/shoes/default_shoes"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "minestuck:armor_class": 1
+      },
+      "model": "minestuck:item/god_tier/shoes_bard"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 2
+      },
+      "model": "minestuck:item/god_tier/shoes_heir"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 3
+      },
+      "model": "minestuck:item/god_tier/shoes_knight"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 4
+      },
+      "model": "minestuck:item/god_tier/shoes_mage"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 5
+      },
+      "model": "minestuck:item/god_tier/shoes_maid"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 6
+      },
+      "model": "minestuck:item/god_tier/shoes_muse"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 7
+      },
+      "model": "minestuck:item/god_tier/shoes_page"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 8
+      },
+      "model": "minestuck:item/god_tier/shoes_prince"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 9
+      },
+      "model": "minestuck:item/god_tier/shoes_rogue"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 10
+      },
+      "model": "minestuck:item/god_tier/shoes_seer"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 11
+      },
+      "model": "minestuck:item/god_tier/shoes_sylph"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 12
+      },
+      "model": "minestuck:item/god_tier/shoes_thief"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 13
+      },
+      "model": "minestuck:item/god_tier/shoes_witch"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 14
+      },
+      "model": "minestuck:item/god_tier/shoes_lord"
+    }
+  ]
 }

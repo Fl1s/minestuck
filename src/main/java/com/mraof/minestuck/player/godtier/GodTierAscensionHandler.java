@@ -259,6 +259,8 @@ public final class GodTierAscensionHandler
 					if(diagPiece != null)
 					{
 						LOGGER.info("Quest bed found at origin {} in dimension {}", diagPiece.getOrigin(), diagLevel.dimension().location());
+						LOGGER.info("Quest bed navigation coordinates: [{}, {}, {}] | altar center: {}",
+								diagPiece.getOrigin().getX(), diagPiece.getOrigin().getY(), diagPiece.getOrigin().getZ(), diagPiece.getAltarCenter());
 						questBedLogged = true;
 					} else LOGGER.info("Quest bed not found yet in dimension {}", diagLevel.dimension().location());
 				}

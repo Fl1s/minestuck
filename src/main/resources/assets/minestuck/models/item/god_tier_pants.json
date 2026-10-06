@@ -1,6 +1,92 @@
 {
-  "parent": "item/generated",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier_pants"
-  }
+    "layer0": "minestuck:item/god_tier/pants/default_pants"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "minestuck:armor_class": 1
+      },
+      "model": "minestuck:item/god_tier/pants_bard"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 2
+      },
+      "model": "minestuck:item/god_tier/pants_heir"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 3
+      },
+      "model": "minestuck:item/god_tier/pants_knight"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 4
+      },
+      "model": "minestuck:item/god_tier/pants_mage"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 5
+      },
+      "model": "minestuck:item/god_tier/pants_maid"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 6
+      },
+      "model": "minestuck:item/god_tier/pants_muse"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 7
+      },
+      "model": "minestuck:item/god_tier/pants_page"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 8
+      },
+      "model": "minestuck:item/god_tier/pants_prince"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 9
+      },
+      "model": "minestuck:item/god_tier/pants_rogue"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 10
+      },
+      "model": "minestuck:item/god_tier/pants_seer"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 11
+      },
+      "model": "minestuck:item/god_tier/pants_sylph"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 12
+      },
+      "model": "minestuck:item/god_tier/pants_thief"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 13
+      },
+      "model": "minestuck:item/god_tier/pants_witch"
+    },
+    {
+      "predicate": {
+        "minestuck:armor_class": 14
+      },
+      "model": "minestuck:item/god_tier/pants_lord"
+    }
+  ]
 }

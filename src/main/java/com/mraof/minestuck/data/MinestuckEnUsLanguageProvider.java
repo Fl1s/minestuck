@@ -20,6 +20,7 @@ import com.mraof.minestuck.client.gui.captchalouge.HashMapSylladexScreen;
 import com.mraof.minestuck.client.gui.captchalouge.SylladexScreen;
 import com.mraof.minestuck.client.gui.captchalouge.TreeSylladexScreen;
 import com.mraof.minestuck.client.gui.computer.*;
+import com.mraof.minestuck.client.gui.godtier.GodTierBadgeScreen;
 import com.mraof.minestuck.client.gui.godtier.GodTierMeditationScreen;
 import com.mraof.minestuck.client.gui.playerStats.*;
 import com.mraof.minestuck.client.util.GuiUtil;
@@ -2256,6 +2257,8 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 				- Level III: Prevents usage of some mobility items
 				- Levels IV, V, and VI apply level I, II, and III respectively to creative players"""
 		);
+		addEffect(MSEffects.GOD_TIER_LOCK, "God Tier Lock");
+		addEffectDescription(MSEffects.GOD_TIER_LOCK, "Temporarily locks god tier benefits and abilities.");
 		addEffect(MSEffects.EARTHBOUND, "Earthbound");
 		addEffectDescription(MSEffects.EARTHBOUND, "Prevents god tier flight while under the influence of the quest bed.");
 		addEffect(MSEffects.SUSPICION, "Suspicion");
@@ -2687,6 +2690,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(GodTierAscensionHandler.GOD_TIER_KEY, "%s has ascended to god tier!");
 		add(GodTierAscensionHandler.GOD_TIER_MEDITATION_UNLOCK_KEY, "You feel a new potential within you.");
 		add(GodTierMeditationScreen.TITLE_KEY, "God Tier Meditation");
+		add(GodTierBadgeScreen.TITLE_KEY, "Manage Badges");
 		add(GodTierMeditationScreen.LEVEL_KEY, "God Tier Level: %s");
 		add(GodTierMeditationScreen.XP_KEY, "Meditation XP: %s");
 		add(GodTierMeditationScreen.BADGE_SLOTS_KEY, "Badge slots: %s");
@@ -2705,10 +2709,56 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		
 		add(GodTierAscensionHandler.OVERLORD_SKILL_LEVEL_KEY, "You need to reach God Tier level %s to claim the World Ender's badge.");
 		add(GodTierAscensionHandler.OVERLORD_PVP_DEATH_KEY, "Only a death without a player's hand can awaken the World Ender's power.");
-		add(GodTierAscensionHandler.OVERLORD_ASCEND_KEY, "%s has claimed the World Ender's badge!");
+		
+		// God Tier skill names, tooltips and requirements
+		add("skill.gift_of_gab", "The Gift of Gab");
+		add("skill.gift_of_gab.tooltip", "Enables simple, direct dialogue with consorts and others.");
+		add("skill.gift_of_gab.unlock", "Why don't you have this already?");
+		add("skill.skeleton_key", "Skeleton Key Badge");
+		add("skill.skeleton_key.tooltip", "Unlocks any lock with ease, even unconventional ones.");
+		add("skill.skeleton_key.unlock", "Requires 16 Auxilatrix Keys and a Skeleton nearby.");
+		add("skill.patch_of_the_hoarder", "Patch of the Hoarder");
+		add("skill.patch_of_the_hoarder.tooltip", "Permanently unlocks every remaining inventory slot.");
+		add("skill.patch_of_the_hoarder.unlock", "Requires 256 Captchalogue Cards and 5000 Shale Grist.");
+		add("skill.hoard_of_the_alchemizer", "Hoard of the Alchemizer Badge");
+		add("skill.hoard_of_the_alchemizer.tooltip", "Grants an unlimited supply of your chosen grist type.");
+		add("skill.hoard_of_the_alchemizer.unlock", "Requires 2000 of each Grist Type.");
+		add("skill.builder_badge", "Badge of the Architecturally Adept");
+		add("skill.builder_badge.tooltip", "Allows advanced building techniques outside Edit Mode.");
+		add("skill.builder_badge.unlock", "Requires the Battlepick of Zillydew and 20,000 Build Grist.");
+		add("skill.strife_badge", "Medal of the Omni-Dextrous");
+		add("skill.strife_badge.tooltip", "Use any weapon without needing your Strife Specibus.");
+		add("skill.strife_badge.unlock", "Requires 2 Strife Cards and 5 legendary Zillium weapons.");
+		add("skill.revenants_retaliation", "The Revenant's Retaliation Badge");
+		add("skill.revenants_retaliation.tooltip", "Boosts stats and retaliates when conditional immortality triggers.");
+		add("skill.revenants_retaliation.unlock", "Requires 10,000 Diamond Grist and a Creeper nearby.");
+		add("skill.effect_buff", "Medal of the Universally Attuned");
+		add("skill.effect_buff.tooltip", "Significantly buffs your aspect effect.");
+		add("skill.effect_buff.unlock", "Requires 5000 Quartz Grist and five Rainbow-Eyed Frogs.");
+		add("skill.karma", "Medal of the Universally Charismatic");
+		add("skill.karma.tooltip", "Improves your chances of triggering conditional immortality.");
+		add("skill.karma.unlock", "Requires 128 Moonstones and 8000 Gold Grist.");
+		add("skill.badge_page", "Page's Potential");
+		add("skill.badge_page.tooltip", "A major boost to all God Tier stats and aspect effects.");
+		add("skill.badge_page.unlock", "Requires 80 experience levels.");
+		add("skill.badge_overlord", "World Ender's Badge");
+		add("skill.badge_overlord.tooltip", "You have become the bane of the universe.");
+		add("skill.badge_overlord.unlock", "Claimed through a Lord's sacrificial death.");
+		add("skill.master_badge_mighty", "Mighty Master Badge");
+		add("skill.master_badge_mighty.tooltip", "Grants a chance to deal critical damage.");
+		add("skill.master_badge_mighty.unlock", "Requires 80 experience levels.");
+		add("skill.master_badge_brave", "Brave Master Badge");
+		add("skill.master_badge_brave.tooltip", "Grants a chance to completely block incoming damage.");
+		add("skill.master_badge_brave.unlock", "Requires 80 experience levels.");
+		add("skill.master_badge_wise", "Wise Master Badge");
+		add("skill.master_badge_wise.tooltip", "Grants improved drops and looting.");
+		add("skill.master_badge_wise.unlock", "Requires 80 experience levels.");
+		
 		
 		add(MSItems.GOD_TIER_KIT.get(), "Quest Bed Kit");
 		add(MSItems.GOD_TIER_RESET_CHARM.get(), "Reset Charm");
+		add(MSItems.GOD_TIER_SASH_KIT.get(), "Sash Kit");
+		add("item.minestuck.god_tier_sash_kit.tooltip", "Opens the badge management screen when used by a god tier player.");
 		add(MSItems.GOD_TIER_HOOD.get(), "God Tier Hood");
 		add(MSItems.GOD_TIER_SHIRT.get(), "God Tier Shirt");
 		add(MSItems.GOD_TIER_PANTS.get(), "God Tier Pants");

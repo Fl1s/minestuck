@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -104,7 +105,7 @@ public final class GodTierAscensionHandler
 	{
 		if(event.getEntity().level().isClientSide()) return;
 		
-		if(!(event.getEntity() instanceof ServerPlayer player)) return;
+		if(!(event.getEntity() instanceof ServerPlayer player) || player instanceof FakePlayer) return;
 		
 		var playerDataOpt = PlayerData.get(player);
 		if(playerDataOpt.isEmpty()) return;
@@ -183,6 +184,7 @@ public final class GodTierAscensionHandler
 		for(EquipmentSlot slot : slots)
 			CaptchaDeckHandler.launchAnyItem(player, player.getItemBySlot(slot));
 		
+		Echeladder.get(player).setProgressEnabled(false);
 		state.setClimbedTheSpire(true);
 		state.setGodTier(true);
 		PlayerData.get(player).ifPresent(d -> {
@@ -198,8 +200,7 @@ public final class GodTierAscensionHandler
 			
 			List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
 			skillData.add(new GodTierSkillDataPacket.SkillData(SkillRegistry.GIFT_OF_GAB.get().id(), true, false));
-			List<ResourceLocation> techs = new ArrayList<>(Collections.nCopies(3, ResourceLocation.parse("minecraft:empty")));
-			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), techs, MinestuckConfig.SERVER.godTierBadgeSlots.get()));
+			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), MinestuckConfig.SERVER.godTierBadgeSlots.get()));
 		});
 		
 		startCutscene(player, title);
@@ -220,6 +221,8 @@ public final class GodTierAscensionHandler
 	
 	private static void startCutscene(ServerPlayer player, Title title)
 	{
+		if(ACTIVE_CUTSCENES.containsKey(player.getUUID()))
+			return;
 		player.addEffect(new MobEffectInstance(MobEffects.LEVITATION, RELEASE_TICKS + 20, LEVITATION_AMPLITUDE, false, false));
 		player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, RELEASE_TICKS + 20, 19));
 		player.addEffect(new MobEffectInstance(MobEffects.DARKNESS, RELEASE_TICKS + DARKNESS_FADE_TICKS, 0, false, false));

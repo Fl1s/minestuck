@@ -6,6 +6,7 @@ import com.mraof.minestuck.block.godtier.HeroStoneBlockItem;
 import com.mraof.minestuck.item.godtier.GodTierArmorItem;
 import com.mraof.minestuck.item.godtier.GodTierKitItem;
 import com.mraof.minestuck.item.godtier.GodTierResetCharmItem;
+import com.mraof.minestuck.item.godtier.GodTierSashKitItem;
 import com.mraof.minestuck.computer.ProgramTypes;
 import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.entity.MSEntityTypes;
@@ -1655,6 +1656,7 @@ public class MSItems
 	//God Tier
 	public static final DeferredItem<Item> GOD_TIER_KIT = REGISTER.register("god_tier_kit", () -> new GodTierKitItem(new Item.Properties().stacksTo(1)));
 	public static final DeferredItem<Item> GOD_TIER_RESET_CHARM = REGISTER.register("god_tier_reset_charm", () -> new GodTierResetCharmItem(new Item.Properties().stacksTo(1)));
+	public static final DeferredItem<Item> GOD_TIER_SASH_KIT = REGISTER.register("god_tier_sash_kit", () -> new GodTierSashKitItem(new Item.Properties().stacksTo(1)));
 	public static final DeferredItem<Item> GOD_TIER_HOOD  = REGISTER.register("god_tier_hood",  () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.HELMET, new Item.Properties()));
 	public static final DeferredItem<Item> GOD_TIER_SHIRT = REGISTER.register("god_tier_shirt", () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
 	public static final DeferredItem<Item> GOD_TIER_PANTS = REGISTER.register("god_tier_pants", () -> new GodTierArmorItem(MSItemTypes.GOD_TIER_ARMOR, ArmorItem.Type.LEGGINGS, new Item.Properties()));

@@ -9,11 +9,11 @@ import com.mraof.minestuck.item.components.FrogTraitsComponent;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.item.godtier.GodTierKitItem;
 import com.mraof.minestuck.player.EnumAspect;
+import com.mraof.minestuck.player.EnumClass;
+import com.mraof.minestuck.player.Title;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -1935,10 +1935,32 @@ public final class MSCreativeTabs
 		
 		GodTierKitItem.addCreativeTabEntries(output);
 		output.accept(MSItems.GOD_TIER_RESET_CHARM.get());
+		output.accept(MSItems.GOD_TIER_SASH_KIT.get());
 		output.accept(MSItems.GOD_TIER_HOOD.get());
 		output.accept(MSItems.GOD_TIER_SHIRT.get());
 		output.accept(MSItems.GOD_TIER_PANTS.get());
 		output.accept(MSItems.GOD_TIER_SHOES.get());
+		
+		// gt armor variants for every classpect combination
+		for(EnumClass heroClass : EnumClass.values())
+			for(EnumAspect heroAspect : EnumAspect.values())
+				for(ArmorItem.Type armorType : ArmorItem.Type.values())
+				{
+					Item armor = switch(armorType)
+					{
+						case HELMET -> MSItems.GOD_TIER_HOOD.get();
+						case CHESTPLATE -> MSItems.GOD_TIER_SHIRT.get();
+						case LEGGINGS -> MSItems.GOD_TIER_PANTS.get();
+						case BOOTS -> MSItems.GOD_TIER_SHOES.get();
+						default -> null;
+					};
+					if(armor != null)
+					{
+						ItemStack stack = new ItemStack(armor);
+						stack.set(MSItemComponents.GOD_TIER_TITLE.get(), new Title(heroClass, heroAspect));
+						output.accept(stack);
+					}
+				}
 		output.accept(MSItems.WILDCARD_HERO_STONE.get());
 		output.accept(MSItems.WILDCARD_CHISELED_HERO_STONE.get());
 		output.accept(MSItems.WILDCARD_HERO_STONE_WALL.get());

@@ -14,12 +14,10 @@ import java.util.*;
 public final class GodTierSkills implements INBTSerializable<CompoundTag>
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	public static final int TECH_SLOT_COUNT = 3;
 	
 	private final Map<ResourceLocation, Boolean> unlockedSkills = new LinkedHashMap<>();
 	private final Map<ResourceLocation, Boolean> passiveEnabled = new HashMap<>();
 	private ResourceLocation masterBadge;
-	private final ResourceLocation[] equippedTechs = new ResourceLocation[TECH_SLOT_COUNT];
 	private int maxBadges = -1;
 	
 	public boolean addSkill(Skill skill)
@@ -28,8 +26,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 			return false;
 		
 		unlockedSkills.put(skill.id(), skill.canDisable());
-		if(skill instanceof Abilitech)
-			equipFirstFreeTech(skill.id());
 		
 		return true;
 	}
@@ -43,9 +39,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		passiveEnabled.remove(skill.id());
 		if(masterBadge != null && masterBadge.equals(skill.id()))
 			masterBadge = null;
-		for(int i = 0; i < TECH_SLOT_COUNT; i++)
-			if(skill.id().equals(equippedTechs[i]))
-				equippedTechs[i] = null;
 		
 		return true;
 	}
@@ -88,14 +81,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		return passiveEnabled.getOrDefault(skill.id(), false);
 	}
 	
-	public boolean setPassiveEnabled(Skill skill, boolean enabled)
-	{
-		if(!(skill instanceof Abilitech) || !hasSkill(skill))
-			return false;
-		passiveEnabled.put(skill.id(), enabled);
-		return true;
-	}
-	
 	public ResourceLocation masterBadge()
 	{
 		return masterBadge;
@@ -114,37 +99,9 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		return true;
 	}
 	
-	public boolean equipTech(Skill skill, int slot)
-	{
-		if(!(skill instanceof Abilitech) || !hasSkill(skill) || invalidSlot(slot))
-			return false;
-		unequipTechId(skill.id());
-		equippedTechs[slot] = skill.id();
-		return true;
-	}
-	
-	public boolean unequipTech(int slot)
-	{
-		if(invalidSlot(slot))
-			return false;
-		equippedTechs[slot] = null;
-		return true;
-	}
-	
-	@Nullable
-	public ResourceLocation getTech(int slot)
-	{
-		return invalidSlot(slot) ? null : equippedTechs[slot];
-	}
-	
 	public List<ResourceLocation> getAllBadges()
 	{
 		return unlockedSkills.keySet().stream().filter(id -> SkillRegistry.get(id) instanceof Badge).toList();
-	}
-	
-	public List<ResourceLocation> getAllAbilitechs()
-	{
-		return unlockedSkills.keySet().stream().filter(id -> SkillRegistry.get(id) instanceof Abilitech).toList();
 	}
 	
 	public int getMaxBadges()
@@ -196,30 +153,7 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		unlockedSkills.clear();
 		passiveEnabled.clear();
 		masterBadge = null;
-		Arrays.fill(equippedTechs, null);
 		maxBadges = -1;
-	}
-	
-	private boolean invalidSlot(int slot)
-	{
-		return slot < 0 || slot >= TECH_SLOT_COUNT;
-	}
-	
-	private void equipFirstFreeTech(ResourceLocation id)
-	{
-		for(int i = 0; i < TECH_SLOT_COUNT; i++)
-			if(equippedTechs[i] == null)
-			{
-				equippedTechs[i] = id;
-				return;
-			}
-	}
-	
-	private void unequipTechId(ResourceLocation id)
-	{
-		for(int i = 0; i < TECH_SLOT_COUNT; i++)
-			if(id.equals(equippedTechs[i]))
-				equippedTechs[i] = null;
 	}
 	
 
@@ -238,9 +172,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		
 		if(masterBadge != null)
 			nbt.putString("MasterBadge", masterBadge.toString());
-		for(int i = 0; i < TECH_SLOT_COUNT; i++)
-			if(equippedTechs[i] != null)
-				nbt.putString("Tech" + i, equippedTechs[i].toString());
 		nbt.putInt("MaxBadges", maxBadges);
 		
 		return nbt;
@@ -252,7 +183,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		unlockedSkills.clear();
 		passiveEnabled.clear();
 		masterBadge = null;
-		Arrays.fill(equippedTechs, null);
 		
 		CompoundTag skillsTag = nbt.getCompound("Skills");
 		for(String key : skillsTag.getAllKeys())
@@ -282,15 +212,6 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 			{
 				LOGGER.warn("Ignoring invalid God Tier master badge id {}", nbt.getString("MasterBadge"), e);
 			}
-		for(int i = 0; i < TECH_SLOT_COUNT; i++)
-			if(nbt.contains("Tech" + i))
-				try
-				{
-					equippedTechs[i] = ResourceLocation.parse(nbt.getString("Tech" + i));
-				} catch(Exception e)
-				{
-					LOGGER.warn("Ignoring invalid God Tier tech id {}", nbt.getString("Tech" + i), e);
-				}
 		maxBadges = nbt.getInt("MaxBadges");
 	}
 }

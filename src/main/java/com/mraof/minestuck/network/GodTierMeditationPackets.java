@@ -43,6 +43,24 @@ public final class GodTierMeditationPackets
 	}
 	
 	
+	public record OpenBadgeScreen() implements MSPacket.PlayToClient
+	{
+		public static final Type<OpenBadgeScreen> ID = new Type<>(Minestuck.id("god_tier/badge_open"));
+		public static final StreamCodec<net.minecraft.network.FriendlyByteBuf, OpenBadgeScreen> STREAM_CODEC = StreamCodec.unit(new OpenBadgeScreen());
+		
+		@Override
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
+		
+		@Override
+		public void execute(net.neoforged.neoforge.network.handling.IPayloadContext context)
+		{
+			MSScreenFactories.displayGodTierBadgeScreen();
+		}
+	}
+	
 	public record AttemptBadgeUnlock(ResourceLocation skillId) implements MSPacket.PlayToServer
 	{
 		public static final Type<AttemptBadgeUnlock> ID = new Type<>(Minestuck.id("god_tier/attempt_badge_unlock"));
@@ -106,10 +124,15 @@ public final class GodTierMeditationPackets
 		}
 	}
 	
-	public record UpgradeSkill(GodTierStat stat) implements MSPacket.PlayToServer
+	public record UpgradeSkill(GodTierStat stat, int amount) implements MSPacket.PlayToServer
 	{
 		public static final Type<UpgradeSkill> ID = new Type<>(Minestuck.id("god_tier/upgrade_skill"));
-		public static final StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, UpgradeSkill> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.idMapper(GodTierStat::fromOrdinal, GodTierStat::ordinal), UpgradeSkill::stat, UpgradeSkill::new);
+		public static final StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, UpgradeSkill> STREAM_CODEC = StreamCodec.composite(
+				ByteBufCodecs.idMapper(GodTierStat::fromOrdinal, GodTierStat::ordinal),
+				UpgradeSkill::stat,
+				ByteBufCodecs.VAR_INT,
+				UpgradeSkill::amount,
+				UpgradeSkill::new);
 		
 		@Override
 		public Type<? extends CustomPacketPayload> type()
@@ -130,13 +153,22 @@ public final class GodTierMeditationPackets
 				int maxLevel = MinestuckConfig.SERVER.maxGodTier.get();
 				if(maxLevel >= 0 && stats.getLevel(GodTierStat.GENERAL) >= maxLevel) return;
 				
-				int xpCost = MinestuckConfig.SERVER.godTierXpThreshold.get();
-				if(player.experienceLevel < xpCost) return;
+				int xpCost = getUpgradeCost(stats, stat, amount);
+				if(amount <= 0 || player.experienceLevel < xpCost) return;
 				
 				player.giveExperienceLevels(-xpCost);
-				stats.addXp(stat, 1, title.heroClass());
+				stats.addXp(stat, amount, title.heroClass());
 				GodTierTickHandler.sendDataPacket(player, playerData);
 			});
+		}
+		
+		private static int getUpgradeCost(GodTierStats stats, GodTierStat stat, int amount)
+		{
+			// Progression-balanced cost: base cost grows slowly with the current level.
+				int level = stats.getLevel(stat);
+				int baseCost = Math.max(1, MinestuckConfig.SERVER.godTierXpThreshold.get() / 6);
+				int levelCost = baseCost + Math.floorDiv(level, 5);
+				return levelCost * amount;
 		}
 	}
 }

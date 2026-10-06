@@ -14,6 +14,7 @@ import com.mraof.minestuck.network.editmode.EditmodeCacheLimitPacket;
 import com.mraof.minestuck.util.ColorHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -54,7 +55,7 @@ public final class ClientPlayerData
 	private static Map<ResourceLocation, Boolean> godTierSkills = new HashMap<>();
 	private static Map<ResourceLocation, Boolean> godTierPassives = new HashMap<>();
 	private static ResourceLocation masterBadge;
-	private static ResourceLocation[] techSlots = new ResourceLocation[3];
+	private static Component godTierTitle;
 	private static int badgeLimit;
 	
 	@SubscribeEvent
@@ -177,11 +178,6 @@ public final class ClientPlayerData
 			godTierPassives.put(skill.id(), skill.passiveEnabled());
 		}
 		masterBadge = packet.masterBadge().orElse(null);
-		for(int i = 0; i < techSlots.length && i < packet.techs().size(); i++)
-		{
-			ResourceLocation id = packet.techs().get(i);
-			techSlots[i] = ResourceLocation.parse("minecraft:empty").equals(id) ? null : id;
-		}
 		badgeLimit = packet.badgeLimit();
 	}
 	
@@ -218,6 +214,16 @@ public final class ClientPlayerData
 	public static boolean isSkillEnabled(ResourceLocation id)
 	{
 		return godTierSkills.getOrDefault(id, false);
+	}
+	
+	public static Component getGodTierTitle()
+	{
+		return godTierTitle;
+	}
+	
+	public static void setGodTierTitle(Component title)
+	{
+		godTierTitle = title;
 	}
 	
 	public static int getBadgeLimit()

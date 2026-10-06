@@ -2,6 +2,7 @@ package com.mraof.minestuck.item.godtier;
 
 import com.mraof.minestuck.network.GodTierDataPacket;
 import com.mraof.minestuck.network.GodTierSkillDataPacket;
+import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.godtier.GodTierKarma;
 import com.mraof.minestuck.player.godtier.GodTierStat;
@@ -51,6 +52,14 @@ public class GodTierResetCharmItem extends Item
 				playerData.getData(MSAttachments.GOD_TIER_SKILLS).reset();
 				karma.reset();
 				state.reset();
+				serverPlayer.removeAllEffects();
+				Echeladder.get(serverPlayer).setProgressEnabled(true);
+				if(!serverPlayer.isCreative() && !serverPlayer.isSpectator())
+				{
+					serverPlayer.getAbilities().mayfly = false;
+					serverPlayer.getAbilities().flying = false;
+					serverPlayer.onUpdateAbilities();
+				}
 				stack.shrink(1);
 				
 				List<GodTierDataPacket.StatData> statData = new ArrayList<>();
@@ -59,8 +68,7 @@ public class GodTierResetCharmItem extends Item
 				PacketDistributor.sendToPlayer(serverPlayer, new GodTierDataPacket(false, state.canGodTier(), false, statData, 0));
 				
 				List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
-				List<ResourceLocation> techs = new ArrayList<>(Collections.nCopies(3, ResourceLocation.parse("minecraft:empty")));
-				PacketDistributor.sendToPlayer(serverPlayer, new GodTierSkillDataPacket(skillData, Optional.empty(), techs, 0));
+				PacketDistributor.sendToPlayer(serverPlayer, new GodTierSkillDataPacket(skillData, Optional.empty(), 0));
 			}
 		});
 		

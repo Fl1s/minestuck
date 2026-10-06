@@ -5,6 +5,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.List;
 
 public abstract class Skill
 {
@@ -27,11 +30,7 @@ public abstract class Skill
 		return sortIndex;
 	}
 	
-	public SkillType type()
-	{
-		return this instanceof Abilitech ? SkillType.ABILITECH : SkillType.BADGE;
-	}
-	
+
 	public boolean canAppearOnList(ServerLevel level, ServerPlayer player)
 	{
 		return true;
@@ -61,7 +60,7 @@ public abstract class Skill
 		return true;
 	}
 	
-	private String translationKey()
+	public String translationKey()
 	{
 		return "skill." + id.toLanguageKey();
 	}
@@ -69,6 +68,11 @@ public abstract class Skill
 	public Component getDisplayName()
 	{
 		return Component.translatable(translationKey());
+	}
+	
+	public Component getDisplayTooltip()
+	{
+		return Component.translatable(translationKey() + ".tooltip");
 	}
 	
 	public Component getUnlockRequirements()
@@ -79,6 +83,61 @@ public abstract class Skill
 	public Component getReadRequirements()
 	{
 		return Component.translatable(translationKey() + ".read");
+	}
+	
+	public ResourceLocation getTextureLocation()
+	{
+		return ResourceLocation.fromNamespaceAndPath(id().getNamespace(), "textures/gui/skills/badges/" + id().getPath() + ".png");
+	}
+	
+	protected static boolean consumeItems(ServerPlayer player, ItemStack required, boolean decr)
+	{
+		return consumeItems(player, List.of(required), decr);
+	}
+	
+	protected static boolean consumeItems(ServerPlayer player, List<ItemStack> required, boolean decr)
+	{
+		if(!hasItems(player, required))
+			return false;
+		if(decr)
+			for(ItemStack need : required)
+				removeItems(player, need);
+		return true;
+	}
+	
+	protected static boolean hasItems(ServerPlayer player, List<ItemStack> required)
+	{
+		for(ItemStack need : required)
+			if(countItems(player, need) < need.getCount())
+				return false;
+		return true;
+	}
+	
+	protected static int countItems(ServerPlayer player, ItemStack required)
+	{
+		int count = 0;
+		for(int slot = 0; slot < player.getInventory().getContainerSize(); slot++)
+		{
+			ItemStack stack = player.getInventory().getItem(slot);
+			if(stack.is(required.getItem()))
+				count += stack.getCount();
+		}
+		return count;
+	}
+	
+	protected static void removeItems(ServerPlayer player, ItemStack required)
+	{
+		int remaining = required.getCount();
+		for(int slot = 0; slot < player.getInventory().getContainerSize() && remaining > 0; slot++)
+		{
+			ItemStack stack = player.getInventory().getItem(slot);
+			if(stack.is(required.getItem()))
+			{
+				int removed = Math.min(stack.getCount(), remaining);
+				stack.shrink(removed);
+				remaining -= removed;
+			}
+		}
 	}
 	
 	public int getColor()

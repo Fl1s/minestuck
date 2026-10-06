@@ -6,6 +6,8 @@ import com.mraof.minestuck.effects.MSEffects;
 import com.mraof.minestuck.player.EnumAspect;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.network.GodTierDataPacket;
+import com.mraof.minestuck.network.GodTierSkillDataPacket;
+import com.mraof.minestuck.player.godtier.skill.*;
 import com.mraof.minestuck.player.Title;
 import com.mraof.minestuck.skaianet.SburbPlayerData;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPiece;
@@ -27,9 +29,12 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import net.minecraft.resources.ResourceLocation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EventBusSubscriber(modid = Minestuck.MOD_ID)
 public final class GodTierTickHandler
@@ -53,7 +58,7 @@ public final class GodTierTickHandler
 			GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 			GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
 			
-			updateAttributes(player, stats, state);
+			updateAttributes(player, stats, state, playerData.getData(MSAttachments.GOD_TIER_SKILLS));
 			updateFlight(player, state);
 			updateQuestBedArea(player, state);
 			updateClimbedTheSpire(player, state);
@@ -77,7 +82,7 @@ public final class GodTierTickHandler
 		});
 	}
 	
-	private static void updateAttributes(ServerPlayer player, GodTierStats stats, GodTierState state)
+	private static void updateAttributes(ServerPlayer player, GodTierStats stats, GodTierState state, GodTierSkills skills)
 	{
 		boolean active = state.isGodTier();
 		for(GodTierStat stat : GodTierStat.values())
@@ -85,7 +90,8 @@ public final class GodTierTickHandler
 			if(!stat.hasAttribute()) continue;
 			
 			AttributeInstance attribute = player.getAttribute(stat.attribute());
-			AttributeModifier modifier = new AttributeModifier(stat.modifierId(), stats.getAttributeBonus(stat, 1.0), stat.operation());
+			double multiplier = badgeMultiplier(skills);
+			AttributeModifier modifier = new AttributeModifier(stat.modifierId(), stats.getAttributeBonus(stat, multiplier), stat.operation());
 			
 			boolean current = attribute.hasModifier(stat.modifierId());
 			if(!active)
@@ -106,7 +112,17 @@ public final class GodTierTickHandler
 		}
 	}
 	
-	private static void removeGodTierModifiers(ServerPlayer player)
+	private static double badgeMultiplier(GodTierSkills skills)
+	{
+		double multiplier = 1.0;
+		if(skills.isBadgeActive(SkillRegistry.BADGE_PAGE.get()))
+			multiplier *= 2.0;
+		if(skills.isBadgeActive(SkillRegistry.BADGE_OVERLORD.get()))
+			multiplier *= 3.0;
+		return multiplier;
+	}
+	
+private static void removeGodTierModifiers(ServerPlayer player)
 	{
 		for(GodTierStat stat : GodTierStat.values())
 		{
@@ -169,7 +185,7 @@ public final class GodTierTickHandler
 			state.setClimbedTheSpire(true);
 	}
 	
-	private static void sendDataPacket(ServerPlayer player, PlayerData playerData)
+	public static void sendDataPacket(ServerPlayer player, PlayerData playerData)
 	{
 		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 		GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
@@ -181,9 +197,25 @@ public final class GodTierTickHandler
 		
 		PacketDistributor.sendToPlayer(player, new GodTierDataPacket(
 				state.isGodTier(), state.canGodTier(), state.hasClimbedTheSpire(), statData, karma.getTotal()));
+		sendSkillDataPacket(player, playerData);
 	}
 	
-	private static void updateAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state)
+	public static void sendSkillDataPacket(ServerPlayer player, PlayerData playerData)
+	{
+		GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
+		List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
+		skills.getAllBadges().forEach(id -> skillData.add(new GodTierSkillDataPacket.SkillData(id, skills.isBadgeEnabledById(id), skills.isPassiveEnabledById(id))));
+		skills.getAllAbilitechs().forEach(id -> skillData.add(new GodTierSkillDataPacket.SkillData(id, true, skills.isPassiveEnabledById(id))));
+		
+		List<ResourceLocation> techs = new ArrayList<>();
+		for(int i = 0; i < GodTierSkills.TECH_SLOT_COUNT; i++)
+			techs.add(Optional.ofNullable(skills.getTech(i)).orElse(ResourceLocation.parse("minecraft:empty")));
+		
+		PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(
+				skillData, Optional.ofNullable(skills.masterBadge()), techs, skills.badgeLimit()));
+	}
+	
+private static void updateAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state)
 	{
 		Title title = Title.getTitle(playerData).orElse(null);
 		if(title == null || !state.isGodTier()) return;

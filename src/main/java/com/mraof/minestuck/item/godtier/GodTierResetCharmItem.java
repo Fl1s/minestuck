@@ -1,11 +1,13 @@
 package com.mraof.minestuck.item.godtier;
 
 import com.mraof.minestuck.network.GodTierDataPacket;
+import com.mraof.minestuck.network.GodTierSkillDataPacket;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.godtier.GodTierKarma;
 import com.mraof.minestuck.player.godtier.GodTierStat;
 import com.mraof.minestuck.player.godtier.GodTierState;
 import com.mraof.minestuck.player.godtier.GodTierStats;
+import com.mraof.minestuck.player.godtier.skill.GodTierSkills;
 import com.mraof.minestuck.util.MSAttachments;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -13,11 +15,14 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -43,6 +48,7 @@ public class GodTierResetCharmItem extends Item
 				GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
 				GodTierKarma karma = playerData.getData(MSAttachments.GOD_TIER_KARMA);
 				stats.resetAll();
+				playerData.getData(MSAttachments.GOD_TIER_SKILLS).reset();
 				karma.reset();
 				state.reset();
 				stack.shrink(1);
@@ -51,6 +57,10 @@ public class GodTierResetCharmItem extends Item
 				for(GodTierStat stat : GodTierStat.values())
 					statData.add(new GodTierDataPacket.StatData(stat, 0, 0F));
 				PacketDistributor.sendToPlayer(serverPlayer, new GodTierDataPacket(false, state.canGodTier(), false, statData, 0));
+				
+				List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
+				List<ResourceLocation> techs = new ArrayList<>(Collections.nCopies(3, ResourceLocation.parse("minecraft:empty")));
+				PacketDistributor.sendToPlayer(serverPlayer, new GodTierSkillDataPacket(skillData, Optional.empty(), techs, 0));
 			}
 		});
 		

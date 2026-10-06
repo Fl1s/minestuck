@@ -20,6 +20,7 @@ import com.mraof.minestuck.client.gui.captchalouge.HashMapSylladexScreen;
 import com.mraof.minestuck.client.gui.captchalouge.SylladexScreen;
 import com.mraof.minestuck.client.gui.captchalouge.TreeSylladexScreen;
 import com.mraof.minestuck.client.gui.computer.*;
+import com.mraof.minestuck.client.gui.godtier.GodTierMeditationScreen;
 import com.mraof.minestuck.client.gui.playerStats.*;
 import com.mraof.minestuck.client.util.GuiUtil;
 import com.mraof.minestuck.client.util.MSKeyHandler;
@@ -49,6 +50,8 @@ import com.mraof.minestuck.item.weapon.MusicPlayerWeapon;
 import com.mraof.minestuck.item.weapon.OnHitEffect;
 import com.mraof.minestuck.network.ToggleAspectEffectsPacket;
 import com.mraof.minestuck.player.*;
+import com.mraof.minestuck.player.godtier.GodTierAscensionHandler;
+import com.mraof.minestuck.player.godtier.GodTierKarmaHandler;
 import com.mraof.minestuck.skaianet.*;
 import com.mraof.minestuck.util.MSTags;
 import com.mraof.minestuck.world.GateHandler;
@@ -2680,9 +2683,29 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		//God Tier
 		add("title.unknown_class", "an unassigned class");
 		add("title.unknown_aspect", "an unassigned aspect");
-		add("status.god_tier_reject", "You are not yet ready to ascend.");
-		add("status.god_tier", "%s has ascended to god tier!");
-		add("status.god_tier_meditation.unlock", "You feel a new potential within you.");
+		add(GodTierAscensionHandler.GOD_TIER_REJECT_KEY, "You are not yet ready to ascend.");
+		add(GodTierAscensionHandler.GOD_TIER_KEY, "%s has ascended to god tier!");
+		add(GodTierAscensionHandler.GOD_TIER_MEDITATION_UNLOCK_KEY, "You feel a new potential within you.");
+		add(GodTierMeditationScreen.TITLE_KEY, "God Tier Meditation");
+		add(GodTierMeditationScreen.LEVEL_KEY, "God Tier Level: %s");
+		add(GodTierMeditationScreen.XP_KEY, "Meditation XP: %s");
+		add(GodTierMeditationScreen.BADGE_SLOTS_KEY, "Badge slots: %s");
+		add(GodTierMeditationScreen.SKILL_TOOLTIP_KEY.formatted("defense"), "Defense");
+		add(GodTierMeditationScreen.SKILL_TOOLTIP_KEY.formatted("attack"), "Attack");
+		add(GodTierMeditationScreen.SKILL_TOOLTIP_KEY.formatted("luck"), "Luck");
+		add(GodTierMeditationScreen.SKILL_TOOLTIP_KEY.formatted("speed"), "Speed");
+		add(GodTierMeditationScreen.SKILL_NEXT_LEVEL_KEY, "Next level in %s XP");
+		add(GodTierMeditationScreen.MASTER_BADGE_WARNING_KEY, "Warning: unlocking a master badge is permanent!");
+		add(GodTierMeditationScreen.SHOW_BADGE_INFO_KEY, "Hold Shift for more info");
+		add(GodTierMeditationScreen.NO_BADGES_LEFT_KEY, "No badge slots left");
+		add(GodTierMeditationScreen.BADGE_BLOCKED_KEY, "This badge is blocked");
+		add(GodTierMeditationScreen.BADGE_DISABLED_KEY, "This badge is disabled");
+		add(GodTierMeditationScreen.NEED_XP_KEY, "You need %s experience levels");
+		add(GodTierMeditationScreen.GENERAL_MAX_KEY, "You have reached the maximum God Tier level");
+		
+		add(GodTierAscensionHandler.OVERLORD_SKILL_LEVEL_KEY, "You need to reach God Tier level %s to claim the World Ender's badge.");
+		add(GodTierAscensionHandler.OVERLORD_PVP_DEATH_KEY, "Only a death without a player's hand can awaken the World Ender's power.");
+		add(GodTierAscensionHandler.OVERLORD_ASCEND_KEY, "%s has claimed the World Ender's badge!");
 		
 		add(MSItems.GOD_TIER_KIT.get(), "Quest Bed Kit");
 		add(MSItems.GOD_TIER_RESET_CHARM.get(), "Reset Charm");
@@ -2702,7 +2725,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 			add(MSBlocks.CHISELED_HERO_STONE.get(aspect).get(), "Chiseled " + aspectName + " Hero Stone");
 			add(MSBlocks.HERO_STONE_WALL.get(aspect).get(), aspectName + " Hero Stone Wall");
 		}
-		add("status.heroic_death", "%s has died a heroic death.");
-		add("status.just_death", "%s has died a just death.");
+		add(GodTierKarmaHandler.HEROIC_DEATH_KEY, "%s has died a heroic death.");
+		add(GodTierKarmaHandler.JUST_DEATH_KEY, "%s has died a just death.");
 	}
 }

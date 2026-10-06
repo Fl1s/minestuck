@@ -14,6 +14,7 @@ import com.mraof.minestuck.network.editmode.EditmodeCacheLimitPacket;
 import com.mraof.minestuck.util.ColorHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -23,6 +24,9 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains static field for any {@link PlayerData} fields that also need client access.
@@ -47,6 +51,11 @@ public final class ClientPlayerData
 	private static int godTierKarma;
 	private static int[] godTierLevels = new int[GodTierStat.values().length];
 	private static float[] godTierXp = new float[GodTierStat.values().length];
+	private static Map<ResourceLocation, Boolean> godTierSkills = new HashMap<>();
+	private static Map<ResourceLocation, Boolean> godTierPassives = new HashMap<>();
+	private static ResourceLocation masterBadge;
+	private static ResourceLocation[] techSlots = new ResourceLocation[3];
+	private static int badgeLimit;
 	
 	@SubscribeEvent
 	private static void onLoggedIn(ClientPlayerNetworkEvent.LoggingIn event)
@@ -158,6 +167,24 @@ public final class ClientPlayerData
 		}
 	}
 	
+	public static void handleDataPacket(GodTierSkillDataPacket packet)
+	{
+		godTierSkills.clear();
+		godTierPassives.clear();
+		for(GodTierSkillDataPacket.SkillData skill : packet.skills())
+		{
+			godTierSkills.put(skill.id(), skill.enabled());
+			godTierPassives.put(skill.id(), skill.passiveEnabled());
+		}
+		masterBadge = packet.masterBadge().orElse(null);
+		for(int i = 0; i < techSlots.length && i < packet.techs().size(); i++)
+		{
+			ResourceLocation id = packet.techs().get(i);
+			techSlots[i] = ResourceLocation.parse("minecraft:empty").equals(id) ? null : id;
+		}
+		badgeLimit = packet.badgeLimit();
+	}
+	
 	public static boolean isGodTier()
 	{
 		return godTier;
@@ -181,6 +208,21 @@ public final class ClientPlayerData
 	public static int getGodTierLevel(GodTierStat stat)
 	{
 		return godTierLevels[stat.ordinal()];
+	}
+	
+	public static boolean hasSkill(ResourceLocation id)
+	{
+		return godTierSkills.containsKey(id);
+	}
+	
+	public static boolean isSkillEnabled(ResourceLocation id)
+	{
+		return godTierSkills.getOrDefault(id, false);
+	}
+	
+	public static int getBadgeLimit()
+	{
+		return badgeLimit;
 	}
 	
 	public static float getGodTierXp(GodTierStat stat)

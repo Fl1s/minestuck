@@ -2,6 +2,8 @@ package com.mraof.minestuck.player.godtier;
 
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.player.PlayerData;
+import com.mraof.minestuck.player.godtier.skill.GodTierSkills;
+import com.mraof.minestuck.player.godtier.skill.SkillRegistry;
 import com.mraof.minestuck.player.Title;
 import com.mraof.minestuck.util.MSAttachments;
 import net.minecraft.core.particles.ParticleTypes;
@@ -35,6 +37,9 @@ public final class GodTierKarmaHandler
 {
 	public static final TagKey<DamageType> GODPROOF = TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(Minestuck.MOD_ID, "godproof"));
 	
+	public static final String HEROIC_DEATH_KEY = "status.heroic_death";
+	public static final String JUST_DEATH_KEY = "status.just_death";
+	
 	private static final Set<UUID> CRITICAL_KILLS = new HashSet<>();
 	
 	private GodTierKarmaHandler()
@@ -43,7 +48,13 @@ public final class GodTierKarmaHandler
 	
 	private static int minKarmaForRealDeath(ServerPlayer player)
 	{
-		return 20;
+		GodTierSkills skills = PlayerData.get(player)
+				.map(data -> data.getData(MSAttachments.GOD_TIER_SKILLS))
+				.orElse(null);
+		int threshold = 20;
+		if(skills != null && skills.isBadgeActive(SkillRegistry.KARMA.get()))
+			threshold = Math.max(threshold, 40);
+		return threshold;
 	}
 	
 	@SubscribeEvent
@@ -88,9 +99,9 @@ public final class GodTierKarmaHandler
 		{
 			Component name = target.getDisplayName();
 			if(totalKarma >= minKarma)
-				target.server.getPlayerList().broadcastSystemMessage(Component.translatable("status.heroic_death", name).withStyle(ChatFormatting.GOLD), false);
+				target.server.getPlayerList().broadcastSystemMessage(Component.translatable(HEROIC_DEATH_KEY, name).withStyle(ChatFormatting.GOLD), false);
 			else
-				target.server.getPlayerList().broadcastSystemMessage(Component.translatable("status.just_death", name).withStyle(ChatFormatting.DARK_PURPLE), false);
+				target.server.getPlayerList().broadcastSystemMessage(Component.translatable(JUST_DEATH_KEY, name).withStyle(ChatFormatting.DARK_PURPLE), false);
 			targetKarma.reset();
 		} else
 		{
@@ -133,7 +144,13 @@ public final class GodTierKarmaHandler
 	public static void onPlayerTick(PlayerTickEvent.Pre event)
 	{
 		if(!(event.getEntity() instanceof ServerPlayer player)) return;
-		PlayerData.get(player).ifPresent(data -> data.getData(MSAttachments.GOD_TIER_KARMA).decay(1f));
+		PlayerData.get(player).ifPresent(data -> {
+			GodTierSkills skills = data.getData(MSAttachments.GOD_TIER_SKILLS);
+			float decayMultiplier = 1.0F;
+			if(skills.isBadgeActive(SkillRegistry.KARMA.get()))
+				decayMultiplier *= 2.0F;
+			data.getData(MSAttachments.GOD_TIER_KARMA).decay(decayMultiplier);
+		});
 	}
 	
 	@SubscribeEvent

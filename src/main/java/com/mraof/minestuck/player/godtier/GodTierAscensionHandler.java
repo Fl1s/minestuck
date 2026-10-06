@@ -8,15 +8,20 @@ import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.network.GodTierDataPacket;
+import com.mraof.minestuck.network.GodTierSkillDataPacket;
 import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.PlayerData;
+import com.mraof.minestuck.player.godtier.skill.BadgeOverlord;
+import com.mraof.minestuck.player.godtier.skill.SkillRegistry;
 import com.mraof.minestuck.skaianet.SburbPlayerData;
+import com.mraof.minestuck.player.EnumClass;
 import com.mraof.minestuck.player.Title;
 import com.mraof.minestuck.util.MSAttachments;
 import com.mraof.minestuck.util.MSSoundEvents;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPiece;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPlacement;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -41,16 +46,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = Minestuck.MOD_ID)
 public final class GodTierAscensionHandler
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	public static final String GOD_TIER_REJECT_KEY = "status.god_tier_reject";
+	public static final String GOD_TIER_KEY = "status.god_tier";
+	public static final String GOD_TIER_MEDITATION_UNLOCK_KEY = "status.god_tier_meditation.unlock";
+	public static final String OVERLORD_SKILL_LEVEL_KEY = "status.overlord_skill_level";
+	public static final String OVERLORD_PVP_DEATH_KEY = "status.overlord_pvp_death";
+	public static final String OVERLORD_ASCEND_KEY = "status.overlord_ascend";
 	
 	private GodTierAscensionHandler()
 	{
@@ -116,9 +130,12 @@ public final class GodTierAscensionHandler
 		
 		if(!eligible)
 		{
-			player.displayClientMessage(Component.translatable("status.god_tier_reject"), true);
+			player.displayClientMessage(Component.translatable(GOD_TIER_REJECT_KEY), true);
 			return;
 		}
+		
+		if(!state.isGodTier() && title.heroClass() == EnumClass.LORD)
+			tryUnlockOverlord(player, playerData, state, event);
 		
 		if(!state.isGodTier()) ascend(player, title, state);
 		else player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0));
@@ -132,10 +149,35 @@ public final class GodTierAscensionHandler
 		event.setCanceled(true);
 	}
 	
+	private static void tryUnlockOverlord(ServerPlayer player, PlayerData playerData, GodTierState state, LivingDeathEvent event)
+	{
+		var skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
+		if(skills.hasSkill(SkillRegistry.BADGE_OVERLORD.get())) return;
+		
+		int generalLevel = playerData.getData(MSAttachments.GOD_TIER_STATS).getLevel(GodTierStat.GENERAL);
+		if(generalLevel < BadgeOverlord.REQUIRED_LEVEL)
+		{
+			player.displayClientMessage(Component.translatable(OVERLORD_SKILL_LEVEL_KEY, BadgeOverlord.REQUIRED_LEVEL), false);
+			return;
+		}
+		if(event.getSource().getEntity() instanceof ServerPlayer)
+		{
+			player.displayClientMessage(Component.translatable(OVERLORD_PVP_DEATH_KEY), false);
+			return;
+		}
+		
+		skills.setMaxBadges(skills.getMaxBadges() + 2);
+		skills.addSkill(SkillRegistry.BADGE_OVERLORD.get());
+		player.setHealth(10.0F);
+		player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 3));
+		player.server.getPlayerList().broadcastSystemMessage(Component.translatable(OVERLORD_ASCEND_KEY, player.getDisplayName()), false);
+		event.setCanceled(true);
+	}
+	
 	private static void ascend(ServerPlayer player, Title title, GodTierState state)
 	{
-		player.level().getServer().getPlayerList().broadcastSystemMessage(Component.translatable("status.god_tier", player.getDisplayName()), false);
-		player.displayClientMessage(Component.translatable("status.god_tier_meditation.unlock"), true);
+		player.level().getServer().getPlayerList().broadcastSystemMessage(Component.translatable(GOD_TIER_KEY, player.getDisplayName()), false);
+		player.displayClientMessage(Component.translatable(GOD_TIER_MEDITATION_UNLOCK_KEY), true);
 		
 		EquipmentSlot[] slots = {EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
 		for(EquipmentSlot slot : slots)
@@ -145,6 +187,7 @@ public final class GodTierAscensionHandler
 		state.setGodTier(true);
 		PlayerData.get(player).ifPresent(d -> {
 			d.getData(MSAttachments.GOD_TIER_STATS).initializeOnAscension();
+			d.getData(MSAttachments.GOD_TIER_SKILLS).addSkill(SkillRegistry.GIFT_OF_GAB.get());
 			d.getData(MSAttachments.GOD_TIER_KARMA).reset();
 			
 			List<GodTierDataPacket.StatData> statData = new ArrayList<>();
@@ -152,6 +195,11 @@ public final class GodTierAscensionHandler
 			for(GodTierStat stat : GodTierStat.values())
 				statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
 			PacketDistributor.sendToPlayer(player, new GodTierDataPacket(true, state.canGodTier(), true, statData, 0));
+			
+			List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
+			skillData.add(new GodTierSkillDataPacket.SkillData(SkillRegistry.GIFT_OF_GAB.get().id(), true, false));
+			List<ResourceLocation> techs = new ArrayList<>(Collections.nCopies(3, ResourceLocation.parse("minecraft:empty")));
+			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), techs, MinestuckConfig.SERVER.godTierBadgeSlots.get()));
 		});
 		
 		startCutscene(player, title);

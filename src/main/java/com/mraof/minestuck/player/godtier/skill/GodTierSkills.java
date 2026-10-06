@@ -60,6 +60,16 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 		return unlockedSkills.getOrDefault(skill.id(), false);
 	}
 	
+	public boolean isBadgeEnabledById(ResourceLocation id)
+	{
+		return unlockedSkills.getOrDefault(id, false);
+	}
+	
+	public boolean isPassiveEnabledById(ResourceLocation id)
+	{
+		return passiveEnabled.getOrDefault(id, false);
+	}
+	
 	public boolean isBadgeActive(Skill skill)
 	{
 		return isBadgeEnabled(skill);
@@ -150,6 +160,35 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 	public int badgeLimit()
 	{
 		return maxBadges >= 0 ? maxBadges : MinestuckConfig.SERVER.godTierBadgeSlots.get();
+	}
+	
+	public int badgesLeft()
+	{
+		return Math.max(0, badgeLimit() - getEnabledBadgeCount());
+	}
+	
+	public int getEnabledBadgeCount()
+	{
+		int count = 0;
+		for(ResourceLocation id : getAllBadges())
+		{
+			Skill skill = SkillRegistry.get(id);
+			if(skill != null && isBadgeEnabledById(id) && !(skill instanceof MasterBadge))
+				count++;
+		}
+		return count;
+	}
+	
+	public int getUnlockedBadgeCount()
+	{
+		int count = 0;
+		for(ResourceLocation id : getAllBadges())
+		{
+			Skill skill = SkillRegistry.get(id);
+			if(!(skill instanceof MasterBadge))
+				count++;
+		}
+		return count;
 	}
 	
 	public void reset()

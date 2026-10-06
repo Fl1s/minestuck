@@ -61,19 +61,24 @@ public abstract class Skill
 		return true;
 	}
 	
+	private String translationKey()
+	{
+		return "skill." + id.toLanguageKey();
+	}
+	
 	public Component getDisplayName()
 	{
-		return Component.translatable("skill." + id.toLanguageKey());
+		return Component.translatable(translationKey());
 	}
 	
 	public Component getUnlockRequirements()
 	{
-		return Component.translatable("skill." + id.toLanguageKey() + ".unlock");
+		return Component.translatable(translationKey() + ".unlock");
 	}
 	
 	public Component getReadRequirements()
 	{
-		return Component.translatable("skill." + id.toLanguageKey() + ".read");
+		return Component.translatable(translationKey() + ".read");
 	}
 	
 	public int getColor()

@@ -47,6 +47,30 @@ public class GodTierArmorItem extends ArmorItem
 	}
 	
 	@Override
+	public Component getName(ItemStack stack)
+	{
+		Title title = stack.get(MSItemComponents.GOD_TIER_TITLE.get());
+		if(title == null)
+			return super.getName(stack);
+		
+		String slotKey = switch(getType())
+		{
+			case HELMET -> "hood";
+			case CHESTPLATE -> "shirt";
+			case LEGGINGS -> "pants";
+			case BOOTS -> "shoes";
+			default -> "armor";
+		};
+		return Component.translatable("item.minestuck.god_tier." + slotKey + ".named", title.heroClass().asTextComponent(), title.heroAspect().asTextComponent());
+	}
+	
+	@Override
+	public boolean isFoil(ItemStack stack)
+	{
+		return stack.has(MSItemComponents.GOD_TIER_TITLE.get());
+	}
+	
+	@Override
 	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand)
 	{
 		ItemStack stack = player.getItemInHand(hand);

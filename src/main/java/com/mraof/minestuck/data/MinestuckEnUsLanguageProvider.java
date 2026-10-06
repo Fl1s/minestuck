@@ -2909,7 +2909,13 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(MSItems.GOD_TIER_KIT.get(), "Quest Bed Kit");
 		add(MSItems.GOD_TIER_RESET_CHARM.get(), "Reset Charm");
 		add(MSItems.GOD_TIER_SASH_KIT.get(), "Sash Kit");
-		add("item.minestuck.god_tier_sash_kit.tooltip", "Opens the badge management screen when used by a god tier player.");
+		addItemTooltip(MSItems.GOD_TIER_SASH_KIT, "Opens the badge management screen when used by a god tier player.");
+		add(MSItems.DENIZEN_EYE.get(), "Denizen Eye");
+		add("item.minestuck.god_tier.hood.named", "%s of %s Hood");
+		add("item.minestuck.god_tier.shirt.named", "%s of %s Shirt");
+		add("item.minestuck.god_tier.pants.named", "%s of %s Pants");
+		add("item.minestuck.god_tier.shoes.named", "%s of %s Shoes");
+		addItemTooltip(MSItems.DENIZEN_EYE, "Guides you to your quest bed when used in your land.");
 		add(MSItems.GOD_TIER_HOOD.get(), "God Tier Hood");
 		add(MSItems.GOD_TIER_SHIRT.get(), "God Tier Shirt");
 		add(MSItems.GOD_TIER_PANTS.get(), "God Tier Pants");

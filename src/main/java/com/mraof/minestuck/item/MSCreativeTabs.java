@@ -1982,6 +1982,7 @@ public final class MSCreativeTabs
 		GodTierKitItem.addCreativeTabEntries(output);
 		output.accept(MSItems.GOD_TIER_RESET_CHARM.get());
 		output.accept(MSItems.GOD_TIER_SASH_KIT.get());
+		output.accept(MSItems.DENIZEN_EYE.get());
 		output.accept(MSItems.GOD_TIER_HOOD.get());
 		output.accept(MSItems.GOD_TIER_SHIRT.get());
 		output.accept(MSItems.GOD_TIER_PANTS.get());

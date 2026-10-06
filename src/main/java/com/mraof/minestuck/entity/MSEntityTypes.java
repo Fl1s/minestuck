@@ -66,6 +66,8 @@ public final class MSEntityTypes
 	
 	public static final Supplier<EntityType<ConsumableProjectileEntity>> CONSUMABLE_PROJECTILE = REGISTER.register("consumable_projectile", () -> EntityType.Builder.<ConsumableProjectileEntity>of(ConsumableProjectileEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).setTrackingRange(4).setUpdateInterval(10).fireImmune().build(Minestuck.id("consumable_projectile").toString()));
 	public static final Supplier<EntityType<ReturningProjectileEntity>> RETURNING_PROJECTILE = REGISTER.register("returning_projectile", () -> EntityType.Builder.<ReturningProjectileEntity>of(ReturningProjectileEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).setTrackingRange(6).setUpdateInterval(2).fireImmune().build(Minestuck.id("returning_projectile").toString())); //TODO smaller update interval value is temporary solution to improve client rendering
+	public static final Supplier<EntityType<LocatorEyeEntity>> LOCATOR_EYE = REGISTER.register("locator_eye", () -> EntityType.Builder.<LocatorEyeEntity>of(LocatorEyeEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).setTrackingRange(6).setUpdateInterval(2).fireImmune().build(Minestuck.id("locator_eye").toString()));
+	
 	public static final Supplier<EntityType<BouncingProjectileEntity>> BOUNCING_PROJECTILE = REGISTER.register("bouncing_projectile", () -> EntityType.Builder.<BouncingProjectileEntity>of(BouncingProjectileEntity::new, MobCategory.MISC).sized(0.25F, 0.25F).setTrackingRange(6).setUpdateInterval(2).fireImmune().build(Minestuck.id("bouncing_projectile").toString()));
 	
 	@SubscribeEvent

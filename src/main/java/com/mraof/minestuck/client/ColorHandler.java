@@ -6,7 +6,10 @@ import com.mraof.minestuck.client.renderer.BlockColorCruxite;
 import com.mraof.minestuck.entity.FrogEntity;
 import com.mraof.minestuck.item.FrogItem;
 import com.mraof.minestuck.item.MSItems;
+import com.mraof.minestuck.item.godtier.GodTierArmorItem;
+import com.mraof.minestuck.player.EnumAspect;
 import com.mraof.minestuck.item.components.MSItemComponents;
+import com.mraof.minestuck.player.godtier.GodTierPalette;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.StemBlock;
@@ -24,6 +27,7 @@ public final class ColorHandler
         event.register((stack, tintIndex) -> BlockColorCruxite.handleColorTint(com.mraof.minestuck.util.ColorHandler.getColorFromStack(stack), tintIndex),
                 MSBlocks.CRUXITE_DOWEL.get(), MSItems.CRUXITE_APPLE.get(), MSItems.CRUXITE_POTION.get(), MSItems.CRUXITE_SHEARS.get(), MSItems.CRUXITE_DISK.get(), MSItems.CRUXITE_DISC.get());
         event.register(new FrogItemColor(), MSItems.FROG.get());
+        event.register(new GodTierArmorColor(), MSItems.GOD_TIER_HOOD.get(), MSItems.GOD_TIER_SHIRT.get(), MSItems.GOD_TIER_PANTS.get(), MSItems.GOD_TIER_SHOES.get());
     }
     
     @SubscribeEvent
@@ -42,6 +46,17 @@ public final class ColorHandler
         return red << 16 | green << 8 | blue;
     }
 
+
+    protected static class GodTierArmorColor implements ItemColor
+    {
+        public int getColor(ItemStack stack, int tintIndex)
+        {
+            var title = stack.get(MSItemComponents.GOD_TIER_TITLE.get());
+            if(title == null || tintIndex != 0)
+                return -1;
+            return 0xFF000000 | GodTierPalette.get(title.heroAspect(), GodTierPalette.Slot.SHIRT);
+        }
+    }
     protected static class FrogItemColor implements ItemColor
     {
         public int getColor(ItemStack stack, int tintIndex)

@@ -19,6 +19,12 @@ public class BadgeOverlord extends Badge
 	}
 	
 	@Override
+	public boolean canUnlock(ServerLevel level, ServerPlayer player)
+	{
+		return false;
+	}
+	
+	@Override
 	public boolean canAppearOnList(ServerLevel level, ServerPlayer player)
 	{
 		return false;

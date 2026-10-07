@@ -121,7 +121,7 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 	
 	public int badgesLeft()
 	{
-		return Math.max(0, badgeLimit() - getEnabledBadgeCount());
+		return Math.max(0, badgeLimit() - getAllBadges().size());
 	}
 	
 	public int getEnabledBadgeCount()

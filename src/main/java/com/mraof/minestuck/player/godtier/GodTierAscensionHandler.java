@@ -1,5 +1,8 @@
 package com.mraof.minestuck.player.godtier;
 
+import com.mraof.minestuck.effects.MSEffects;
+import javax.annotation.Nullable;
+import net.minecraft.ChatFormatting;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.block.MSBlocks;
@@ -80,7 +83,6 @@ public final class GodTierAscensionHandler
 	
 	private static final Map<UUID, Cutscene> ACTIVE_CUTSCENES = new HashMap<>();
 	
-	private static boolean questBedLogged = false;
 	
 	private static final class Cutscene
 	{
@@ -135,12 +137,13 @@ public final class GodTierAscensionHandler
 			return;
 		}
 		
-		if(!state.isGodTier() && title.heroClass() == EnumClass.LORD)
-			tryUnlockOverlord(player, playerData, state, event);
-		
+		if(state.isGodTier() && title.heroClass() == EnumClass.LORD && tryUnlockOverlord(player, playerData, event))
+		{
+			event.setCanceled(true);
+			return;
+		}
 		if(!state.isGodTier()) ascend(player, title, state);
 		else player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 0));
-		
 		ServerLevel level = (ServerLevel) player.level();
 		level.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, player.getX(), player.getY(), player.getZ(), 30, 0, 0, 0, 0);
 		level.playSound(null, player.blockPosition(), SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 1.0F, 1.0F);
@@ -150,29 +153,31 @@ public final class GodTierAscensionHandler
 		event.setCanceled(true);
 	}
 	
-	private static void tryUnlockOverlord(ServerPlayer player, PlayerData playerData, GodTierState state, LivingDeathEvent event)
+	private static boolean tryUnlockOverlord(ServerPlayer player, PlayerData playerData, LivingDeathEvent event)
 	{
 		var skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
-		if(skills.hasSkill(SkillRegistry.BADGE_OVERLORD.get())) return;
-		
+		if(skills.hasSkill(SkillRegistry.BADGE_OVERLORD.get())) return false;
 		int generalLevel = playerData.getData(MSAttachments.GOD_TIER_STATS).getLevel(GodTierStat.GENERAL);
 		if(generalLevel < BadgeOverlord.REQUIRED_LEVEL)
 		{
-			player.displayClientMessage(Component.translatable(OVERLORD_SKILL_LEVEL_KEY, BadgeOverlord.REQUIRED_LEVEL), false);
-			return;
+			player.displayClientMessage(Component.translatable(OVERLORD_SKILL_LEVEL_KEY, BadgeOverlord.REQUIRED_LEVEL).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+			return false;
 		}
-		if(event.getSource().getEntity() instanceof ServerPlayer)
+		if(!(event.getSource().getEntity() instanceof ServerPlayer))
 		{
-			player.displayClientMessage(Component.translatable(OVERLORD_PVP_DEATH_KEY), false);
-			return;
+			player.displayClientMessage(Component.translatable(OVERLORD_PVP_DEATH_KEY).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+			return false;
 		}
-		
-		skills.setMaxBadges(skills.getMaxBadges() + 2);
+		skills.setMaxBadges(skills.badgeLimit() + 2);
 		skills.addSkill(SkillRegistry.BADGE_OVERLORD.get());
+		player.setDeltaMovement(player.getDeltaMovement().x, 0.8, player.getDeltaMovement().z);
+		player.hurtMarked = true;
+		player.server.getPlayerList().broadcastSystemMessage(Component.translatable(OVERLORD_ASCEND_KEY, player.getDisplayName()).withStyle(ChatFormatting.DARK_PURPLE), false);
+		player.addEffect(new MobEffectInstance(MSEffects.GOD_TIER_COMEBACK, 200, 3));
+		player.level().playSound(null, player.blockPosition(), SoundEvents.WITHER_SPAWN, SoundSource.PLAYERS, 1.0F, 1.0F);
 		player.setHealth(10.0F);
-		player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 3));
-		player.server.getPlayerList().broadcastSystemMessage(Component.translatable(OVERLORD_ASCEND_KEY, player.getDisplayName()), false);
-		event.setCanceled(true);
+		GodTierTickHandler.sendDataPacket(player, playerData);
+		return true;
 	}
 	
 	private static void ascend(ServerPlayer player, Title title, GodTierState state)
@@ -182,11 +187,15 @@ public final class GodTierAscensionHandler
 		
 		EquipmentSlot[] slots = {EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
 		for(EquipmentSlot slot : slots)
+		{
 			CaptchaDeckHandler.launchAnyItem(player, player.getItemBySlot(slot));
+			player.setItemSlot(slot, ItemStack.EMPTY);
+		}
 		
 		Echeladder.get(player).setProgressEnabled(false);
 		state.setClimbedTheSpire(true);
 		state.setGodTier(true);
+		state.setPendingArmor(true);
 		PlayerData.get(player).ifPresent(d -> {
 			d.getData(MSAttachments.GOD_TIER_STATS).initializeOnAscension();
 			d.getData(MSAttachments.GOD_TIER_SKILLS).addSkill(SkillRegistry.GIFT_OF_GAB.get());
@@ -217,6 +226,20 @@ public final class GodTierAscensionHandler
 			armorStack.set(MSItemComponents.GOD_TIER_TITLE.get(), title);
 			player.setItemSlot(slots[i], armorStack);
 		}
+		PlayerData.get(player).ifPresent(data -> data.getData(MSAttachments.GOD_TIER_STATE).setPendingArmor(false));
+	}
+	
+	public static boolean isCutsceneActive(ServerPlayer player)
+	{
+		return ACTIVE_CUTSCENES.containsKey(player.getUUID());
+	}
+	
+	static void finishInterruptedCutscene(ServerPlayer player, @Nullable Title title)
+	{
+		if(isCutsceneActive(player) || title == null) return;
+		equipGodTierArmor(player, title);
+		releasePlayer(player);
+		player.removeEffect(MobEffects.REGENERATION);
 	}
 	
 	private static void startCutscene(ServerPlayer player, Title title)
@@ -248,26 +271,7 @@ public final class GodTierAscensionHandler
 	@SubscribeEvent
 	public static void onServerTick(ServerTickEvent.Post event)
 	{
-		if(!questBedLogged)
-		{
-			var diagServer = ServerLifecycleHooks.getCurrentServer();
-			if(diagServer != null)
-			{
-				for(ServerLevel diagLevel : diagServer.getAllLevels())
-				{
-					QuestBedPiece diagPiece = QuestBedPlacement.findQuestBedPiece(diagLevel);
-					if(diagPiece != null)
-					{
-						LOGGER.info("Quest bed found at origin {} in dimension {}", diagPiece.getOrigin(), diagLevel.dimension().location());
-						LOGGER.info("Quest bed navigation coordinates: [{}, {}, {}] | altar center: {}",
-								diagPiece.getOrigin().getX(), diagPiece.getOrigin().getY(), diagPiece.getOrigin().getZ(), diagPiece.getAltarCenter());
-						questBedLogged = true;
-					} else LOGGER.info("Quest bed not found yet in dimension {}", diagLevel.dimension().location());
-				}
-			}
-		}
-		
-		if(!ACTIVE_CUTSCENES.isEmpty())
+		if(ACTIVE_CUTSCENES.isEmpty()) return;
 		{
 			Iterator<Map.Entry<UUID, Cutscene>> iterator = ACTIVE_CUTSCENES.entrySet().iterator();
 			while(iterator.hasNext())
@@ -302,25 +306,6 @@ public final class GodTierAscensionHandler
 					releasePlayer(player);
 					iterator.remove();
 				}
-			}
-		}
-		
-		var server = ServerLifecycleHooks.getCurrentServer();
-		if(server == null) return;
-		
-		for(ServerPlayer player : server.getPlayerList().getPlayers())
-		{
-			if(ACTIVE_CUTSCENES.containsKey(player.getUUID())) continue;
-			if(player.isCreative() || player.isSpectator()) continue;
-			
-			var playerDataOpt = PlayerData.get(player);
-			if(playerDataOpt.isEmpty()) continue;
-			
-			GodTierState state = playerDataOpt.get().getData(MSAttachments.GOD_TIER_STATE);
-			if(state.isGodTier() && !player.getAbilities().mayfly)
-			{
-				player.getAbilities().mayfly = true;
-				player.onUpdateAbilities();
 			}
 		}
 	}

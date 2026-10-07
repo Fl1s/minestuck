@@ -2257,6 +2257,8 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 				- Level III: Prevents usage of some mobility items
 				- Levels IV, V, and VI apply level I, II, and III respectively to creative players"""
 		);
+		addEffect(MSEffects.GOD_TIER_COMEBACK, "God Tier Comeback");
+		addEffectDescription(MSEffects.GOD_TIER_COMEBACK, "Rapidly heals, strengthens attacks and reduces incoming damage after a god tier player's conditional immortality triggers.");
 		addEffect(MSEffects.GOD_TIER_LOCK, "God Tier Lock");
 		addEffectDescription(MSEffects.GOD_TIER_LOCK, "Temporarily locks god tier benefits and abilities.");
 		addEffect(MSEffects.EARTHBOUND, "Earthbound");

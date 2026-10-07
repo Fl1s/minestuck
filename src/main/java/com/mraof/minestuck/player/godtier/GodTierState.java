@@ -1,5 +1,6 @@
 package com.mraof.minestuck.player.godtier;
 
+import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.entity.consort.EnumConsort;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +23,13 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 		PROSPIT, DERSE
 	}
 	
-	private boolean masterControl = false;
+	private boolean pendingArmor = false;
+	
+	private boolean flightGranted = false;
+	private boolean aspectEffectsApplied = false;
+	
+	@Nullable
+	private Boolean masterControl = null; //null means "use the config value"
 	private int maxBadges = -1;
 	private int scrollsUsed = 0;
 	private LunarSway lunarSway;
@@ -32,7 +39,7 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 	public void reset()
 	{
 		godTier = false;
-		climbedTheSpire = false;
+		pendingArmor = false;
 		pendingReset = true;
 	}
 	
@@ -81,9 +88,39 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 		this.pendingReset = false;
 	}
 	
+	public boolean isPendingArmor()
+	{
+		return pendingArmor;
+	}
+	
+	public void setPendingArmor(boolean pendingArmor)
+	{
+		this.pendingArmor = pendingArmor;
+	}
+	
+	public boolean isFlightGranted()
+	{
+		return flightGranted;
+	}
+	
+	public void setFlightGranted(boolean flightGranted)
+	{
+		this.flightGranted = flightGranted;
+	}
+	
+	public boolean areAspectEffectsApplied()
+	{
+		return aspectEffectsApplied;
+	}
+	
+	public void setAspectEffectsApplied(boolean aspectEffectsApplied)
+	{
+		this.aspectEffectsApplied = aspectEffectsApplied;
+	}
+	
 	public boolean hasMasterControl()
 	{
-		return masterControl;
+		return masterControl != null ? masterControl : MinestuckConfig.SERVER.godTierMasterControl.get();
 	}
 	
 	public void setMasterControl(boolean masterControl)
@@ -152,7 +189,8 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 		nbt.putBoolean("CanGodTier", canGodTier);
 		nbt.putBoolean("ClimbedTheSpire", climbedTheSpire);
 		if(pendingReset) nbt.putBoolean("PendingReset", true);
-		nbt.putBoolean("AllBadges", masterControl);
+		if(pendingArmor) nbt.putBoolean("PendingArmor", true);
+		if(masterControl != null) nbt.putBoolean("AllBadges", masterControl);
 		nbt.putInt("MaxBadges", maxBadges);
 		nbt.putInt("ScrollsUsed", scrollsUsed);
 		nbt.putInt("LunarSway", lunarSway == null ? -1 : lunarSway.ordinal());
@@ -168,7 +206,8 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 		this.canGodTier = !nbt.contains("CanGodTier") || nbt.getBoolean("CanGodTier");
 		this.climbedTheSpire = nbt.getBoolean("ClimbedTheSpire");
 		this.pendingReset = nbt.getBoolean("PendingReset");
-		this.masterControl = nbt.getBoolean("AllBadges");
+		this.pendingArmor = nbt.getBoolean("PendingArmor");
+		this.masterControl = nbt.contains("AllBadges") ? nbt.getBoolean("AllBadges") : null;
 		this.maxBadges = nbt.contains("MaxBadges") ? nbt.getInt("MaxBadges") : -1;
 		this.scrollsUsed = nbt.getInt("ScrollsUsed");
 		int lunarSwayId = nbt.getInt("LunarSway");

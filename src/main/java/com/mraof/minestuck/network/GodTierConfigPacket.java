@@ -81,7 +81,7 @@ public record GodTierConfigPacket(int maxGodTier, int godTierXpThreshold, int go
 		
 		private static GodTierConfigPacket createDefaults()
 		{
-			return new GodTierConfigPacket(-1, 30, 10, false, true, true);
+			return new GodTierConfigPacket(-1, 30, 7, false, true, true);
 		}
 	}
 }

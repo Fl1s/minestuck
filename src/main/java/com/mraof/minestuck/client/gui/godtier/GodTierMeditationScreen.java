@@ -186,7 +186,7 @@ public class GodTierMeditationScreen extends Screen
 	
 	private void renderBadges(GuiGraphics guiGraphics, int mainColor)
 	{
-		int badgesLeft = ClientPlayerData.getBadgeLimit() - (int) badges.stream().filter(b -> ClientPlayerData.isSkillEnabled(b.id())).count();
+		int badgesLeft = Math.max(0, ClientPlayerData.getBadgeLimit() - ClientPlayerData.getUnlockedSkillCount());
 		Component slots = Component.translatable(BADGE_SLOTS_KEY, badgesLeft);
 		guiGraphics.drawString(font, slots, xOffset + X_SIZE / 2 - font.width(slots) / 2, yOffset + 147, mainColor, false);
 		

@@ -206,6 +206,11 @@ public final class ClientPlayerData
 		return godTierLevels[stat.ordinal()];
 	}
 	
+	public static int getUnlockedSkillCount()
+	{
+		return godTierSkills.size();
+	}
+	
 	public static boolean hasSkill(ResourceLocation id)
 	{
 		return godTierSkills.containsKey(id);

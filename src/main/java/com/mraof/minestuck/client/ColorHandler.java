@@ -28,6 +28,7 @@ public final class ColorHandler
                 MSBlocks.CRUXITE_DOWEL.get(), MSItems.CRUXITE_APPLE.get(), MSItems.CRUXITE_POTION.get());
         event.register(new FrogItemColor(), MSItems.FROG.get());
         event.register(new GodTierArmorColor(), MSItems.GOD_TIER_HOOD.get(), MSItems.GOD_TIER_SHIRT.get(), MSItems.GOD_TIER_PANTS.get(), MSItems.GOD_TIER_SHOES.get());
+        event.register(new GodTierKitColor(), MSItems.GOD_TIER_KIT.get());
     }
     
     @SubscribeEvent
@@ -47,6 +48,30 @@ public final class ColorHandler
     }
 
 
+    protected static class GodTierKitColor implements ItemColor
+    {
+        public int getColor(ItemStack stack, int tintIndex)
+        {
+            var title = stack.get(MSItemComponents.GOD_TIER_TITLE.get());
+            GodTierPalette.Slot slot = switch(tintIndex)
+            {
+                case 0 -> GodTierPalette.Slot.SHIRT;
+                case 1 -> GodTierPalette.Slot.PRIMARY;
+                case 2 -> GodTierPalette.Slot.SECONDARY;
+                case 3 -> GodTierPalette.Slot.SHOES;
+                case 4, 7 -> GodTierPalette.Slot.SYMBOL;
+                case 5 -> GodTierPalette.Slot.DETAIL_PRIMARY;
+                case 6 -> GodTierPalette.Slot.DETAIL_SECONDARY;
+                default -> null;
+            };
+            if(slot == null)
+                return -1;
+            if(title == null)
+                return 0xFF000000 | (slot == GodTierPalette.Slot.SYMBOL ? 0x7F7F7F : 0);
+            return 0xFF000000 | GodTierPalette.get(title.heroAspect(), slot);
+        }
+    }
+    
     protected static class GodTierArmorColor implements ItemColor
     {
         public int getColor(ItemStack stack, int tintIndex)

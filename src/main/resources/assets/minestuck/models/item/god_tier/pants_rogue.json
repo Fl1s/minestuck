@@ -1,6 +1,10 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier/pants/rogue_pants"
+    "layer0": "minestuck:item/blank",
+    "layer1": "minestuck:item/blank",
+    "layer2": "minestuck:item/god_tier/pants/rogue_pants",
+    "layer3": "minestuck:item/blank",
+    "layer4": "minestuck:item/blank"
   }
 }

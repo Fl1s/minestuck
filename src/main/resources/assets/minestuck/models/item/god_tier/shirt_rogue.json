@@ -1,6 +1,13 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier/shirt/rogue_shirt"
+    "layer0": "minestuck:item/god_tier/shirt/rogue_shirt",
+    "layer1": "minestuck:item/god_tier/shirt/rogue_gloves",
+    "layer2": "minestuck:item/blank",
+    "layer3": "minestuck:item/blank",
+    "layer4": "minestuck:item/blank",
+    "layer5": "minestuck:item/god_tier/shirt/rogue_shirt_stitching",
+    "layer6": "minestuck:item/blank",
+    "layer7": "minestuck:item/god_tier/shirt/shirt_symbol"
   }
 }

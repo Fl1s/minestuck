@@ -76,23 +76,27 @@ public final class GodTierMeditationPackets
 		public void execute(net.neoforged.neoforge.network.handling.IPayloadContext context, ServerPlayer player)
 		{
 			Skill skill = SkillRegistry.get(skillId);
-			if(skill == null || !(skill instanceof Badge badge)) return;
+			if(!(skill instanceof Badge badge)) return;
+			if(!(player.level() instanceof ServerLevel level)) return;
 			
 			PlayerData.get(player).ifPresent(playerData -> {
 				GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 				GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
 				Title title = Title.getTitle(playerData).orElse(null);
-				
 				if(!state.isGodTier() || title == null || skills.hasSkill(skill)) return;
-				if(player.level() instanceof ServerLevel level && !badge.canUnlock(level, player)) return;
 				
-				if(skills.badgesLeft() <= 0 && !(skill instanceof MasterBadge)) return;
+				if(skill instanceof MasterBadge)
+				{
+					if(skills.masterBadge() != null) return;
+				} else if(skills.badgesLeft() <= 0)
+					return;
 				
-				skills.addSkill(skill);
-				if(skill instanceof MasterBadge) skills.setMasterBadge(skill);
-				badge.onBadgeUnlocked((ServerLevel) player.level(), player);
+				boolean masterControlUnlock = player.isCreative() && state.hasMasterControl();
+				if(!masterControlUnlock && (!badge.isReadable(level, player) || !badge.canUnlock(level, player))) return;
+				
+				if(!skills.addSkill(skill)) return;
+				badge.onBadgeUnlocked(level, player);
 				GodTierTickHandler.sendDataPacket(player, playerData);
-				GodTierTickHandler.sendSkillDataPacket(player, playerData);
 			});
 		}
 	}
@@ -112,14 +116,13 @@ public final class GodTierMeditationPackets
 		public void execute(net.neoforged.neoforge.network.handling.IPayloadContext context, ServerPlayer player)
 		{
 			Skill skill = SkillRegistry.get(skillId);
-			if(skill == null || !(skill instanceof Badge)) return;
+			if(!(skill instanceof Badge)) return;
 			
 			PlayerData.get(player).ifPresent(playerData -> {
 				GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
 				if(!skills.hasSkill(skill)) return;
-				
-				if(skills.isBadgeActive(skill)) skills.setBadgeEnabled(skill, false);
-				else if(skills.badgesLeft() > 0 || skill instanceof MasterBadge) skills.setBadgeEnabled(skill, true);
+				skills.setBadgeEnabled(skill, !skills.isBadgeEnabled(skill));
+				GodTierTickHandler.sendSkillDataPacket(player, playerData);
 			});
 		}
 	}
@@ -143,32 +146,26 @@ public final class GodTierMeditationPackets
 		@Override
 		public void execute(net.neoforged.neoforge.network.handling.IPayloadContext context, ServerPlayer player)
 		{
+			if(amount < 1 || amount > 5) return;
+			
 			PlayerData.get(player).ifPresent(playerData -> {
 				GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 				GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
 				Title title = Title.getTitle(playerData).orElse(null);
-				
 				if(!state.isGodTier() || title == null || stat == GodTierStat.GENERAL) return;
 				
 				int maxLevel = MinestuckConfig.SERVER.maxGodTier.get();
 				if(maxLevel >= 0 && stats.getLevel(GodTierStat.GENERAL) >= maxLevel) return;
 				
-				int xpCost = getUpgradeCost(stats, stat, amount);
-				if(amount <= 0 || player.experienceLevel < xpCost) return;
+				if(!player.isCreative() && player.experienceLevel < MinestuckConfig.SERVER.godTierXpThreshold.get()) return;
+				int actualAmount = player.isCreative() ? amount : Math.min(player.experienceLevel, amount);
+				if(actualAmount <= 0) return;
 				
-				player.giveExperienceLevels(-xpCost);
-				stats.addXp(stat, amount, title.heroClass());
-				GodTierTickHandler.sendDataPacket(player, playerData);
+				stats.addXp(stat, actualAmount, title.heroClass());
+				if(!player.isCreative())
+					player.giveExperienceLevels(-actualAmount);
+				GodTierTickHandler.sendStatsPacket(player, playerData);
 			});
-		}
-		
-		private static int getUpgradeCost(GodTierStats stats, GodTierStat stat, int amount)
-		{
-			// Progression-balanced cost: base cost grows slowly with the current level.
-				int level = stats.getLevel(stat);
-				int baseCost = Math.max(1, MinestuckConfig.SERVER.godTierXpThreshold.get() / 6);
-				int levelCost = baseCost + Math.floorDiv(level, 5);
-				return levelCost * amount;
 		}
 	}
 }

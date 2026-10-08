@@ -24,22 +24,25 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 	{
 		if(unlockedSkills.containsKey(skill.id()))
 			return false;
-		
-		unlockedSkills.put(skill.id(), skill.canDisable());
-		
+		if(skill instanceof MasterBadge)
+		{
+			//only one master badge can ever be held at a time
+			if(masterBadge != null)
+				return false;
+			masterBadge = skill.id();
+		}
+		//A new badge always starts out enabled
+		unlockedSkills.put(skill.id(), true);
 		return true;
 	}
 	
 	public boolean revokeSkill(Skill skill)
 	{
-		if(!unlockedSkills.remove(skill.id(), false) && !unlockedSkills.containsKey(skill.id()))
+		if(unlockedSkills.remove(skill.id()) == null)
 			return false;
-		
-		unlockedSkills.remove(skill.id());
 		passiveEnabled.remove(skill.id());
 		if(masterBadge != null && masterBadge.equals(skill.id()))
 			masterBadge = null;
-		
 		return true;
 	}
 	
@@ -50,12 +53,16 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 	
 	public boolean isBadgeEnabled(Skill skill)
 	{
-		return unlockedSkills.getOrDefault(skill.id(), false);
+		return isBadgeEnabledById(skill.id());
 	}
 	
 	public boolean isBadgeEnabledById(ResourceLocation id)
 	{
-		return unlockedSkills.getOrDefault(id, false);
+		Boolean enabled = unlockedSkills.get(id);
+		if(enabled == null)
+			return false;
+		Skill skill = SkillRegistry.get(id);
+		return enabled || (skill != null && !skill.canDisable());
 	}
 	
 	public boolean isPassiveEnabledById(ResourceLocation id)
@@ -121,7 +128,7 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 	
 	public int badgesLeft()
 	{
-		return Math.max(0, badgeLimit() - getEnabledBadgeCount());
+		return Math.max(0, badgeLimit() - getAllBadges().size());
 	}
 	
 	public int getEnabledBadgeCount()
@@ -212,6 +219,25 @@ public final class GodTierSkills implements INBTSerializable<CompoundTag>
 			{
 				LOGGER.warn("Ignoring invalid God Tier master badge id {}", nbt.getString("MasterBadge"), e);
 			}
-		maxBadges = nbt.getInt("MaxBadges");
+		maxBadges = nbt.contains("MaxBadges") ? nbt.getInt("MaxBadges") : -1;
+		unlockedSkills.replaceAll((id, enabled) -> {
+			Skill skill = SkillRegistry.get(id);
+			return enabled || (skill != null && !skill.canDisable());
+		});
+		enforceSingleMasterBadge();
+	}
+	
+	private void enforceSingleMasterBadge()
+	{
+		List<ResourceLocation> masterBadges = unlockedSkills.keySet().stream().filter(id -> SkillRegistry.get(id) instanceof MasterBadge).toList();
+		if(masterBadges.isEmpty()) return;
+		ResourceLocation keep = masterBadge != null && masterBadges.contains(masterBadge) ? masterBadge : masterBadges.getFirst();
+		for(ResourceLocation id : masterBadges)
+			if(!id.equals(keep))
+			{
+				unlockedSkills.remove(id);
+				passiveEnabled.remove(id);
+			}
+		masterBadge = keep;
 	}
 }

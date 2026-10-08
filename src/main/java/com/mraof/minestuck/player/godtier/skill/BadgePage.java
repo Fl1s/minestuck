@@ -17,6 +17,12 @@ public class BadgePage extends Badge
 	}
 	
 	@Override
+	public ResourceLocation getTextureLocation()
+	{
+		return ResourceLocation.fromNamespaceAndPath(id().getNamespace(), "textures/gui/skills/badges/page_potential.png");
+	}
+	
+	@Override
 	public boolean canAppearOnList(ServerLevel level, ServerPlayer player)
 	{
 		return PlayerData.get(player)

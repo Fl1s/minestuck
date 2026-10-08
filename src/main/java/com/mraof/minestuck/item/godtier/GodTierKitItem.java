@@ -1,5 +1,7 @@
 package com.mraof.minestuck.item.godtier;
 
+import javax.annotation.Nullable;
+import net.minecraft.world.entity.Entity;
 import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.player.EnumAspect;
@@ -30,15 +32,11 @@ public class GodTierKitItem extends Item
 		super(properties);
 	}
 	
-	public void fillItemCategory(CreativeModeTab.Output output)
-	{
-		addCreativeTabEntries(output);
-	}
-	
 	public static void addCreativeTabEntries(CreativeModeTab.Output output)
 	{
-		for(EnumClass heroClass : EnumClass.values())
-			output.accept(generateKit(heroClass, null));
+		for(EnumAspect aspect : EnumAspect.values())
+			for(EnumClass heroClass : EnumClass.values())
+				output.accept(generateKit(heroClass, aspect));
 	}
 	
 	@Override
@@ -60,7 +58,15 @@ public class GodTierKitItem extends Item
 		}
 		
 		stack.shrink(1);
-		return InteractionResultHolder.success(stack);
+		return InteractionResultHolder.sidedSuccess(stack, false);
+	}
+	
+	@Override
+	public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected)
+	{
+		if(level.isClientSide() || !(entity instanceof ServerPlayer player) || stack.has(MSItemComponents.GOD_TIER_TITLE.get()) || player.tickCount % 20 != 0)
+			return;
+		Title.getTitle(player).ifPresent(title -> stack.set(MSItemComponents.GOD_TIER_TITLE.get(), title));
 	}
 	
 	@Override
@@ -82,7 +88,7 @@ public class GodTierKitItem extends Item
 		return playerTitle;
 	}
 	
-	public static ItemStack generateKit(EnumClass heroClass, EnumAspect aspect)
+	public static ItemStack generateKit(EnumClass heroClass, @Nullable EnumAspect aspect)
 	{
 		ItemStack stack = new ItemStack(MSItems.GOD_TIER_KIT.get());
 		if(aspect != null) stack.set(MSItemComponents.GOD_TIER_TITLE.get(), new Title(heroClass, aspect));

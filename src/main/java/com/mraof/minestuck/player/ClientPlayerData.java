@@ -1,5 +1,6 @@
 package com.mraof.minestuck.player;
 
+import javax.annotation.Nullable;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.mraof.minestuck.Minestuck;
@@ -112,7 +113,7 @@ public final class ClientPlayerData
 		return switch(cacheSource)
 		{
 			case PLAYER -> new ClientCache(ClientPlayerData.playerGrist.asImmutable(), ClientRungData.getData(ClientPlayerData.getRung()).gristCapacity());
-			case EDITMODE -> new ClientCache(ClientPlayerData.targetGrist.asImmutable(), targetCacheLimit);
+			case EDITMODE -> new ClientCache(ClientPlayerData.targetGrist == null ? GristSet.EMPTY : ClientPlayerData.targetGrist.asImmutable(), targetCacheLimit);
 		};
 	}
 	
@@ -247,6 +248,17 @@ public final class ClientPlayerData
 	public static int getGodTierLevel(GodTierStat stat)
 	{
 		return godTierLevels[stat.ordinal()];
+	}
+	
+	@Nullable
+	public static ResourceLocation getMasterBadge()
+	{
+		return masterBadge;
+	}
+	
+	public static int getUnlockedSkillCount()
+	{
+		return godTierSkills.size();
 	}
 	
 	public static boolean hasSkill(ResourceLocation id)

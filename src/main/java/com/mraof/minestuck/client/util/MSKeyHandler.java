@@ -140,10 +140,10 @@ public class MSKeyHandler
 			if(statKey.isActiveAndMatches(input))
 				PlayerStatsScreen.openGui(false);
 			
-			if(rotateKey.isActiveAndMatches(input) && ClientEditmodeData.isInEditmode())
+			if(rotateKey.isActiveAndMatches(input) && ClientEditToolDrag.areToolsAvailable(Minecraft.getInstance().player))
 				ClientEditToolDrag.cycleRotation();
 			
-			if(clearKey.isActiveAndMatches(input) && ClientEditmodeData.isInEditmode())
+			if(clearKey.isActiveAndMatches(input) && ClientEditToolDrag.areToolsAvailable(Minecraft.getInstance().player))
 				ClientEditToolDrag.clearSelection();
 			
 			if(editKey.isActiveAndMatches(input))
@@ -159,7 +159,7 @@ public class MSKeyHandler
 				PlayerStatsScreen.openGui(false);
 		}
 		
-		if(ClientEditmodeData.isInEditmode())
+		if(ClientEditmodeData.isInEditmode() || ClientEditToolDrag.hasBuilderSelection())
 			return;
 		
 		if(strifeKey.isActiveAndMatches(input))

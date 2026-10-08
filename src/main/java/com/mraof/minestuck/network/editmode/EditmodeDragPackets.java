@@ -1,5 +1,6 @@
 package com.mraof.minestuck.network.editmode;
 
+import com.mraof.minestuck.player.godtier.skill.BuilderBadge;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.alchemy.GristHelper;
@@ -92,6 +93,22 @@ public final class EditmodeDragPackets
 		};
 	}
 	
+	/**
+	 * The client decides the corners of the selection, so make sure that a modified client can't ask for an enormous area or one far away.
+	 */
+	private static boolean isValidBuilderSelection(ServerPlayer player, BlockPos start, BlockPos end)
+	{
+		long sizeX = Math.abs((long) start.getX() - end.getX()) + 1;
+		long sizeY = Math.abs((long) start.getY() - end.getY()) + 1;
+		long sizeZ = Math.abs((long) start.getZ() - end.getZ()) + 1;
+		if(sizeX * sizeY * sizeZ > MinestuckConfig.SERVER.maxSelectionVolume.get())
+			return false;
+		
+		double maxDistance = 128;
+		return player.distanceToSqr(Vec3.atCenterOf(start)) <= maxDistance * maxDistance
+				&& player.distanceToSqr(Vec3.atCenterOf(end)) <= maxDistance * maxDistance;
+	}
+	
 	private static boolean editModePlaceCheck(EditData data, Player player, GristSet cost, BlockPos pos, Consumer<GristSet> missingGristTracker)
 	{
 		if(!player.level().getBlockState(pos).canBeReplaced())
@@ -107,6 +124,15 @@ public final class EditmodeDragPackets
 		}
 		
 		return true;
+	}
+	
+	private static boolean builderDestroyCheck(ServerPlayer player, BlockPos pos)
+	{
+		BlockState state = player.level().getBlockState(pos);
+		return !state.isAir()
+				&& state.getDestroySpeed(player.level(), pos) >= 0
+				&& !state.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST)
+				&& player.level().mayInteract(player, pos);
 	}
 	
 	private static boolean editModeDestroyCheck(EditData data, Player player, BlockPos pos, Consumer<GristSet> missingGristTracker)
@@ -159,10 +185,18 @@ public final class EditmodeDragPackets
 		{
 			EditData data = ServerEditHandler.getData(player);
 			
-			if(data == null)
+			boolean builder = data == null && BuilderBadge.isActive(player);
+			if(data == null && !builder)
 				return;
 			
 			EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
+			
+			if(builder && !isValidBuilderSelection(player, positionStart, positionEnd))
+			{
+				ServerEditHandler.removeCursorEntity(player, true);
+				cap.resetDragTools();
+				return;
+			}
 			
 			cap.setEditPos1(positionStart);
 			cap.setEditPos2(positionEnd);
@@ -174,18 +208,25 @@ public final class EditmodeDragPackets
 			if(stack.isEmpty() || !(stack.getItem() instanceof BlockItem))
 				return;
 			
-			DeployEntry entry = DeployList.getEntryForItem(stack, data.sburbData(), player.level());
-			GristSet cost = entry != null ? entry.getCurrentCost(data.sburbData()) : GristCostRecipe.findCostForItem(stack, null, false, player.level());
+			GristSet cost = null;
+			if(!builder)
+			{
+				DeployEntry entry = DeployList.getEntryForItem(stack, data.sburbData(), player.level());
+				cost = entry != null ? entry.getCurrentCost(data.sburbData()) : GristCostRecipe.findCostForItem(stack, null, false, player.level());
+			}
 			
 			MutableGristSet missingCost = MutableGristSet.newDefault();
 			boolean anyBlockPlaced = false;
 			for(BlockPos pos : BlockPos.betweenClosed(positionStart, positionEnd))
 			{
+				if(builder && stack.isEmpty())
+					break;
+				
 				int c = stack.getCount();
 				//Will add the block's grist cost to the running tally of how much more grist you need, if you cannot afford it in editModePlaceCheck().
-				if(editModePlaceCheck(data, player, cost, pos, missingCost::add) && stack.useOn(new UseOnContext(player, hand, new BlockHitResult(hitVector, side, pos, false))) != InteractionResult.FAIL)
+				boolean canPlace = builder ? player.level().getBlockState(pos).canBeReplaced() : editModePlaceCheck(data, player, cost, pos, missingCost::add);
+				if(canPlace && stack.useOn(new UseOnContext(player, hand, new BlockHitResult(hitVector, side, pos, false))) != InteractionResult.FAIL)
 				{
-					//Check exists in-case we ever let non-editmode players use this tool for whatever reason.
 					if(player.isCreative())
 						stack.setCount(c);
 					
@@ -209,6 +250,26 @@ public final class EditmodeDragPackets
 			
 			ServerEditHandler.removeCursorEntity(player, !anyBlockPlaced);
 		}
+		
+	}
+	
+	private record CostContext(GristCache gristCache, SburbPlayerData sburbData)
+	{
+		GristCache getGristCache()
+		{
+			return gristCache;
+		}
+	}
+	
+	@Nullable
+	private static CostContext costContext(ServerPlayer player)
+	{
+		EditData data = ServerEditHandler.getData(player);
+		if(data != null)
+			return new CostContext(data.getGristCache(), data.sburbData());
+		if(BuilderBadge.isActive(player))
+			return new CostContext(GristCache.get(player), SburbPlayerData.get(player));
+		return null;
 	}
 	
 	private record Captured(BlockPos sourcePos, BlockState state, CompoundTag blockEntityTag, GristSet.Immutable blockCost, boolean secondaryPart) {}
@@ -260,7 +321,7 @@ public final class EditmodeDragPackets
 			target.add(amount.type(), amount.amount() * count);
 	}
 	
-	private static void executeSelectionTransfer(ServerPlayer player, EditData data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, Rotation rotation)
+	private static void executeSelectionTransfer(ServerPlayer player, CostContext data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, Rotation rotation)
 	{
 		Level level = player.level();
 		
@@ -330,7 +391,7 @@ public final class EditmodeDragPackets
 	
 	private record CaptureResult(List<Captured> captured, GristSet.Immutable worstCaseCost) {}
 	
-	private static CaptureResult captureBlocks(ServerPlayer player, EditData data, Level level, BlockPos min, BlockPos max, boolean isCopy)
+	private static CaptureResult captureBlocks(ServerPlayer player, CostContext data, Level level, BlockPos min, BlockPos max, boolean isCopy)
 	{
 		boolean hasBlockWithoutCost = false;
 		List<Captured> captured = new ArrayList<>();
@@ -482,7 +543,7 @@ public final class EditmodeDragPackets
 	{
 	}
 	
-	private static CompoundTag accumulateContainerCost(ServerPlayer player, Level level, BlockPos pos, BlockState state, Container container, CompoundTag beTag, EditData data, MutableGristSet blockCost)
+	private static CompoundTag accumulateContainerCost(ServerPlayer player, Level level, BlockPos pos, BlockState state, Container container, CompoundTag beTag, CostContext data, MutableGristSet blockCost)
 	{
 		List<Integer> slotsToStrip = new ArrayList<>();
 		for(int slot = 0; slot < container.getContainerSize(); slot++)
@@ -614,7 +675,7 @@ public final class EditmodeDragPackets
 			finalizeUpdate(level, pos);
 	}
 	
-	private static MutableGristSet calculateActualCost(Level level, EditData data, List<Captured> captured, List<BlockPos> placedPositions, boolean isCopy)
+	private static MutableGristSet calculateActualCost(Level level, CostContext data, List<Captured> captured, List<BlockPos> placedPositions, boolean isCopy)
 	{
 		MutableGristSet actualCost = MutableGristSet.newDefault();
 		int successfullyMovedCount = 0;
@@ -719,7 +780,7 @@ public final class EditmodeDragPackets
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
 		{
-			EditData data = ServerEditHandler.getData(player);
+			CostContext data = costContext(player);
 			if(data == null)
 				return;
 			executeSelectionTransfer(player, data, corner1, corner2, anchor, false, Rotation.values()[Math.floorMod(rotation, 4)]);
@@ -743,7 +804,7 @@ public final class EditmodeDragPackets
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
 		{
-			EditData data = ServerEditHandler.getData(player);
+			CostContext data = costContext(player);
 			if(data == null)
 				return;
 			executeSelectionTransfer(player, data, corner1, corner2, anchor, true, Rotation.values()[Math.floorMod(rotation, 4)]);
@@ -778,10 +839,18 @@ public final class EditmodeDragPackets
 		{
 			EditData data = ServerEditHandler.getData(player);
 			
-			if(data == null)
+			boolean builder = data == null && BuilderBadge.isActive(player) && player.getMainHandItem().getItem() instanceof BlockItem;
+			if(data == null && !builder)
 				return;
 			
 			EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
+			
+			if(builder && !isValidBuilderSelection(player, positionStart, positionEnd))
+			{
+				ServerEditHandler.removeCursorEntity(player, true);
+				cap.resetDragTools();
+				return;
+			}
 			
 			cap.setEditPos1(positionStart);
 			cap.setEditPos2(positionEnd);
@@ -794,7 +863,7 @@ public final class EditmodeDragPackets
 				BlockState block = player.level().getBlockState(pos);
 				
 				Consumer<GristSet> missingCostTracker = missingCost::add;
-				if(editModeDestroyCheck(data, player, pos, missingCostTracker))
+				if(builder ? builderDestroyCheck(player, pos) : editModeDestroyCheck(data, player, pos, missingCostTracker))
 				{
 					player.gameMode.destroyAndAck(pos, 3, "creative destroy");
 					

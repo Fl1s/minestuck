@@ -1,5 +1,12 @@
 package com.mraof.minestuck.client.gui.godtier;
 
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import com.mraof.minestuck.player.godtier.skill.BadgePage;
+import com.mraof.minestuck.player.godtier.skill.BadgeOverlord;
+import com.mraof.minestuck.player.godtier.skill.BadgeLevel;
+import com.mraof.minestuck.network.GodTierConfigPacket;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
@@ -34,6 +41,8 @@ public class GodTierMeditationScreen extends Screen
 	public static final String XP_KEY = "minestuck.god_tier.xp";
 	public static final String BADGE_SLOTS_KEY = "minestuck.god_tier.badge_slots";
 	public static final String SKILL_TOOLTIP_KEY = "minestuck.god_tier.skill.%s.tooltip";
+	public static final String SKILL_DESC_KEY = "minestuck.god_tier.skill.%s.desc";
+	public static final String DEFENSE_DESC2_KEY = "minestuck.god_tier.skill.defense.desc2";
 	public static final String SKILL_NEXT_LEVEL_KEY = "minestuck.god_tier.skill.next_level";
 	public static final String MASTER_BADGE_WARNING_KEY = "minestuck.god_tier.master_badge_warning";
 	public static final String SHOW_BADGE_INFO_KEY = "minestuck.god_tier.show_badge_info";
@@ -44,6 +53,7 @@ public class GodTierMeditationScreen extends Screen
 	public static final String GENERAL_MAX_KEY = "minestuck.god_tier.general_max";
 	
 	private static final ResourceLocation guiMeditation = ResourceLocation.fromNamespaceAndPath(Minestuck.MOD_ID, "textures/gui/god_tier_meditation.png");
+	private static final ResourceLocation BADGE_LOCKED = ResourceLocation.fromNamespaceAndPath(Minestuck.MOD_ID, "textures/gui/badge_locked.png");
 	private static final ResourceLocation BADGE_DISABLED = ResourceLocation.fromNamespaceAndPath(Minestuck.MOD_ID, "textures/gui/badge_disabled.png");
 	
 	private static final int X_SIZE = 256;
@@ -53,6 +63,8 @@ public class GodTierMeditationScreen extends Screen
 	private static final GodTierStat[] STATS = {GodTierStat.DEFENSE, GodTierStat.ATTACK, GodTierStat.LUCK, GodTierStat.SPEED};
 	
 	private static final Map<EnumAspect, Integer> MAIN_COLORS = Map.ofEntries(Map.entry(EnumAspect.BREATH, 0x47E2FA), Map.entry(EnumAspect.LIGHT, 0xF6FA4E), Map.entry(EnumAspect.SPACE, 0xFAFAFA), Map.entry(EnumAspect.TIME, 0xFF2106), Map.entry(EnumAspect.LIFE, 0x72EB34), Map.entry(EnumAspect.VOID, 0x001856), Map.entry(EnumAspect.HEART, 0xBD1864), Map.entry(EnumAspect.HOPE, 0xFFDE55), Map.entry(EnumAspect.BLOOD, 0xB71015), Map.entry(EnumAspect.RAGE, 0x9C4DAC), Map.entry(EnumAspect.MIND, 0x06FFC9), Map.entry(EnumAspect.DOOM, 0x306800));
+	
+	private static final java.text.DecimalFormat STAT_FORMAT = new java.text.DecimalFormat("#.##");
 	
 	private int xOffset, yOffset;
 	private boolean mouseClicked;
@@ -83,12 +95,42 @@ public class GodTierMeditationScreen extends Screen
 		
 		for(Skill skill : SkillRegistry.REGISTRY)
 		{
-			if(!ClientPlayerData.hasSkill(skill.id())) continue;
+			if(!(skill instanceof Badge)) continue;
+			if(!(hasMasterControl() || canAppearOnList(skill) || ClientPlayerData.hasSkill(skill.id()))) continue;
+			
 			if(skill instanceof MasterBadge) masterBadges.add(skill);
-			else if(skill instanceof Badge) badges.add(skill);
+			else badges.add(skill);
 		}
 		badges.sort(Comparator.comparingInt(Skill::sortIndex));
 		masterBadges.sort(Comparator.comparingInt(Skill::sortIndex));
+	}
+	
+	private static boolean hasMasterControl()
+	{
+		return GodTierConfigPacket.ClientGodTierConfig.godTierMasterControl();
+	}
+	
+	private static boolean canAppearOnList(Skill skill)
+	{
+		if(skill instanceof BadgeOverlord)
+			return false;
+		if(skill instanceof BadgePage)
+			return ClientPlayerData.getTitle() != null && ClientPlayerData.getTitle().heroClass() == EnumClass.PAGE;
+		return true;
+	}
+	
+	private static boolean isReadable(Skill skill)
+	{
+		if(skill instanceof BadgeOverlord)
+			return ClientPlayerData.hasSkill(skill.id()) || (hasMasterControl() && ClientPlayerData.getGodTierLevel(GodTierStat.GENERAL) >= BadgeOverlord.REQUIRED_LEVEL);
+		if(skill instanceof BadgeLevel badgeLevel)
+			return ClientPlayerData.getGodTierLevel(GodTierStat.GENERAL) >= badgeLevel.requiredLevel();
+		return true;
+	}
+	
+	private static boolean isOverlordActive()
+	{
+		return ClientPlayerData.isSkillEnabled(SkillRegistry.BADGE_OVERLORD.get().id());
 	}
 	
 	private int statX(int i)
@@ -132,6 +174,14 @@ public class GodTierMeditationScreen extends Screen
 		if(maxGodTier >= 0 && ClientPlayerData.getGodTierLevel(GodTierStat.GENERAL) >= maxGodTier) return false;
 		
 		return minecraft.player.isCreative() || minecraft.player.experienceLevel >= MinestuckConfig.SERVER.godTierXpThreshold.get();
+	}
+	
+	@Override
+	public void tick()
+	{
+		super.tick();
+		if(minecraft != null && minecraft.player != null && minecraft.player.tickCount % 10 == 0)
+			setupBadges();
 	}
 	
 	@Override
@@ -186,7 +236,7 @@ public class GodTierMeditationScreen extends Screen
 	
 	private void renderBadges(GuiGraphics guiGraphics, int mainColor)
 	{
-		int badgesLeft = ClientPlayerData.getBadgeLimit() - (int) badges.stream().filter(b -> ClientPlayerData.isSkillEnabled(b.id())).count();
+		int badgesLeft = Math.max(0, ClientPlayerData.getBadgeLimit() - ClientPlayerData.getUnlockedSkillCount());
 		Component slots = Component.translatable(BADGE_SLOTS_KEY, badgesLeft);
 		guiGraphics.drawString(font, slots, xOffset + X_SIZE / 2 - font.width(slots) / 2, yOffset + 147, mainColor, false);
 		
@@ -199,8 +249,20 @@ public class GodTierMeditationScreen extends Screen
 	private void renderBadge(GuiGraphics guiGraphics, Skill skill, int x, int y)
 	{
 		boolean owned = ClientPlayerData.hasSkill(skill.id());
-		if(!owned) RenderSystem.setShaderColor(0.5F, 0.5F, 0.5F, 1F);
-		guiGraphics.blit(skill.getTextureLocation(), x, y, 0, 0, 20, 20, 20, 20);
+		boolean master = skill instanceof MasterBadge;
+		ResourceLocation texture;
+		
+		if(!isReadable(skill))
+			texture = BADGE_LOCKED;
+		else if(master && !(ClientPlayerData.getMasterBadge() == null || owned || isOverlordActive()))
+			texture = BADGE_LOCKED;
+		else
+		{
+			texture = skill.getTextureLocation();
+			if(!owned) RenderSystem.setShaderColor(0.5F, 0.5F, 0.5F, 1F);
+		}
+		
+		guiGraphics.blit(texture, x, y, 0, 0, 20, 20, 20, 20);
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		
 		if(owned && !ClientPlayerData.isSkillEnabled(skill.id()))
@@ -248,19 +310,41 @@ public class GodTierMeditationScreen extends Screen
 			int skillY = statY(i);
 			if(isMouseOver(skillX, skillY, 18, 18, mouseX, mouseY))
 			{
+				int level = ClientPlayerData.getGodTierLevel(stat);
+				double multiplier = statMultiplier();
+				double bonus = Math.pow(level, 0.765) * stat.attributeMod() * multiplier;
+				if(stat.operation() != AttributeModifier.Operation.ADD_VALUE) bonus *= 100;
+				
 				List<Component> tooltip = new ArrayList<>();
-				tooltip.add(Component.translatable(SKILL_TOOLTIP_KEY.formatted(stat.getSerializedName()), ClientPlayerData.getGodTierLevel(stat)));
-				tooltip.add(Component.translatable(SKILL_NEXT_LEVEL_KEY, Math.max(0, getXpToNext(stat) - ClientPlayerData.getGodTierXp(stat))));
+				tooltip.add(Component.translatable(SKILL_TOOLTIP_KEY.formatted(stat.getSerializedName()), level));
+				tooltip.add(Component.translatable(SKILL_DESC_KEY.formatted(stat.getSerializedName()), STAT_FORMAT.format(bonus)));
+				if(stat == GodTierStat.DEFENSE)
+					tooltip.add(Component.translatable(DEFENSE_DESC2_KEY, STAT_FORMAT.format(level * 0.2 * multiplier)));
+				tooltip.add(Component.translatable(SKILL_NEXT_LEVEL_KEY, STAT_FORMAT.format(Math.max(0, getXpToNext(stat) - ClientPlayerData.getGodTierXp(stat)))));
 				guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
-			} else if(!canUpgrade() && isMouseOver(skillX + 89, skillY, 18, 18, mouseX, mouseY))
-				guiGraphics.renderTooltip(font, Component.translatable(NEED_XP_KEY, MinestuckConfig.SERVER.godTierXpThreshold.get()), mouseX, mouseY);
+			} else if(isMouseOver(skillX + 89, skillY, 18, 18, mouseX, mouseY))
+			{
+				int maxGodTier = MinestuckConfig.SERVER.maxGodTier.get();
+				if(!minecraft.player.isCreative() && minecraft.player.experienceLevel < MinestuckConfig.SERVER.godTierXpThreshold.get())
+					guiGraphics.renderTooltip(font, Component.translatable(NEED_XP_KEY, MinestuckConfig.SERVER.godTierXpThreshold.get()), mouseX, mouseY);
+				else if(maxGodTier >= 0 && ClientPlayerData.getGodTierLevel(GodTierStat.GENERAL) >= maxGodTier)
+					guiGraphics.renderTooltip(font, Component.translatable(GENERAL_MAX_KEY, maxGodTier), mouseX, mouseY);
+			}
 		}
+	}
+	
+	private double statMultiplier()
+	{
+		double multiplier = 1;
+		if(ClientPlayerData.isSkillEnabled(SkillRegistry.BADGE_PAGE.get().id())) multiplier *= 2;
+		if(ClientPlayerData.isSkillEnabled(SkillRegistry.BADGE_OVERLORD.get().id())) multiplier *= 3;
+		return multiplier;
 	}
 	
 	private void renderBadgeTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY)
 	{
 		List<Component> tooltip = getBadgeTooltip(mouseX, mouseY);
-		if(tooltip != null) guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+		if(tooltip != null && !tooltip.isEmpty()) guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
 	}
 	
 	@Nullable
@@ -279,20 +363,48 @@ public class GodTierMeditationScreen extends Screen
 	private List<Component> createBadgeTooltip(Skill skill, boolean master)
 	{
 		List<Component> tooltip = new ArrayList<>();
-		tooltip.add(skill.getDisplayName());
-		if(ClientPlayerData.hasSkill(skill.id()))
+		boolean owned = ClientPlayerData.hasSkill(skill.id());
+		Player player = minecraft.player;
+		
+		if(!isReadable(skill))
 		{
-			tooltip.add(skill.getDisplayTooltip());
+			tooltip.add(skill.getDisplayName().copy().withStyle(ChatFormatting.OBFUSCATED));
+			tooltip.add(skill.getReadRequirements());
+		} else if(master)
+		{
+			if(ClientPlayerData.getMasterBadge() == null && !isOverlordActive())
+			{
+				tooltip.add(skill.getDisplayName());
+				if(showExtra) tooltip.add(skill.getDisplayTooltip(player));
+				else
+				{
+					tooltip.add(skill.getUnlockRequirements());
+					tooltip.add(Component.translatable(MASTER_BADGE_WARNING_KEY));
+					tooltip.add(Component.translatable(SHOW_BADGE_INFO_KEY));
+				}
+			} else if(owned || isOverlordActive())
+			{
+				tooltip.add(skill.getDisplayName());
+				tooltip.add(skill.getDisplayTooltip(player));
+				if(owned && !ClientPlayerData.isSkillEnabled(skill.id()))
+					tooltip.add(Component.translatable(BADGE_DISABLED_KEY));
+			}
+		} else if(owned)
+		{
+			tooltip.add(skill.getDisplayName());
+			tooltip.add(skill.getDisplayTooltip(player));
 			if(!ClientPlayerData.isSkillEnabled(skill.id())) tooltip.add(Component.translatable(BADGE_DISABLED_KEY));
-		} else if(showExtra)
-		{
-			tooltip.add(skill.getDisplayTooltip());
-			tooltip.add(skill.getUnlockRequirements());
 		} else
 		{
-			tooltip.add(skill.getUnlockRequirements());
-			if(master) tooltip.add(Component.translatable(MASTER_BADGE_WARNING_KEY));
-			tooltip.add(Component.translatable(SHOW_BADGE_INFO_KEY));
+			tooltip.add(skill.getDisplayName());
+			if(showExtra) tooltip.add(skill.getDisplayTooltip(player));
+			else
+			{
+				if(ClientPlayerData.getBadgeLimit() - ClientPlayerData.getUnlockedSkillCount() > 0)
+					tooltip.add(skill.getUnlockRequirements());
+				else tooltip.add(Component.translatable(NO_BADGES_LEFT_KEY));
+				tooltip.add(Component.translatable(SHOW_BADGE_INFO_KEY));
+			}
 		}
 		return tooltip;
 	}
@@ -333,24 +445,31 @@ public class GodTierMeditationScreen extends Screen
 		for(int i = 0; i < masterBadges.size(); i++)
 			if(isMouseOver(masterBadgeX(i), masterBadgeY(), 20, 20, mouseX, mouseY))
 			{
-				sendBadgeClick(masterBadges.get(i), button);
+				Skill badge = masterBadges.get(i);
+				if(isReadable(badge))
+				{
+					boolean unlock = !isOverlordActive() && !ClientPlayerData.hasSkill(badge.id()) && ClientPlayerData.getMasterBadge() == null && button == 0;
+					sendBadgeClick(badge, unlock);
+				}
 				return;
 			}
 		
 		for(int i = 0; i < badges.size(); i++)
 			if(isMouseOver(badgeX(i), badgeY(i), 20, 20, mouseX, mouseY))
 			{
-				sendBadgeClick(badges.get(i), button);
+				Skill badge = badges.get(i);
+				if(isReadable(badge))
+					sendBadgeClick(badge, !ClientPlayerData.hasSkill(badge.id()) && button == 0);
 				return;
 			}
 	}
 	
-	private void sendBadgeClick(Skill badge, int button)
+	private void sendBadgeClick(Skill badge, boolean unlock)
 	{
-		if(ClientPlayerData.hasSkill(badge.id()))
-			PacketDistributor.sendToServer(new GodTierMeditationPackets.ToggleBadge(badge.id()));
-		else if(button == 0)
+		if(unlock)
 			PacketDistributor.sendToServer(new GodTierMeditationPackets.AttemptBadgeUnlock(badge.id()));
+		else if(ClientPlayerData.hasSkill(badge.id()))
+			PacketDistributor.sendToServer(new GodTierMeditationPackets.ToggleBadge(badge.id()));
 	}
 	
 	@Override

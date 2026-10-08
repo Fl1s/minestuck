@@ -1,6 +1,10 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier/shoes/sylph_shoes"
+    "layer0": "minestuck:item/blank",
+    "layer1": "minestuck:item/blank",
+    "layer2": "minestuck:item/blank",
+    "layer3": "minestuck:item/god_tier/shoes/sylph_shoes",
+    "layer4": "minestuck:item/blank"
   }
 }

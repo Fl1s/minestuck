@@ -1,5 +1,8 @@
 package com.mraof.minestuck.computer.editmode;
 
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.EventPriority;
+import com.mraof.minestuck.player.godtier.skill.BuilderBadge;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mraof.minestuck.Minestuck;
@@ -69,13 +72,66 @@ public class ClientEditToolDrag
 	private static Boolean clickModeActiveIsCopy = null; // null = no click-mode session pending; false = move armed; true = copy armed
 	private static final RandomSource PREVIEW_RANDOM = RandomSource.create();
 	
+	public static boolean isBuilderActive(Player player)
+	{
+		return !ClientEditmodeData.isInEditmode() && BuilderBadge.isActive(player);
+	}
+	
+	public static boolean areToolsAvailable(Player player)
+	{
+		return ClientEditmodeData.isInEditmode() || isBuilderActive(player);
+	}
+	
+	public static boolean hasBuilderSelection()
+	{
+		Player player = Minecraft.getInstance().player;
+		return player != null && isBuilderActive(player) && player.getData(MSAttachments.EDIT_TOOLS).getSelectionPos1() != null;
+	}
+	
+	private static boolean isHoldingBlock(Player player)
+	{
+		return player.getMainHandItem().getItem() instanceof BlockItem;
+	}
+	
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event)
+	{
+		if(event.getLevel().isClientSide() && event.getEntity().getMainHandItem().getItem() instanceof BlockItem && isBuilderActive(event.getEntity()))
+			event.setCanceled(true);
+	}
+	
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
+	{
+		if(event.getLevel().isClientSide() && event.getItemStack().getItem() instanceof BlockItem && isBuilderActive(event.getEntity()))
+			event.setCanceled(true);
+	}
+	
 	@SubscribeEvent
 	public static void onClientTick(ClientTickEvent.Pre event)
 	{
 		Minecraft mc = Minecraft.getInstance();
 		Player player = mc.player;
-		if (player == null || !player.isAlive() || !ClientEditmodeData.isInEditmode())
+		if (player == null || !player.isAlive())
 			return;
+		
+		if(!ClientEditmodeData.isInEditmode())
+		{
+			EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
+			if(isBuilderActive(player))
+			{
+				EditTools.ToolMode mode = cap.getToolMode();
+				boolean block = isHoldingBlock(player);
+				if(block || mode == EditTools.ToolMode.RECYCLE)
+					ClientEditToolDrag.doRecycleCode(mc, player, cap);
+				if(block || mode == EditTools.ToolMode.REVISE)
+					ClientEditToolDrag.doReviseCode(mc, player, cap);
+				ClientEditToolDrag.doSelectCode(mc, player, cap);
+				ClientEditToolDrag.doMoveCopyPreviewCode(mc, player, cap);
+			} else if(cap.getToolMode() != null)
+				cancelDrag(cap); //The badge was lost or disabled in the middle of a selection
+			return;
+		}
 		
 		EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
 		
@@ -102,7 +158,7 @@ public class ClientEditToolDrag
 				|| mc.getCameraEntity() != mc.player || !mc.player.isAlive())
 			return;
 		
-		if(!ClientEditmodeData.isInEditmode() && RemoteEditSessions.allSessions().isEmpty())
+		if(!areToolsAvailable(mc.player) && RemoteEditSessions.allSessions().isEmpty())
 			return;
 		
 		Player player = mc.player;
@@ -121,7 +177,7 @@ public class ClientEditToolDrag
 		Level level = player.level();
 		float alpha = 0.55f;
 		
-		if(ClientEditmodeData.isInEditmode())
+		if(areToolsAvailable(player))
 		{
 			EditTools cap = player.getData(MSAttachments.EDIT_TOOLS);
 			
@@ -311,11 +367,10 @@ public class ClientEditToolDrag
 	 */
 	public static boolean canEditRevise(Player player)
 	{
-		return (ClientEditmodeData.isInEditmode()
+		return ((ClientEditmodeData.isInEditmode() && !isBlockDeployable(player) || isBuilderActive(player))
 				&& !Minecraft.getInstance().isPaused()
 				&& !player.getMainHandItem().isEmpty()
-				&& player.getMainHandItem().getItem() instanceof BlockItem
-				&& !isBlockDeployable(player));
+				&& player.getMainHandItem().getItem() instanceof BlockItem);
 	}
 	
 	/**
@@ -368,7 +423,7 @@ public class ClientEditToolDrag
 		
 		if(clickMode)
 		{
-			if(!ClientEditmodeData.isInEditmode() || mc.isPaused())
+			if(!areToolsAvailable(player) || mc.isPaused())
 				selectClickArmed = false; //full cancel on anything that invalidates the session
 			
 			shouldCommit = false;
@@ -386,7 +441,7 @@ public class ClientEditToolDrag
 			shouldCommit = selectKeyWasDown && !toolKey.isDown();
 		}
 		
-		if(active && (!ClientEditmodeData.isInEditmode() || mc.isPaused())
+		if(active && (!areToolsAvailable(player) || mc.isPaused())
 				&& (cap.getToolMode() == null || cap.getToolMode() == EditTools.ToolMode.SELECT))
 		{
 			cancelDrag(cap);
@@ -444,7 +499,7 @@ public class ClientEditToolDrag
 		KeyMapping copyKey = MSKeyHandler.copyKey;
 		
 		boolean hasSelection = cap.getSelectionPos1() != null && cap.getSelectionPos2() != null;
-		boolean canPreview = hasSelection && ClientEditmodeData.isInEditmode() && !mc.isPaused() && cap.getToolMode() == null;
+		boolean canPreview = hasSelection && areToolsAvailable(player) && !mc.isPaused() && cap.getToolMode() == null;
 		boolean clickMode = MinestuckConfig.CLIENT.clickToPlace.get();
 		
 		boolean movePressedEdge = moveKey.isDown() && !moveKeyWasDown;
@@ -652,15 +707,18 @@ public class ClientEditToolDrag
 		BlockHitResult blockHit = getPlayerPOVHitResult(player.level(), player);
 		BlockState block = player.level().getBlockState(blockHit.getBlockPos());
 		
-		return (ClientEditmodeData.isInEditmode()
+		return ((ClientEditmodeData.isInEditmode() || isBuilderActive(player) && isHoldingBlock(player))
 				&& !Minecraft.getInstance().isPaused()
 				&& !(block.getDestroySpeed(player.level(), blockHit.getBlockPos()) < 0 || block.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST))
 				&& !isMultiblock(player));
 	}
 	
-	/**
-	 * Sets particles and sounds for local player, since level.playSound only broadcasts to other, non-local players.
-	 */
+	private static boolean canBuilderDestroy(Player player, BlockPos pos)
+	{
+		BlockState state = player.level().getBlockState(pos);
+		return state.getDestroySpeed(player.level(), pos) >= 0 && !state.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST);
+	}
+	
 	private static void playSoundAndSetParticles(Player player, boolean fill, BlockPos positionStart, BlockPos positionEnd)
 	{
 		ItemStack stack = player.getMainHandItem().isEmpty() ? player.getOffhandItem() : player.getMainHandItem();
@@ -674,14 +732,15 @@ public class ClientEditToolDrag
 				{
 					BlockPos pos = new BlockPos(x, y, z);
 					if(!fill && !player.level().getBlockState(pos).isAir()
-							&& (ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ServerEditHandler.blockBreakCost())
-							|| ClientDeployList.getEntry(player.level().getBlockState(pos).getCloneItemStack(null, player.level(), pos, player)) != null))
+							&& (isBuilderActive(player) ? canBuilderDestroy(player, pos)
+							: (ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ServerEditHandler.blockBreakCost())
+							|| ClientDeployList.getEntry(player.level().getBlockState(pos).getCloneItemStack(null, player.level(), pos, player)) != null)))
 					{
 						anyBlockEdited = true;
 						
 						player.level().addDestroyBlockEffect(pos, player.level().getBlockState(pos));
 					}
-					else if(fill && player.level().getBlockState(pos).canBeReplaced() && ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ClientEditHandler.itemCost(stack, player.level())))
+					else if(fill && player.level().getBlockState(pos).canBeReplaced() && (isBuilderActive(player) || ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.EDITMODE).canAfford(ClientEditHandler.itemCost(stack, player.level()))))
 					{
 						anyBlockEdited = true;
 					}
@@ -786,7 +845,7 @@ public class ClientEditToolDrag
 				|| mc.getCameraEntity() != mc.player || !mc.player.isAlive())
 			return;
 		
-		if(!ClientEditmodeData.isInEditmode() && RemoteEditSessions.allSessions().isEmpty() && !ClientMoveTransitions.hasActive())
+		if(!areToolsAvailable(mc.player) && RemoteEditSessions.allSessions().isEmpty() && !ClientMoveTransitions.hasActive())
 			return;
 		
 		Player player = mc.player;
@@ -800,7 +859,7 @@ public class ClientEditToolDrag
 		MultiBufferSource.BufferSource renderTypeBuffer = MultiBufferSource.immediate(new ByteBufferBuilder(2048));
 		VertexConsumer lineBuffer = renderTypeBuffer.getBuffer(RenderType.LINES);
 		
-		if(ClientEditmodeData.isInEditmode())
+		if(areToolsAvailable(player))
 			renderLocalOutlines(player, poseStack, lineBuffer, camPos);
 		
 		renderMoveTransitionOutlines(poseStack, lineBuffer, camPos);

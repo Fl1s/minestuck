@@ -7,7 +7,7 @@ import net.neoforged.neoforge.common.util.INBTSerializable;
 
 public final class GodTierKarma implements INBTSerializable<CompoundTag>
 {
-	public static final int CAP = 500;
+	public static final int CAP = 200;
 	
 	private int staticKarma;
 	private float tempKarma;

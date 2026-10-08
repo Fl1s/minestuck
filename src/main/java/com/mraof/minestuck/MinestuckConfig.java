@@ -224,6 +224,7 @@ public class MinestuckConfig
 					"- Only the first Cruxtruder, Totem Lathe, and Alchemiter will be free",
 					"- Medium dungeons spawners contain Liches instead of Imps",
 					"- Underlings have a 50% chance to have the artifact grist").define("hardMode", false);
+			builder.pop();
 			
 			builder.push("godTier");
 			requiredRungToGodTier = builder.comment("Determines the minimum echeladder rung required to ascend. Set to -1 to bypass the requirement.")
@@ -232,8 +233,8 @@ public class MinestuckConfig
 					.defineInRange("maxGodTier", -1, -1, Integer.MAX_VALUE);
 			godTierXpThreshold = builder.comment("Determines the number of experience levels required to upgrade a god tier skill.")
 					.defineInRange("godTierXpThreshold", 30, 0, Integer.MAX_VALUE);
-			godTierBadgeSlots = builder.comment("Determines how many regular badges a god tier player may have enabled.")
-					.defineInRange("godTierBadgeSlots", 10, 0, Integer.MAX_VALUE);
+			godTierBadgeSlots = builder.comment("Determines how many badges (including a master badge) a god tier player may hold.")
+					.defineInRange("godTierBadgeSlots", 7, 0, Integer.MAX_VALUE);
 			godTierMasterControl = builder.comment("If true, god tier players may have all badges available. Intended for testing or server operators.")
 					.define("godTierMasterControl", false);
 			questBedSpawnDistance = builder.comment("Determines how far away the quest bed can spawn from the center of a player's land.")

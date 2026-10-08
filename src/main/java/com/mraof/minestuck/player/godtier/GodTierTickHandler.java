@@ -31,7 +31,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Abilities;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,7 +78,6 @@ public final class GodTierTickHandler
 	private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event)
 	{
 		if(!(event.getEntity() instanceof ServerPlayer player)) return;
-		
 		PlayerData.get(player).ifPresent(playerData -> {
 			GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 			sendDataPacket(player, playerData);
@@ -80,40 +85,63 @@ public final class GodTierTickHandler
 			Title title = Title.getTitle(playerData).orElse(null);
 			if(title != null) PacketDistributor.sendToPlayer(player, new GodTierTitlePacket(title.asTextComponent()));
 			if(!state.isGodTier())
-			{
 				removeGodTierModifiers(player);
-				updateFlight(player, state);
-			}
+			if(state.isPendingArmor() && state.isGodTier())
+				GodTierAscensionHandler.finishInterruptedCutscene(player, title);
 		});
+	}
+	
+	@SubscribeEvent
+	private static void onServerStopped(ServerStoppedEvent event)
+	{
+		QUEST_BED_ORIGINS.clear();
+		QUEST_BED_RETRY_TIME.clear();
+	}
+	
+	private static final Map<ResourceKey<Level>, BlockPos> QUEST_BED_ORIGINS = new HashMap<>();
+	private static final Map<ResourceKey<Level>, Long> QUEST_BED_RETRY_TIME = new HashMap<>();
+	
+	/**
+	 * Cached lookup of the quest bed position of a land
+	 */
+	@Nullable
+	public static BlockPos getQuestBedOrigin(ServerLevel level)
+	{
+		BlockPos cached = QUEST_BED_ORIGINS.get(level.dimension());
+		if(cached != null) return cached;
+		long gameTime = level.getGameTime();
+		if(QUEST_BED_RETRY_TIME.getOrDefault(level.dimension(), 0L) > gameTime) return null;
+		QuestBedPiece piece = QuestBedPlacement.findQuestBedPiece(level);
+		if(piece == null)
+		{
+			QUEST_BED_RETRY_TIME.put(level.dimension(), gameTime + 600);
+			return null;
+		}
+		QUEST_BED_ORIGINS.put(level.dimension(), piece.getOrigin());
+		return piece.getOrigin();
 	}
 	
 	private static void updateAttributes(ServerPlayer player, GodTierStats stats, GodTierState state, GodTierSkills skills)
 	{
 		boolean active = state.isGodTier();
+		double multiplier = active ? badgeMultiplier(skills) : 1.0;
 		for(GodTierStat stat : GodTierStat.values())
 		{
 			if(!stat.hasAttribute()) continue;
-			
 			AttributeInstance attribute = player.getAttribute(stat.attribute());
-			double multiplier = badgeMultiplier(skills);
-			AttributeModifier modifier = new AttributeModifier(stat.modifierId(), stats.getAttributeBonus(stat, multiplier), stat.operation());
-			
-			boolean current = attribute.hasModifier(stat.modifierId());
-			if(!active)
-			{
-				if(current) attribute.removeModifier(stat.modifierId());
-				continue;
-			}
-			
-			boolean shouldApply = stat != GodTierStat.SPEED || player.isSprinting();
+			if(attribute == null) continue;
+			AttributeModifier existing = attribute.getModifier(stat.modifierId());
+			boolean shouldApply = active && (stat != GodTierStat.SPEED || player.isSprinting());
 			if(!shouldApply)
 			{
-				if(current) attribute.removeModifier(stat.modifierId());
+				if(existing != null) attribute.removeModifier(stat.modifierId());
 				continue;
 			}
-			
-			if(current) attribute.removeModifier(stat.modifierId());
-			attribute.addTransientModifier(modifier);
+			double amount = stats.getAttributeBonus(stat, multiplier);
+			if(existing != null && existing.amount() == amount && existing.operation() == stat.operation())
+				continue;
+			if(existing != null) attribute.removeModifier(stat.modifierId());
+			attribute.addTransientModifier(new AttributeModifier(stat.modifierId(), amount, stat.operation()));
 		}
 	}
 	
@@ -138,31 +166,54 @@ public final class GodTierTickHandler
 	
 	private static void updateFlight(ServerPlayer player, GodTierState state)
 	{
-		if(player.isCreative() || player.isSpectator()) return;
-		
-		boolean mayFly = state.isGodTier() && !player.hasEffect(MSEffects.EARTHBOUND);
-		player.getAbilities().mayfly = mayFly;
-		if(!mayFly) player.getAbilities().flying = false;
-		player.onUpdateAbilities();
+		if(player.isCreative() || player.isSpectator())
+		{
+			state.setFlightGranted(false);
+			return;
+		}
+		Abilities abilities = player.getAbilities();
+		boolean changed = false;
+		if(state.isGodTier() && !player.hasEffect(MSEffects.EARTHBOUND))
+		{
+			if(!abilities.mayfly)
+			{
+				abilities.mayfly = true;
+				changed = true;
+			}
+			state.setFlightGranted(true);
+		} else if(state.isGodTier() || state.isFlightGranted() || state.isPendingReset())
+		{
+			if(abilities.mayfly)
+			{
+				abilities.mayfly = false;
+				changed = true;
+			}
+			if(abilities.flying)
+			{
+				abilities.flying = false;
+				changed = true;
+			}
+			state.setFlightGranted(false);
+			if(!state.isGodTier())
+				state.clearPendingReset();
+		}
+		if(changed)
+			player.onUpdateAbilities();
 	}
 	
 	private static void updateQuestBedArea(ServerPlayer player, GodTierState state)
 	{
+		if(state.isGodTier() || player.isCreative()) return;
 		SburbPlayerData sburbData = SburbPlayerData.get(player);
 		if(!sburbData.hasEntered() || sburbData.getLandDimensionIfEntered() != player.level().dimension()) return;
-		
-		QuestBedPiece questBed = QuestBedPlacement.findQuestBedPiece((ServerLevel) player.level());
-		if(questBed == null) return;
-		
-		BlockPos origin = questBed.getOrigin();
+		BlockPos origin = getQuestBedOrigin((ServerLevel) player.level());
+		if(origin == null) return;
 		int radius = 250;
 		double dx = player.getX() - origin.getX();
 		double dz = player.getZ() - origin.getZ();
-		boolean nearBed = Math.abs(dx) < radius && Math.abs(dz) < radius;
-		
-		if(!nearBed || player.isCreative() || state.isGodTier()) return;
-		
-		refreshEffect(player, MSEffects.EARTHBOUND, 40, 0);
+		if(Math.abs(dx) >= radius || Math.abs(dz) >= radius) return;
+		if(!state.hasClimbedTheSpire())
+			refreshEffect(player, MSEffects.EARTHBOUND, 40, 0);
 		refreshEffect(player, MSEffects.CREATIVE_SHOCK, 40, 0);
 	}
 	
@@ -176,30 +227,32 @@ public final class GodTierTickHandler
 	private static void updateClimbedTheSpire(ServerPlayer player, GodTierState state)
 	{
 		if(state.hasClimbedTheSpire() || !player.onGround()) return;
-		
 		SburbPlayerData sburbData = SburbPlayerData.get(player);
 		if(!sburbData.hasEntered() || sburbData.getLandDimensionIfEntered() != player.level().dimension()) return;
-		
-		QuestBedPiece questBed = QuestBedPlacement.findQuestBedPiece((ServerLevel) player.level());
-		if(questBed == null) return;
-		
-		BlockPos origin = questBed.getOrigin();
-		if(player.getY() >= QuestBedPiece.TOP && Math.abs(player.getX() - origin.getX()) < QuestBedPiece.RADIUS && Math.abs(player.getZ() - origin.getZ()) < QuestBedPiece.RADIUS)
+		if(player.getY() < QuestBedPiece.TOP) return;
+		BlockPos origin = getQuestBedOrigin((ServerLevel) player.level());
+		if(origin == null) return;
+		if(Math.abs(player.getX() - origin.getX()) < QuestBedPiece.RADIUS && Math.abs(player.getZ() - origin.getZ()) < QuestBedPiece.RADIUS)
 			state.setClimbedTheSpire(true);
 	}
 	
+	/** Sends the god tier stats/state/karma/skills */
 	public static void sendDataPacket(ServerPlayer player, PlayerData playerData)
+	{
+		sendStatsPacket(player, playerData);
+		sendSkillDataPacket(player, playerData);
+	}
+	
+	/** Sends only the god tier stats/state/karma */
+	public static void sendStatsPacket(ServerPlayer player, PlayerData playerData)
 	{
 		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
 		GodTierStats stats = playerData.getData(MSAttachments.GOD_TIER_STATS);
 		GodTierKarma karma = playerData.getData(MSAttachments.GOD_TIER_KARMA);
-		
 		List<GodTierDataPacket.StatData> statData = new ArrayList<>();
 		for(GodTierStat stat : GodTierStat.values())
 			statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
-		
 		PacketDistributor.sendToPlayer(player, new GodTierDataPacket(state.isGodTier(), state.canGodTier(), state.hasClimbedTheSpire(), statData, karma.getTotal()));
-		sendSkillDataPacket(player, playerData);
 	}
 	
 	public static void sendSkillDataPacket(ServerPlayer player, PlayerData playerData)
@@ -207,65 +260,74 @@ public final class GodTierTickHandler
 		GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
 		List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
 		skills.getAllBadges().forEach(id -> skillData.add(new GodTierSkillDataPacket.SkillData(id, skills.isBadgeEnabledById(id), skills.isPassiveEnabledById(id))));
-		
 		PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.ofNullable(skills.masterBadge()), skills.badgeLimit()));
 	}
 	
 	private static void updateAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state)
 	{
+		boolean wasApplied = state.areAspectEffectsApplied();
 		Title title = Title.getTitle(playerData).orElse(null);
 		boolean locked = player.hasEffect(MSEffects.GOD_TIER_LOCK);
+		boolean toggle = player.getData(MSAttachments.EFFECT_TOGGLE);
+		boolean active = title != null && MinestuckConfig.SERVER.aspectEffects.get() && state.isGodTier() && toggle && !locked;
 		
+		if(!active && !wasApplied) return;
 		if(title == null)
 		{
-			clearAspectEffects(player, null);
+			state.setAspectEffectsApplied(false);
 			return;
 		}
 		
-		EnumAspect aspect = title.heroAspect();
-		boolean toggle = player.getData(MSAttachments.EFFECT_TOGGLE);
-		boolean active = MinestuckConfig.SERVER.aspectEffects.get() && state.isGodTier() && toggle && !locked;
-		
+		Map<Holder<MobEffect>, MobEffectInstance> effects = getAspectEffects(player, playerData, state, title.heroAspect());
 		if(!active)
 		{
-			clearAspectEffects(player, aspect);
+			effects.keySet().forEach(player::removeEffect);
+			state.setAspectEffectsApplied(false);
 			return;
+		}
+		
+		for(MobEffectInstance effect : effects.values())
+		{
+			MobEffectInstance current = player.getEffect(effect.getEffect());
+			boolean refreshOnly = REFRESH_EFFECTS.contains(effect.getEffect());
+			if(current == null ? (!refreshOnly || player.tickCount % 600 == 0)
+					: (!refreshOnly && current.getDuration() <= 200 && current.getAmplifier() <= effect.getAmplifier()))
+				player.addEffect(effect);
+		}
+		state.setAspectEffectsApplied(true);
+	}
+	
+	private static final List<Holder<MobEffect>> REFRESH_EFFECTS = List.of(MobEffects.ABSORPTION, MobEffects.REGENERATION, MobEffects.WITHER, MobEffects.POISON);
+	
+	public static Map<Holder<MobEffect>, MobEffectInstance> getAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state, EnumAspect aspect)
+	{
+		Map<Holder<MobEffect>, MobEffectInstance> effects = new LinkedHashMap<>();
+		GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
+		int rung = Echeladder.get(player).getRung();
+		
+		int level = (int) (ASPECT_STRENGTH.get(aspect) * (state.isGodTier() ? 60F : rung));
+		if(skills.isBadgeActive(SkillRegistry.BADGE_PAGE.get())) level += 2;
+		
+		if(skills.isBadgeActive(SkillRegistry.EFFECT_BUFF.get()))
+		{
+			switch(aspect)
+			{
+				case DOOM -> effects.put(MobEffects.ABSORPTION, new MobEffectInstance(MobEffects.ABSORPTION, ASPECT_EFFECT_DURATION, 2, true, false));
+				//TODO HOPE (decayproof), MIND (mind fortitude) and VOID (void conceal) get their own effects in 1.12.2. Those effects are not ported yet.
+				case HOPE, MIND, VOID ->
+				{
+				}
+				default -> level *= 2;
+			}
 		}
 		
 		Holder<MobEffect> effect = ASPECT_EFFECTS.get(aspect);
-		if(effect == null)
-		{
-			clearAspectEffects(player, aspect);
-			return;
-		}
+		if(level > 0 && effect != null)
+			effects.put(effect, new MobEffectInstance(effect, ASPECT_EFFECT_DURATION, level - 1, true, false));
 		
-		int amplifier = aspectEffectAmplifier(player, playerData, state, aspect);
-		MobEffectInstance current = player.getEffect(effect);
-		if(current == null || current.getDuration() < 200 || current.getAmplifier() < amplifier)
-			player.addEffect(new MobEffectInstance(effect, ASPECT_EFFECT_DURATION, amplifier, true, false));
+		if((state.isGodTier() || rung > 18) && aspect == EnumAspect.HOPE)
+			effects.put(MobEffects.WATER_BREATHING, new MobEffectInstance(MobEffects.WATER_BREATHING, ASPECT_EFFECT_DURATION, 0, true, false));
 		
-		if((state.isGodTier() || Echeladder.get(player).getRung() > 18) && aspect == EnumAspect.HOPE)
-			player.addEffect(new MobEffectInstance(MobEffects.WATER_BREATHING, ASPECT_EFFECT_DURATION, 0, true, false));
-	}
-	
-	private static int aspectEffectAmplifier(ServerPlayer player, PlayerData playerData, GodTierState state, EnumAspect aspect)
-	{
-		GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
-		int rung = Echeladder.get(player).getRung();
-		int level = (int) (ASPECT_STRENGTH.get(aspect) * (state.isGodTier() ? 60F : rung));
-		if(skills.isBadgeActive(SkillRegistry.BADGE_PAGE.get())) level += 2;
-		if(skills.isBadgeActive(SkillRegistry.EFFECT_BUFF.get())) level *= 2;
-		
-		return Math.max(0, level - 1);
-	}
-	
-	private static void clearAspectEffects(ServerPlayer player, @Nullable EnumAspect aspect)
-	{
-		if(aspect != null)
-		{
-			Holder<MobEffect> effect = ASPECT_EFFECTS.get(aspect);
-			if(effect != null) player.removeEffect(effect);
-		}
-		player.removeEffect(MobEffects.WATER_BREATHING);
+		return effects;
 	}
 }

@@ -1,5 +1,7 @@
 package com.mraof.minestuck.player.godtier.skill;
 
+import javax.annotation.Nullable;
+import net.minecraft.world.entity.player.Player;
 import com.mraof.minestuck.Minestuck;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -73,6 +75,11 @@ public abstract class Skill
 	public Component getDisplayTooltip()
 	{
 		return Component.translatable(translationKey() + ".tooltip");
+	}
+	
+	public Component getDisplayTooltip(@Nullable Player player)
+	{
+		return getDisplayTooltip();
 	}
 	
 	public Component getUnlockRequirements()

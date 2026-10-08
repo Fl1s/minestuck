@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minestuck:item/god_tier/hood/witch_hood"
+    "layer0": "minestuck:item/blank",
+    "layer1": "minestuck:item/god_tier/hood/witch_hood"
   }
 }

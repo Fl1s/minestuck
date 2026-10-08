@@ -1,5 +1,6 @@
 package com.mraof.minestuck.player.godtier.skill;
 
+import net.minecraft.network.chat.Component;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.godtier.GodTierStat;
 import com.mraof.minestuck.util.MSAttachments;
@@ -20,6 +21,12 @@ public class BadgeLevel extends Badge
 	public int requiredLevel()
 	{
 		return requiredLevel;
+	}
+	
+	@Override
+	public Component getReadRequirements()
+	{
+		return Component.translatable("skill.minestuck.read.level", requiredLevel);
 	}
 	
 	@Override

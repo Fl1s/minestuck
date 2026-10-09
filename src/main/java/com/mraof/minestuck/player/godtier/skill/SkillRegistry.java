@@ -21,7 +21,7 @@ public final class SkillRegistry
 	public static final Supplier<Badge> PATCH_OF_THE_HOARDER = REGISTER.register("patch_of_the_hoarder", () -> new PatchOfTheHoarderBadge(Skill.defaultId("patch_of_the_hoarder"), 20, 3));
 	public static final Supplier<Badge> HOARD_OF_THE_ALCHEMIZER = REGISTER.register("hoard_of_the_alchemizer", () -> new HoardOfTheAlchemizerBadge(Skill.defaultId("hoard_of_the_alchemizer"), 30, 4));
 	public static final Supplier<Badge> BUILDER_BADGE = REGISTER.register("builder_badge", () -> new BuilderBadge(Skill.defaultId("builder_badge"), 40, 7));
-	public static final Supplier<Badge> STRIFE_BADGE = REGISTER.register("strife_badge", () -> new BadgeLevel(Skill.defaultId("strife_badge"), 50, 7));
+	public static final Supplier<Badge> STRIFE_BADGE = REGISTER.register("strife_badge", () -> new StrifeBadge(Skill.defaultId("strife_badge"), 50, 7));
 	public static final Supplier<Badge> REVENANTS_RETALIATION = REGISTER.register("revenants_retaliation", () -> new RevenantsRetaliationBadge(Skill.defaultId("revenants_retaliation"), 60, 4));
 	public static final Supplier<Badge> EFFECT_BUFF = REGISTER.register("effect_buff", () -> new EffectBuffBadge(Skill.defaultId("effect_buff"), 70, 4));
 	public static final Supplier<Badge> KARMA = REGISTER.register("karma", () -> new KarmaBadge(Skill.defaultId("karma"), 80, 5));

@@ -24,7 +24,6 @@ import com.mraof.minestuck.util.MSSoundEvents;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPiece;
 import com.mraof.minestuck.world.gen.structure.questbed.QuestBedPlacement;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -45,12 +44,10 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
@@ -209,7 +206,7 @@ public final class GodTierAscensionHandler
 			
 			List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
 			skillData.add(new GodTierSkillDataPacket.SkillData(SkillRegistry.GIFT_OF_GAB.get().id(), true, false));
-			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), MinestuckConfig.SERVER.godTierBadgeSlots.get()));
+			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), MinestuckConfig.SERVER.godTierBadgeSlots.get(), Optional.empty(), ""));
 		});
 		
 		startCutscene(player, title);

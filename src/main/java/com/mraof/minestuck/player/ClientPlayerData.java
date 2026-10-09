@@ -65,6 +65,8 @@ public final class ClientPlayerData
 	private static int[] godTierLevels = new int[GodTierStat.values().length];
 	private static float[] godTierXp = new float[GodTierStat.values().length];
 	private static Map<ResourceLocation, Boolean> godTierSkills = new HashMap<>();
+	private static ResourceLocation gristHoard;
+	private static String consortType = "";
 	private static Map<ResourceLocation, Boolean> godTierPassives = new HashMap<>();
 	private static ResourceLocation masterBadge;
 	private static Component godTierTitle;
@@ -223,6 +225,8 @@ public final class ClientPlayerData
 		}
 		masterBadge = packet.masterBadge().orElse(null);
 		badgeLimit = packet.badgeLimit();
+		gristHoard = packet.gristHoard().orElse(null);
+		consortType = packet.consortType();
 	}
 	
 	public static boolean isGodTier()
@@ -248,6 +252,16 @@ public final class ClientPlayerData
 	public static int getGodTierLevel(GodTierStat stat)
 	{
 		return godTierLevels[stat.ordinal()];
+	}
+	
+	@Nullable
+	public static ResourceLocation getGristHoard()
+	{
+		return gristHoard;
+	}
+	public static String getConsortType()
+	{
+		return consortType;
 	}
 	
 	@Nullable

@@ -1,5 +1,9 @@
 package com.mraof.minestuck.client.gui;
 
+import javax.annotation.Nullable;
+import net.minecraft.client.gui.screens.Screen;
+import com.mraof.minestuck.network.GodTierHoardPackets;
+import java.util.function.Consumer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mraof.minestuck.api.alchemy.GristType;
 import com.mraof.minestuck.api.alchemy.GristTypes;
@@ -22,15 +26,42 @@ public class GristSelectorScreen extends MinestuckScreen
 
 	private static final int guiWidth = 226, guiHeight = 190;
 
-	private final BlockPos gristHolderPos;
+	private final Consumer<GristType> selectionHandler;
+	@Nullable
+	private final Screen parent;
 	private int page = 0;
 	private ExtendedButton previousButton;
 	private ExtendedButton nextButton;
 
 	public GristSelectorScreen(BlockPos gristHolderPos)
 	{
+		this(type -> PacketDistributor.sendToServer(new SetWildcardGristPacket(gristHolderPos, type)));
+	}
+	
+	public GristSelectorScreen(Consumer<GristType> selectionHandler)
+	{
+		this(selectionHandler, null);
+	}
+	
+	public GristSelectorScreen(Consumer<GristType> selectionHandler, @Nullable Screen parent)
+	{
 		super(Component.translatable(TITLE));
-		this.gristHolderPos = gristHolderPos;
+		this.selectionHandler = selectionHandler;
+		this.parent = parent;
+	}
+	
+	@Override
+	public void onClose()
+	{
+		if(parent != null)
+			minecraft.setScreen(parent);
+		else
+			super.onClose();
+	}
+	
+	public static GristSelectorScreen forGristHoard(@Nullable Screen parent)
+	{
+		return new GristSelectorScreen(type -> PacketDistributor.sendToServer(new GodTierHoardPackets.SelectType(type.getIdOrThrow())), parent);
 	}
 
 	/**
@@ -43,7 +74,7 @@ public class GristSelectorScreen extends MinestuckScreen
 		super.init();
 		int xOffset = (width - guiWidth) / 2;
 		int yOffset = (height - guiHeight) / 2;
-		this.previousButton = addRenderableWidget(new ExtendedButton((this.width) + 8, yOffset + 8, 16, 16, Component.literal("<"), button -> prevPage()));
+		this.previousButton = addRenderableWidget(new ExtendedButton(xOffset + 8, yOffset + 8, 16, 16, Component.literal("<"), button -> prevPage()));
 		this.nextButton = addRenderableWidget(new ExtendedButton(xOffset + guiWidth - 24, yOffset + 8, 16, 16, Component.literal(">"), button -> nextPage()));
 		
 		previousButton.visible = false;
@@ -104,7 +135,7 @@ public class GristSelectorScreen extends MinestuckScreen
 				if (isPointInRegion(gristXOffset, gristYOffset, 16, 16, xcor, ycor))
 				{
 					this.onClose();
-					PacketDistributor.sendToServer(new SetWildcardGristPacket(gristHolderPos, type));
+					selectionHandler.accept(type);
 					return true;
 				}
 				offset++;

@@ -162,6 +162,12 @@ public class MSScreenFactories
 		Minecraft.getInstance().setScreen(new GodTierMeditationScreen());
 	}
 	
+	public static void displayGristHoardSelector()
+	{
+		Minecraft minecraft = Minecraft.getInstance();
+		minecraft.setScreen(GristSelectorScreen.forGristHoard(minecraft.screen));
+	}
+	
 	public static void displayGodTierBadgeScreen()
 	{
 		Minecraft.getInstance().setScreen(new GodTierBadgeScreen());

@@ -12,7 +12,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.List;
 import java.util.Optional;
 
-public record GodTierSkillDataPacket(List<SkillData> skills, Optional<ResourceLocation> masterBadge, int badgeLimit) implements MSPacket.PlayToClient
+public record GodTierSkillDataPacket(List<SkillData> skills, Optional<ResourceLocation> masterBadge, int badgeLimit, Optional<ResourceLocation> gristHoard, String consortType) implements MSPacket.PlayToClient
 {
 	public static final Type<GodTierSkillDataPacket> ID = new Type<>(Minestuck.id("god_tier_skill_data"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, GodTierSkillDataPacket> STREAM_CODEC = StreamCodec.composite(
@@ -22,6 +22,10 @@ public record GodTierSkillDataPacket(List<SkillData> skills, Optional<ResourceLo
 			GodTierSkillDataPacket::masterBadge,
 			ByteBufCodecs.VAR_INT,
 			GodTierSkillDataPacket::badgeLimit,
+			ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC),
+			GodTierSkillDataPacket::gristHoard,
+			ByteBufCodecs.STRING_UTF8,
+			GodTierSkillDataPacket::consortType,
 			GodTierSkillDataPacket::new
 	);
 	

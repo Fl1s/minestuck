@@ -1,5 +1,9 @@
 package com.mraof.minestuck.client.gui.godtier;
 
+import com.mraof.minestuck.player.godtier.skill.HoardOfTheAlchemizerBadge;
+import com.mraof.minestuck.player.godtier.skill.PatchOfTheHoarderBadge;
+import com.mraof.minestuck.player.godtier.skill.StrifeBadge;
+import com.mraof.minestuck.client.gui.GristSelectorScreen;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import com.mraof.minestuck.player.godtier.skill.BadgePage;
 import com.mraof.minestuck.player.godtier.skill.BadgeOverlord;
@@ -83,6 +87,8 @@ public class GodTierMeditationScreen extends Screen
 	protected void init()
 	{
 		super.init();
+		mouseClicked = false;
+		clickTime = 0;
 		xOffset = (width - X_SIZE) / 2;
 		yOffset = (height - Y_SIZE) / 2;
 		setupBadges();
@@ -114,6 +120,10 @@ public class GodTierMeditationScreen extends Screen
 	{
 		if(skill instanceof BadgeOverlord)
 			return false;
+		if(skill instanceof StrifeBadge)
+			return StrifeBadge.isRelevant();
+		if(skill instanceof PatchOfTheHoarderBadge)
+			return PatchOfTheHoarderBadge.isSupported();
 		if(skill instanceof BadgePage)
 			return ClientPlayerData.getTitle() != null && ClientPlayerData.getTitle().heroClass() == EnumClass.PAGE;
 		return true;
@@ -180,6 +190,7 @@ public class GodTierMeditationScreen extends Screen
 	public void tick()
 	{
 		super.tick();
+		//The server may change what the player has or can see (such as unlocking a master badge)
 		if(minecraft != null && minecraft.player != null && minecraft.player.tickCount % 10 == 0)
 			setupBadges();
 	}
@@ -375,7 +386,8 @@ public class GodTierMeditationScreen extends Screen
 			if(ClientPlayerData.getMasterBadge() == null && !isOverlordActive())
 			{
 				tooltip.add(skill.getDisplayName());
-				if(showExtra) tooltip.add(skill.getDisplayTooltip(player));
+				if(showExtra)
+					tooltip.add(skill.getDisplayTooltip(player));
 				else
 				{
 					tooltip.add(skill.getUnlockRequirements());
@@ -386,8 +398,7 @@ public class GodTierMeditationScreen extends Screen
 			{
 				tooltip.add(skill.getDisplayName());
 				tooltip.add(skill.getDisplayTooltip(player));
-				if(owned && !ClientPlayerData.isSkillEnabled(skill.id()))
-					tooltip.add(Component.translatable(BADGE_DISABLED_KEY));
+				if(owned && !ClientPlayerData.isSkillEnabled(skill.id())) tooltip.add(Component.translatable(BADGE_DISABLED_KEY));
 			}
 		} else if(owned)
 		{
@@ -397,7 +408,8 @@ public class GodTierMeditationScreen extends Screen
 		} else
 		{
 			tooltip.add(skill.getDisplayName());
-			if(showExtra) tooltip.add(skill.getDisplayTooltip(player));
+			if(showExtra)
+				tooltip.add(skill.getDisplayTooltip(player));
 			else
 			{
 				if(ClientPlayerData.getBadgeLimit() - ClientPlayerData.getUnlockedSkillCount() > 0)
@@ -459,7 +471,14 @@ public class GodTierMeditationScreen extends Screen
 			{
 				Skill badge = badges.get(i);
 				if(isReadable(badge))
-					sendBadgeClick(badge, !ClientPlayerData.hasSkill(badge.id()) && button == 0);
+				{
+					if(badge instanceof HoardOfTheAlchemizerBadge && ClientPlayerData.hasSkill(badge.id()) && button == 0)
+					{
+						mouseClicked = false;
+						clickTime = 0;
+						minecraft.setScreen(GristSelectorScreen.forGristHoard(this));
+					} else sendBadgeClick(badge, !ClientPlayerData.hasSkill(badge.id()) && button == 0);
+				}
 				return;
 			}
 	}

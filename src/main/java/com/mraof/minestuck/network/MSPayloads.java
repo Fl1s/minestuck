@@ -47,6 +47,8 @@ public final class MSPayloads
 		registerPlayToClient(registrar, GodTierTitlePacket.ID, GodTierTitlePacket.STREAM_CODEC);
 		registerPlayToClient(registrar, GodTierMeditationPackets.OpenScreen.ID, GodTierMeditationPackets.OpenScreen.STREAM_CODEC);
 		registerPlayToClient(registrar, GodTierMeditationPackets.OpenBadgeScreen.ID, GodTierMeditationPackets.OpenBadgeScreen.STREAM_CODEC);
+		registerPlayToClient(registrar, GodTierHoardPackets.OpenSelector.ID, GodTierHoardPackets.OpenSelector.STREAM_CODEC);
+		registerPlayToServer(registrar, GodTierHoardPackets.SelectType.ID, GodTierHoardPackets.SelectType.STREAM_CODEC);
 		registerPlayToServer(registrar, GodTierMeditationPackets.UpgradeSkill.ID, GodTierMeditationPackets.UpgradeSkill.STREAM_CODEC);
 		registerPlayToServer(registrar, GodTierMeditationPackets.AttemptBadgeUnlock.ID, GodTierMeditationPackets.AttemptBadgeUnlock.STREAM_CODEC);
 		registerPlayToServer(registrar, GodTierMeditationPackets.ToggleBadge.ID, GodTierMeditationPackets.ToggleBadge.STREAM_CODEC);

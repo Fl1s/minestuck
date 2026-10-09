@@ -1,5 +1,6 @@
 package com.mraof.minestuck.event;
 
+import com.mraof.minestuck.player.godtier.skill.StrifeBadge;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.entity.MSAttributes;
@@ -218,6 +219,7 @@ public final class StrifeEventHandler
 		}
 		
 		if(!MinestuckConfig.SERVER.restrictedStrife.get()) return;
+		if(StrifeBadge.isActive(player)) return;
 		if(event.getSource().getDirectEntity() != player) return; // only melee attacks are restricted here
 		
 		ItemStack held = player.getMainHandItem();
@@ -237,6 +239,7 @@ public final class StrifeEventHandler
 		if(!MinestuckConfig.SERVER.restrictedStrife.get()) return;
 		if(event.getEntity() instanceof FakePlayer) return;
 		if(StrifePortfolioHandler.isLockedByEditmode(event.getEntity())) return;
+		if(StrifeBadge.isActive(event.getEntity())) return;
 		
 		ItemStack stack = event.getItemStack();
 		if(stack.isEmpty() || StrifePortfolioHandler.isAssigned(stack) || isBypassed(stack)) return;
@@ -258,6 +261,7 @@ public final class StrifeEventHandler
 		if(player instanceof FakePlayer) return;
 		if(StrifePortfolioHandler.isLockedByEditmode(player)) return;
 		if(event.getSource().getDirectEntity() != player) return;
+		if(StrifeBadge.isActive(player)) return;
 		if(event.getEntity() instanceof UnderlingEntity) return; // full damage vs underlings
 		
 		ItemStack held = player.getMainHandItem();

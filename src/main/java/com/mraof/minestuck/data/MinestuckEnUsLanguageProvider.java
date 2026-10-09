@@ -2308,6 +2308,12 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		);
 		addEffect(MSEffects.GOD_TIER_COMEBACK, "God Tier Comeback");
 		addEffectDescription(MSEffects.GOD_TIER_COMEBACK, "Rapidly heals, strengthens attacks and reduces incoming damage after a god tier player's conditional immortality triggers.");
+		addEffect(MSEffects.DECAYPROOF, "Decayproof");
+		addEffectDescription(MSEffects.DECAYPROOF, "Constantly removes wither and poison.");
+		addEffect(MSEffects.MENTAL_FORTITUDE, "Mental Fortitude");
+		addEffectDescription(MSEffects.MENTAL_FORTITUDE, "Constantly removes blindness and nausea.");
+		addEffect(MSEffects.TRUE_CONCEALMENT, "True Concealment");
+		addEffectDescription(MSEffects.TRUE_CONCEALMENT, "Makes you impossible to see. Any glowing effect cancels it.");
 		addEffect(MSEffects.GOD_TIER_LOCK, "God Tier Lock");
 		addEffectDescription(MSEffects.GOD_TIER_LOCK, "Temporarily locks god tier benefits and abilities.");
 		addEffect(MSEffects.EARTHBOUND, "Earthbound");
@@ -2885,8 +2891,9 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add("skill.minestuck.gift_of_gab.tooltip", "\u00a79The very first badge you unlock after clearing your first GOD TIER, it enables you to engage in simple, direct dialogue with others, without requiring any gimmicks to facilitate communication.");
 		add("skill.minestuck.gift_of_gab.unlock", "\u00a7aWhy don't you have this already?");
 		add("skill.minestuck.hoard_of_the_alchemizer", "Hoard of the Alchemizer Badge");
-		add("skill.minestuck.hoard_of_the_alchemizer.tooltip", "\u00a79This badge proves your devotion towards ALCHEMY, granting you an unlimited supply of a grist type of your choice.");
-		add("skill.minestuck.hoard_of_the_alchemizer.unlock", "\u00a7aRequires 2000 of each Grist Type to unlock.");
+		add("skill.minestuck.hoard_of_the_alchemizer.tooltip", "\u00a79This badge proves your devotion towards ALCHEMY, granting you an unlimited supply of %s.");
+		add("skill.minestuck.hoard_of_the_alchemizer.tooltip.any", "a grist type of your choice");
+		add("skill.minestuck.hoard_of_the_alchemizer.unlock", "\u00a7aRequires %s of each Grist Type to unlock.");
 		add("skill.minestuck.karma", "Medal of the Universally Charismatic");
 		add("skill.minestuck.karma.tooltip", "\u00a79This badge proves that the universe has grown a liking towards you, giving you a better chance at triggering your conditional immortality when killed.");
 		add("skill.minestuck.karma.unlock", "\u00a7aRequires 128 Moonstones and 8000 Gold Grist to unlock.");
@@ -2909,7 +2916,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add("skill.minestuck.revenants_retaliation.unlock", "\u00a7aRequires 10000 Diamond Grist and a Creeper nearby to unlock.");
 		add("skill.minestuck.skeleton_key", "Skeleton Key Badge");
 		add("skill.minestuck.skeleton_key.tooltip", "\u00a79This badge proves your dedication to locks, it grants you the power of the SKELETON KEY, allowing you to unlock any lock with ease, even ones that aren't shaped like traditional locks.");
-		add("skill.minestuck.skeleton_key.unlock", "\u00a7aRequires 16 Auxilatrix Keys and a Skeleton nearby to unlock.");
+		add("skill.minestuck.skeleton_key.unlock", "\u00a7aRequires 16 House Keys and a Skeleton nearby to unlock.");
 		add("skill.minestuck.strife_badge", "Medal of the Omni-Dextrous");
 		add("skill.minestuck.strife_badge.tooltip", "\u00a79This badge proves your mastery over WEAPONS and COMBAT, granting you the ability to use them without the need of your STRIFE SPECIBUS.");
 		add("skill.minestuck.strife_badge.unlock", "\u00a7aRequires 2 Strife Cards and 5 different LEGENDARY ZILLIUM WEAPONS to unlock.");

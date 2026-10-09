@@ -1,5 +1,11 @@
 package com.mraof.minestuck.player.godtier;
 
+import com.mraof.minestuck.player.godtier.skill.SkillRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import com.mraof.minestuck.world.lands.LandTypePair;
+import com.mraof.minestuck.player.GristCache;
+import com.mraof.minestuck.api.alchemy.GristTypes;
+import com.mraof.minestuck.api.alchemy.GristType;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.effects.MSEffects;
@@ -71,6 +77,7 @@ public final class GodTierTickHandler
 			updateQuestBedArea(player, state);
 			updateClimbedTheSpire(player, state);
 			updateAspectEffects(player, playerData, state);
+			updateGristHoard(player, playerData, state);
 		});
 	}
 	
@@ -102,7 +109,8 @@ public final class GodTierTickHandler
 	private static final Map<ResourceKey<Level>, Long> QUEST_BED_RETRY_TIME = new HashMap<>();
 	
 	/**
-	 * Cached lookup of the quest bed position of a land
+	 * Cached lookup of the quest bed position of a land. The uncached lookup loads a chunk and logs warnings when the
+	 * structure is missing, which is far too expensive to do for every player on every tick.
 	 */
 	@Nullable
 	public static BlockPos getQuestBedOrigin(ServerLevel level)
@@ -236,14 +244,26 @@ public final class GodTierTickHandler
 			state.setClimbedTheSpire(true);
 	}
 	
-	/** Sends the god tier stats/state/karma/skills */
+	/** Sends the god tier stats/state/karma as well as the skills. */
 	public static void sendDataPacket(ServerPlayer player, PlayerData playerData)
 	{
 		sendStatsPacket(player, playerData);
 		sendSkillDataPacket(player, playerData);
 	}
 	
-	/** Sends only the god tier stats/state/karma */
+	/**
+	 * The name of the type of consort that lives in the player's land, which is what the Gift of Gab badge looks like.
+	 */
+	private static String getConsortTypeName(ServerPlayer player)
+	{
+		ResourceKey<Level> landKey = SburbPlayerData.get(player).getLandDimensionIfEntered();
+		if(landKey == null)
+			return "";
+		return LandTypePair.getTypes(player.server, landKey)
+				.map(types -> BuiltInRegistries.ENTITY_TYPE.getKey(types.getTerrain().getConsortType()).getPath())
+				.orElse("");
+	}
+	
 	public static void sendStatsPacket(ServerPlayer player, PlayerData playerData)
 	{
 		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
@@ -260,7 +280,27 @@ public final class GodTierTickHandler
 		GodTierSkills skills = playerData.getData(MSAttachments.GOD_TIER_SKILLS);
 		List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
 		skills.getAllBadges().forEach(id -> skillData.add(new GodTierSkillDataPacket.SkillData(id, skills.isBadgeEnabledById(id), skills.isPassiveEnabledById(id))));
-		PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.ofNullable(skills.masterBadge()), skills.badgeLimit()));
+		GodTierState state = playerData.getData(MSAttachments.GOD_TIER_STATE);
+		PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.ofNullable(skills.masterBadge()), skills.badgeLimit(),
+				Optional.ofNullable(state.getGristHoard()), getConsortTypeName(player)));
+	}
+	
+	private static final int HOARD_THRESHOLD = 10000;
+	
+	private static void updateGristHoard(ServerPlayer player, PlayerData playerData, GodTierState state)
+	{
+		if(player.tickCount % 10 != 0 || !state.isGodTier() || state.getGristHoard() == null)
+			return;
+		if(!playerData.getData(MSAttachments.GOD_TIER_SKILLS).isBadgeActive(SkillRegistry.HOARD_OF_THE_ALCHEMIZER.get()))
+			return;
+		
+		GristType type = GristTypes.REGISTRY.get(state.getGristHoard());
+		if(type == null)
+			return;
+		GristCache cache = GristCache.get(playerData);
+		long missing = HOARD_THRESHOLD - cache.getGristSet().getGrist(type);
+		if(missing > 0)
+			cache.addWithinCapacity(type.amount(missing), null);
 	}
 	
 	private static void updateAspectEffects(ServerPlayer player, PlayerData playerData, GodTierState state)
@@ -313,9 +353,12 @@ public final class GodTierTickHandler
 			switch(aspect)
 			{
 				case DOOM -> effects.put(MobEffects.ABSORPTION, new MobEffectInstance(MobEffects.ABSORPTION, ASPECT_EFFECT_DURATION, 2, true, false));
-				//TODO HOPE (decayproof), MIND (mind fortitude) and VOID (void conceal) get their own effects in 1.12.2. Those effects are not ported yet.
-				case HOPE, MIND, VOID ->
+				case HOPE -> effects.put(MSEffects.DECAYPROOF, new MobEffectInstance(MSEffects.DECAYPROOF, ASPECT_EFFECT_DURATION, 0, true, false));
+				case MIND -> effects.put(MSEffects.MENTAL_FORTITUDE, new MobEffectInstance(MSEffects.MENTAL_FORTITUDE, ASPECT_EFFECT_DURATION, 0, true, false));
+				case VOID ->
 				{
+					if(!player.hasEffect(MobEffects.GLOWING))
+						effects.put(MSEffects.TRUE_CONCEALMENT, new MobEffectInstance(MSEffects.TRUE_CONCEALMENT, ASPECT_EFFECT_DURATION, 0, true, false));
 				}
 				default -> level *= 2;
 			}

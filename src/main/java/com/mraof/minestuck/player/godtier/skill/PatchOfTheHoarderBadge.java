@@ -11,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 
 public class PatchOfTheHoarderBadge extends BadgeLevel
 {
+	private static final String TROPHY_SLOTS_MOD_ID = "trophyslots";
+	
 	public PatchOfTheHoarderBadge(ResourceLocation id, int sortIndex, int requiredLevel)
 	{
 		super(id, sortIndex, requiredLevel);
@@ -30,6 +32,17 @@ public class PatchOfTheHoarderBadge extends BadgeLevel
 		consumeItems(player, new ItemStack(MSItems.CAPTCHA_CARD.get(), 256), true);
 		cache.tryTake(cost, null);
 		return true;
+	}
+	
+	public static boolean isSupported()
+	{
+		return net.neoforged.fml.ModList.get().isLoaded(TROPHY_SLOTS_MOD_ID);
+	}
+	
+	@Override
+	public boolean canAppearOnList(ServerLevel level, ServerPlayer player)
+	{
+		return isSupported();
 	}
 	
 	@Override

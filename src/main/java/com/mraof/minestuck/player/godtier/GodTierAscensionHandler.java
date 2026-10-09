@@ -71,7 +71,7 @@ public final class GodTierAscensionHandler
 	{
 	}
 	
-	private static final int[] PILLAR_LIGHT_TICKS = {15 * 20, 19 * 20, 23 * 20, 27 * 20};
+	private static final float[] PILLAR_LIGHT_TICKS = {15.5F * 20, 19.3F * 20, 23 * 20, 26.9F * 20};
 	private static final int RELEASE_TICKS = 35 * 20;
 	private static final int LEVITATION_AMPLITUDE = 0;
 	private static final int DARKNESS_FADE_TICKS = 40;

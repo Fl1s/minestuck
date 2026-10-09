@@ -10,8 +10,6 @@ import com.mraof.minestuck.block.godtier.IGodTierBlock;
 import com.mraof.minestuck.inventory.captchalogue.CaptchaDeckHandler;
 import com.mraof.minestuck.item.MSItems;
 import com.mraof.minestuck.item.components.MSItemComponents;
-import com.mraof.minestuck.network.GodTierDataPacket;
-import com.mraof.minestuck.network.GodTierSkillDataPacket;
 import com.mraof.minestuck.player.Echeladder;
 import com.mraof.minestuck.player.PlayerData;
 import com.mraof.minestuck.player.godtier.skill.BadgeOverlord;
@@ -43,16 +41,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = Minestuck.MOD_ID)
@@ -177,7 +171,7 @@ public final class GodTierAscensionHandler
 		return true;
 	}
 	
-	private static void ascend(ServerPlayer player, Title title, GodTierState state)
+	public static void ascend(ServerPlayer player, Title title, GodTierState state)
 	{
 		player.level().getServer().getPlayerList().broadcastSystemMessage(Component.translatable(GOD_TIER_KEY, player.getDisplayName()), false);
 		player.displayClientMessage(Component.translatable(GOD_TIER_MEDITATION_UNLOCK_KEY), true);
@@ -198,15 +192,7 @@ public final class GodTierAscensionHandler
 			d.getData(MSAttachments.GOD_TIER_SKILLS).addSkill(SkillRegistry.GIFT_OF_GAB.get());
 			d.getData(MSAttachments.GOD_TIER_KARMA).reset();
 			
-			List<GodTierDataPacket.StatData> statData = new ArrayList<>();
-			GodTierStats stats = d.getData(MSAttachments.GOD_TIER_STATS);
-			for(GodTierStat stat : GodTierStat.values())
-				statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
-			PacketDistributor.sendToPlayer(player, new GodTierDataPacket(true, state.canGodTier(), true, statData, 0));
-			
-			List<GodTierSkillDataPacket.SkillData> skillData = new ArrayList<>();
-			skillData.add(new GodTierSkillDataPacket.SkillData(SkillRegistry.GIFT_OF_GAB.get().id(), true, false));
-			PacketDistributor.sendToPlayer(player, new GodTierSkillDataPacket(skillData, Optional.empty(), MinestuckConfig.SERVER.godTierBadgeSlots.get(), Optional.empty(), ""));
+			GodTierTickHandler.sendDataPacket(player, d);
 		});
 		
 		startCutscene(player, title);

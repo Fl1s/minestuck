@@ -1,5 +1,6 @@
 package com.mraof.minestuck.data;
 
+import com.mraof.minestuck.command.GodTierCommand;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.api.alchemy.GristAmount;
 import com.mraof.minestuck.api.alchemy.GristSet;
@@ -2648,6 +2649,26 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(RungCommand.SET_SUCCESS, "Successfully changed the echeladder of %s players to rung %d with %d%% progress.");
 		add(RungCommand.ADD_SUCCESS, "Successfully added %d rungs to %s players on the echeladder.");
 		add(RungCommand.GET_SUCCESS, "%s's current echeladder rung is: %d.");
+		add(GodTierCommand.LOCATE_SUCCESS, "The Quest Bed is at %s, %s");
+		add(GodTierCommand.LOCATE_WRONG_DIMENSION, "There are no quest beds outside of lands");
+		add(GodTierCommand.LOCATE_NOT_FOUND, "Could not find the quest bed of this land");
+		add(GodTierCommand.TITLE_SUCCESS, "Changed the title of %s to %s");
+		add(GodTierCommand.RESET_SUCCESS, "Reset the god tier progress of %s");
+		add(GodTierCommand.RESET_NOT_GOD_TIER, "%s is not god tier");
+		add(GodTierCommand.MASTER_CONTROL_ON, "%s now has master control and can unlock any badge");
+		add(GodTierCommand.MASTER_CONTROL_OFF, "%s no longer has master control");
+		add(GodTierCommand.MAX_BADGES_SUCCESS, "%s can now hold %s badges");
+		add(GodTierCommand.MAX_BADGES_DEFAULT, "%s can now hold the amount of badges set in the config");
+		add(GodTierCommand.LUNAR_SWAY_SUCCESS, "%s is now aligned with %s");
+		add(GodTierCommand.ASCEND_SUCCESS, "%s has ascended to god tier");
+		add(GodTierCommand.ASCEND_NO_TITLE, "%s has no title yet");
+		add(GodTierCommand.ASCEND_ALREADY, "%s is already god tier");
+		add(GodTierCommand.BADGE_GRANT_SUCCESS, "Granted the badge %s to %s");
+		add(GodTierCommand.BADGE_GRANT_FAILED, "%s can't be given the badge %s: it is already unlocked, or it is a master badge and they have one");
+		add(GodTierCommand.BADGE_REVOKE_SUCCESS, "Revoked the badge %s from %s");
+		add(GodTierCommand.BADGE_REVOKE_FAILED, "%s doesn't have the badge %s");
+		add(GodTierCommand.BADGE_UNKNOWN, "Unknown badge: %s");
+		add(GodTierCommand.NO_PLAYER_DATA, "That player has no Minestuck data");
 		add(PorkhollowCommand.SEND, "Successfully sent %s boondollars to %s.");
 		add(PorkhollowCommand.RECEIVE, "Received %s boondollars from %s.");
 		add(PorkhollowCommand.TAKE, "Successfully took out %s boondollars from your porkhollow.");

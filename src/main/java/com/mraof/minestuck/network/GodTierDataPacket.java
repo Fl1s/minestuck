@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 
-public record GodTierDataPacket(boolean godTier, boolean canGodTier, boolean climbedTheSpire, List<StatData> stats, int karma) implements MSPacket.PlayToClient
+public record GodTierDataPacket(boolean godTier, boolean canGodTier, boolean climbedTheSpire, List<StatData> stats, int karma, int lunarSway) implements MSPacket.PlayToClient
 {
 	public static final Type<GodTierDataPacket> ID = new Type<>(Minestuck.id("god_tier_data"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, GodTierDataPacket> STREAM_CODEC = StreamCodec.composite(
@@ -25,6 +25,8 @@ public record GodTierDataPacket(boolean godTier, boolean canGodTier, boolean cli
 			GodTierDataPacket::stats,
 			ByteBufCodecs.VAR_INT,
 			GodTierDataPacket::karma,
+			ByteBufCodecs.VAR_INT,
+			GodTierDataPacket::lunarSway,
 			GodTierDataPacket::new
 	);
 	

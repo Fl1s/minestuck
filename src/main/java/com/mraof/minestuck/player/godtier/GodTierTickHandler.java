@@ -272,7 +272,7 @@ public final class GodTierTickHandler
 		List<GodTierDataPacket.StatData> statData = new ArrayList<>();
 		for(GodTierStat stat : GodTierStat.values())
 			statData.add(new GodTierDataPacket.StatData(stat, stats.getLevel(stat), stats.getXp(stat)));
-		PacketDistributor.sendToPlayer(player, new GodTierDataPacket(state.isGodTier(), state.canGodTier(), state.hasClimbedTheSpire(), statData, karma.getTotal()));
+		PacketDistributor.sendToPlayer(player, new GodTierDataPacket(state.isGodTier(), state.canGodTier(), state.hasClimbedTheSpire(), statData, karma.getTotal(), state.getLunarSway().ordinal()));
 	}
 	
 	public static void sendSkillDataPacket(ServerPlayer player, PlayerData playerData)

@@ -23,7 +23,6 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 		PROSPIT, DERSE
 	}
 	
-    //awaiting the ascension cutscene to hand out the god tier armor; Its used so a logout mid-cutscene cant lose it
 	private boolean pendingArmor = false;
 	
 	private boolean flightGranted = false;
@@ -152,6 +151,8 @@ public final class GodTierState implements INBTSerializable<CompoundTag>
 	@Nullable
 	public LunarSway getLunarSway()
 	{
+		if(lunarSway == null)
+			lunarSway = LunarSway.values()[java.util.concurrent.ThreadLocalRandom.current().nextInt(LunarSway.values().length)];
 		return lunarSway;
 	}
 	

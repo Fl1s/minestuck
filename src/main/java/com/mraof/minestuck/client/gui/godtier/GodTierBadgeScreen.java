@@ -88,8 +88,7 @@ public class GodTierBadgeScreen extends Screen
 	
 	private void renderSash(GuiGraphics guiGraphics, int mouseX, int mouseY)
 	{
-		// TODO: replace with synced lunar sway once GodTierState packet includes it
-		ResourceLocation sash = ClientPlayerData.getGodTierKarma() >= 0 ? SASH_PROSPIT : SASH_DERSE;
+		ResourceLocation sash = ClientPlayerData.isProspitSway() ? SASH_PROSPIT : SASH_DERSE;
 		int xOffset = (width - X_SIZE) / 2;
 		int yOffset = height / 2 - 22 - 38;
 		guiGraphics.blit(sash, xOffset, yOffset, 0, 0, X_SIZE, 142, 256, 256);

@@ -65,6 +65,7 @@ public final class ClientPlayerData
 	private static int[] godTierLevels = new int[GodTierStat.values().length];
 	private static float[] godTierXp = new float[GodTierStat.values().length];
 	private static Map<ResourceLocation, Boolean> godTierSkills = new HashMap<>();
+	private static int lunarSway;
 	private static ResourceLocation gristHoard;
 	private static String consortType = "";
 	private static Map<ResourceLocation, Boolean> godTierPassives = new HashMap<>();
@@ -202,6 +203,7 @@ public final class ClientPlayerData
 		canGodTier = packet.canGodTier();
 		climbedTheSpire = packet.climbedTheSpire();
 		godTierKarma = packet.karma();
+		lunarSway = packet.lunarSway();
 		for(GodTierDataPacket.StatData stat : packet.stats())
 		{
 			godTierLevels[stat.stat().ordinal()] = stat.level();
@@ -252,6 +254,11 @@ public final class ClientPlayerData
 	public static int getGodTierLevel(GodTierStat stat)
 	{
 		return godTierLevels[stat.ordinal()];
+	}
+	
+	public static boolean isProspitSway()
+	{
+		return lunarSway == 0;
 	}
 	
 	@Nullable

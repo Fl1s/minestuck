@@ -716,7 +716,10 @@ public class ClientEditToolDrag
 	private static boolean canBuilderDestroy(Player player, BlockPos pos)
 	{
 		BlockState state = player.level().getBlockState(pos);
-		return state.getDestroySpeed(player.level(), pos) >= 0 && !state.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST);
+		if(state.getDestroySpeed(player.level(), pos) < 0 || state.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST))
+			return false;
+		return player.isCreative() || MinestuckConfig.SERVER.gristRefund.get()
+				|| ClientPlayerData.getGristCache(ClientPlayerData.CacheSource.PLAYER).canAfford(ServerEditHandler.blockBreakCost());
 	}
 	
 	private static void playSoundAndSetParticles(Player player, boolean fill, BlockPos positionStart, BlockPos positionEnd)

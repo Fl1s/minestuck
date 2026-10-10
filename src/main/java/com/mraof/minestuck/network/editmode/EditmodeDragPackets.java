@@ -1,5 +1,10 @@
 package com.mraof.minestuck.network.editmode;
 
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Item;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import com.mraof.minestuck.player.godtier.skill.BuilderBadge;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
@@ -124,6 +129,71 @@ public final class EditmodeDragPackets
 		}
 		
 		return true;
+	}
+	
+	private static boolean builderDestroy(ServerPlayer player, BlockPos pos, Consumer<GristSet> missingGristTracker)
+	{
+		if(!builderDestroyCheck(player, pos))
+			return false;
+		
+		ServerLevel level = player.serverLevel();
+		BlockState state = level.getBlockState(pos);
+		
+		if(NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(level, pos, state, player)).isCanceled())
+			return false;
+		
+		if(!player.isCreative())
+		{
+			GristCache cache = GristCache.get(player);
+			if(MinestuckConfig.SERVER.gristRefund.get())
+			{
+				GristSet refund = GristCostRecipe.findCostForItem(state.getCloneItemStack(null, level, pos, player), null, false, level);
+				if(refund != null && !refund.isEmpty())
+					cache.addWithGutter(refund, GristHelper.EnumSource.SERVER);
+			} else
+			{
+				GristSet cost = GristTypes.BUILD.get().amount(1);
+				if(!cache.canAfford(cost))
+				{
+					missingGristTracker.accept(cost);
+					return false;
+				}
+				cache.tryTake(cost, GristHelper.EnumSource.SERVER);
+			}
+		}
+		
+		List<ItemStack> drops = player.isCreative() ? List.of() : getDropsOfAnyTool(level, pos, state, player);
+		level.destroyBlock(pos, false, player);
+		for(ItemStack drop : drops)
+			Block.popResource(level, pos, drop);
+		return true;
+	}
+	
+	private static final List<Item> DROP_TOOLS = List.of(Items.NETHERITE_PICKAXE, Items.NETHERITE_AXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_HOE, Items.SHEARS, Items.NETHERITE_SWORD);
+	
+	private static List<ItemStack> getDropsOfAnyTool(ServerLevel level, BlockPos pos, BlockState state, ServerPlayer player)
+	{
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		List<ItemStack> drops = null;
+		
+		if(state.requiresCorrectToolForDrops())
+		{
+			for(Item item : DROP_TOOLS)
+			{
+				ItemStack tool = new ItemStack(item);
+				if(tool.isCorrectToolForDrops(state))
+				{
+					drops = Block.getDrops(state, level, pos, blockEntity, player, tool);
+					break;
+				}
+			}
+		}
+		if(drops == null)
+			drops = Block.getDrops(state, level, pos, blockEntity, player, ItemStack.EMPTY);
+		
+		if(drops.isEmpty() && state.getBlock().asItem() != Items.AIR)
+			drops = List.of(new ItemStack(state.getBlock()));
+		return drops;
 	}
 	
 	private static boolean builderDestroyCheck(ServerPlayer player, BlockPos pos)
@@ -863,7 +933,11 @@ public final class EditmodeDragPackets
 				BlockState block = player.level().getBlockState(pos);
 				
 				Consumer<GristSet> missingCostTracker = missingCost::add;
-				if(builder ? builderDestroyCheck(player, pos) : editModeDestroyCheck(data, player, pos, missingCostTracker))
+				if(builder)
+				{
+					if(builderDestroy(player, pos, missingCostTracker))
+						anyBlockDestroyed = true;
+				} else if(editModeDestroyCheck(data, player, pos, missingCostTracker))
 				{
 					player.gameMode.destroyAndAck(pos, 3, "creative destroy");
 					

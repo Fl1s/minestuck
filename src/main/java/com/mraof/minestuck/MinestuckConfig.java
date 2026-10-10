@@ -77,14 +77,14 @@ public class MinestuckConfig
 					.define("npcDialogueTextColors", true);
 			builder.pop();
 			
-			builder.push("lands");
-			landLiquidRain = builder.comment("If true, it rains the liquid of the land on lands that have a liquid of their own, by giving the rain its color.")
-					.define("landLiquidRain", true);
-			builder.pop();
-			
 			builder.push("strife");
 			switcherBackground = builder.comment("If true, shades the background while the strife switcher is active.")
 					.define("switcherBackground", false);
+			builder.pop();
+			
+			builder.push("lands");
+			landLiquidRain = builder.comment("If true, it rains the liquid of the land (such as blood or oil) on lands that have a liquid of their own, by giving the rain its color.")
+					.define("landLiquidRain", true);
 			builder.pop();
 			
 			builder.push("entry");
@@ -186,6 +186,7 @@ public class MinestuckConfig
 		public final IntValue artifactRange;
 		public final BooleanValue meteorShower;
 		public final IntValue miniMeteorsCount;
+		public final BooleanValue miniMeteorsRing;
 		public final BooleanValue miniMeteorsDestroyMachines;
 //		public final IntValue impactCountdown;
 		
@@ -231,7 +232,6 @@ public class MinestuckConfig
 					"- Only the first Cruxtruder, Totem Lathe, and Alchemiter will be free",
 					"- Medium dungeons spawners contain Liches instead of Imps",
 					"- Underlings have a 50% chance to have the artifact grist").define("hardMode", false);
-			builder.pop();
 			
 			builder.push("godTier");
 			requiredRungToGodTier = builder.comment("Determines the minimum echeladder rung required to ascend. Set to -1 to bypass the requirement.")
@@ -277,7 +277,7 @@ public class MinestuckConfig
 					.comment("If true, weapons that a player picks up are automatically moved into the matching strife deck (if the portfolio has a matching specibus with free space).")
 					.define("autoStowWeapons", true);
 			keepArmedWeaponInInventory = builder
-					.comment("If true, a weapon that has been taken out of the strife portfolio stays in the inventory when it leaves the main hand..")
+					.comment("If true, a weapon that has been taken out of the strife portfolio stays in the inventory when it leaves the main hand (for example when another hotbar slot is selected), instead of going straight back into its deck. It still is the armed weapon: it goes back into the deck when another weapon is armed, when the active specibus is changed, or when it is put away with the portfolio controls.")
 					.define("keepArmedWeaponInInventory", false);
 			strifeEvolution = builder
 					.comment("If true, specibuses can evolve once per player (e.g. Bladekind becomes 1/2 Bladekind when a sword breaks). Once a player has a 1/2 Bladekind specibus, breaking swords turn into their halved version instead of disappearing.")
@@ -389,6 +389,8 @@ public class MinestuckConfig
 					.define("meteorShower",true);
 			miniMeteorsCount = builder.comment("Determines the count of maximum spawn rate of mini meteors at once.")
 					.defineInRange("miniMeteorsCount", 4,1, 8);
+			miniMeteorsRing = builder.comment("If true, mini meteors start out falling only in a ring along the edge of the area around the cruxtruder, and each stage of the meteor shower opens up the ring further towards the cruxtruder, until the last stage covers the whole area. If false, they fall anywhere in the area from the start.")
+					.define("miniMeteorsRing", true);
 			miniMeteorsDestroyMachines = builder.comment("If true, mini meteor explosions can destroy machine blocks. If false, these blocks are immune to mini meteor blasts, but still destroyed by the main meteor impact.")
 					.define("miniMeteorsDestroyMachines", false);
 			// I'll think about it

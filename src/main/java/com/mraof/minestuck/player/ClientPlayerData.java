@@ -1,10 +1,7 @@
 package com.mraof.minestuck.player;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
-import com.mraof.minestuck.alchemy.TorrentSession;
 import com.mraof.minestuck.api.alchemy.GristSet;
 import com.mraof.minestuck.client.ClientRungData;
 import com.mraof.minestuck.client.gui.ColorSelectorScreen;
@@ -16,9 +13,6 @@ import com.mraof.minestuck.network.editmode.EditmodeCacheLimitPacket;
 import com.mraof.minestuck.util.ColorHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -28,9 +22,6 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Contains static field for any {@link PlayerData} fields that also need client access.
@@ -47,10 +38,7 @@ public final class ClientPlayerData
 	private static float rungProgress;
 	private static long boondollars;
 	private static GristSet playerGrist, targetGrist;
-	private static GristSet gutterGrist;
-	private static long gutterRemainingCapacity;
 	private static long targetCacheLimit;
-	private static Map<Integer, TorrentSession.TorrentClientData> visibleTorrentData = new HashMap<>();
 	private static int playerColor;
 	private static boolean displaySelectionGui;
 	private static boolean dataCheckerAccess;
@@ -97,25 +85,13 @@ public final class ClientPlayerData
 	{
 		return switch(cacheSource)
 		{
-			case PLAYER -> new ClientCache(ClientPlayerData.playerGrist.asImmutable(), ClientRungData.getData(ClientPlayerData.getRung()).gristCapacity());
-			case EDITMODE -> new ClientCache(ClientPlayerData.targetGrist.asImmutable(), targetCacheLimit);
+			case PLAYER -> new ClientCache(ClientPlayerData.playerGrist, ClientRungData.getData(ClientPlayerData.getRung()).gristCapacity());
+			case EDITMODE -> new ClientCache(ClientPlayerData.targetGrist, targetCacheLimit);
 		};
 	}
 	
-	public record ClientCache(GristSet.Immutable set, long limit)
+	public record ClientCache(GristSet set, long limit)
 	{
-		public static final Codec<ClientCache> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-				GristSet.Codecs.NON_NEGATIVE_CODEC.fieldOf("grist_set").forGetter(ClientCache::set),
-				Codec.LONG.fieldOf("limit").forGetter(ClientCache::limit)
-		).apply(instance, ClientCache::new));
-		
-		public static final StreamCodec<RegistryFriendlyByteBuf, ClientCache> STREAM_CODEC = StreamCodec.composite(
-				GristSet.Codecs.STREAM_CODEC,
-				ClientCache::set,
-				ByteBufCodecs.VAR_LONG,
-				ClientCache::limit,
-				ClientCache::new
-		);
 		public boolean canAfford(GristSet cost)
 		{
 			return GristCache.canAfford(this.set, cost, this.limit);
@@ -126,21 +102,6 @@ public final class ClientPlayerData
 	{
 		PLAYER,
 		EDITMODE,
-	}
-	
-	public static GristSet getGutterSet()
-	{
-		return gutterGrist;
-	}
-	
-	public static long getGutterRemainingCapacity()
-	{
-		return gutterRemainingCapacity;
-	}
-	
-	public static Map<Integer, TorrentSession.TorrentClientData> getVisibleTorrentData()
-	{
-		return visibleTorrentData;
 	}
 	
 	public static int getPlayerColor()
@@ -198,17 +159,6 @@ public final class ClientPlayerData
 			case PLAYER -> playerGrist = packet.gristCache();
 			case EDITMODE -> targetGrist = packet.gristCache();
 		}
-	}
-	
-	public static void handleDataPacket(GutterUpdatePacket packet)
-	{
-		gutterGrist = packet.gristValue();
-		gutterRemainingCapacity = packet.remainingCapacity();
-	}
-	
-	public static void handleDataPacket(TorrentPackets.UpdateClient packet)
-	{
-		visibleTorrentData = packet.data();
 	}
 	
 	public static void handleDataPacket(EditmodeCacheLimitPacket packet)

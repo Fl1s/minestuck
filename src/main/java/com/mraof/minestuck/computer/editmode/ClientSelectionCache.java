@@ -1,6 +1,5 @@
 package com.mraof.minestuck.computer.editmode;
 
-import com.mojang.datafixers.util.Pair;
 import com.mraof.minestuck.network.editmode.EditmodeDragPackets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -15,9 +14,7 @@ import java.util.List;
  */
 public final class ClientSelectionCache
 {
-	public record Entry(BlockPos localOffset, BlockState state)
-	{
-	}
+	public record Entry(BlockPos localOffset, BlockState state) {}
 	
 	private static List<Entry> entries = List.of();
 	private static int sizeX = 1, sizeY = 1, sizeZ = 1;
@@ -58,30 +55,17 @@ public final class ClientSelectionCache
 			rotated.add(new Entry(newOffset, newState));
 		}
 		
-		Pair<Integer, Integer> rotatedXZ = EditTools.getRotatedXZ(rotation, sizeX, sizeZ);
+		boolean swapXZ = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+		int newSizeX = swapXZ ? sizeZ : sizeX;
+		int newSizeZ = swapXZ ? sizeX : sizeZ;
 		
 		entries = rotated;
-		sizeX = rotatedXZ.getFirst();
-		sizeZ = rotatedXZ.getSecond();
+		sizeX = newSizeX;
+		sizeZ = newSizeZ;
 	}
 	
-	public static List<Entry> getEntries()
-	{
-		return entries;
-	}
-	
-	public static int getSizeX()
-	{
-		return sizeX;
-	}
-	
-	public static int getSizeY()
-	{
-		return sizeY;
-	}
-	
-	public static int getSizeZ()
-	{
-		return sizeZ;
-	}
+	public static List<Entry> getEntries() { return entries; }
+	public static int getSizeX() { return sizeX; }
+	public static int getSizeY() { return sizeY; }
+	public static int getSizeZ() { return sizeZ; }
 }

@@ -97,7 +97,6 @@ public final class DiskBurnerData implements ProgramType.Data
 				changed |= getHieroglyphsStored().add(iterateBlock);
 		}
 		
-		//TODO add computer keyboard sound
 		if(changed)
 			this.markDirty.run();
 		

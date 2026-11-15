@@ -7,9 +7,7 @@ import java.util.List;
 
 public final class ClientMoveTransitions
 {
-	public record Transition(BlockPos from, BlockPos to, long startTime)
-	{
-	}
+	public record Transition(BlockPos from, BlockPos to, long startTime) {}
 	
 	private static final long DURATION_MS = 180;
 	private static final List<Transition> active = new ArrayList<>();

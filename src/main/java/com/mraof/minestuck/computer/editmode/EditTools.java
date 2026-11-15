@@ -1,10 +1,8 @@
 package com.mraof.minestuck.computer.editmode;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -48,21 +46,11 @@ public final class EditTools
 	private int previewRotation = 0;
 	private double previewDistance = 4.0;
 	
-	public boolean isPreviewing()
-	{
-		return previewIsCopy != null;
-	}
-	
-	public boolean isPreviewCopy()
-	{
-		return Boolean.TRUE.equals(previewIsCopy);
-	}
+	public boolean isPreviewing() { return previewIsCopy != null; }
+	public boolean isPreviewCopy() { return Boolean.TRUE.equals(previewIsCopy); }
 	
 	@Nullable
-	public BlockPos getPreviewAnchor()
-	{
-		return previewAnchor;
-	}
+	public BlockPos getPreviewAnchor() { return previewAnchor; }
 	
 	public void setPreview(boolean isCopy, BlockPos anchor)
 	{
@@ -70,52 +58,13 @@ public final class EditTools
 		previewAnchor = anchor;
 	}
 	
-	public int getPreviewRotation()
-	{
-		return previewRotation;
-	}
+	public int getPreviewRotation() { return previewRotation; }
 	
-	public static Rotation getRotationFromInt(int intRot)
-	{
-		return Rotation.values()[Math.floorMod(intRot, 4)];
-	}
+	public double getPreviewDistance() { return previewDistance; }
 	
-	public static boolean swapXZ(Rotation rot)
-	{
-		return rot == Rotation.CLOCKWISE_90 || rot == Rotation.COUNTERCLOCKWISE_90;
-	}
+	public void setPreviewRotation(int rotation) { previewRotation = Math.floorMod(rotation, 4); }
 	
-	public static Pair<Integer, Integer> getRotatedXZ(int previewRotation, int x, int z)
-	{
-		return getRotatedXZ(getRotationFromInt(previewRotation), x, z);
-	}
-	
-	/**
-	 * Returns the x and z values, swapped depending on the rotation
-	 */
-	public static Pair<Integer, Integer> getRotatedXZ(Rotation rot, int x, int z)
-	{
-		boolean swapXZ = swapXZ(rot);
-		int swappedX = swapXZ ? z : x;
-		int swappedZ = swapXZ ? x : z;
-		
-		return Pair.of(swappedX, swappedZ);
-	}
-	
-	public double getPreviewDistance()
-	{
-		return previewDistance;
-	}
-	
-	public void setPreviewRotation(int rotation)
-	{
-		previewRotation = Math.floorMod(rotation, 4);
-	}
-	
-	public void setPreviewDistance(double distance)
-	{
-		previewDistance = distance;
-	}
+	public void setPreviewDistance(double distance) { previewDistance = distance; }
 	
 	@Nullable
 	public ToolMode getToolMode()
@@ -159,29 +108,17 @@ public final class EditTools
 	}
 	
 	@Nullable
-	public BlockPos getOriginalSelectionPos1()
-	{
-		return originalSelectionPos1;
-	}
+	public BlockPos getOriginalSelectionPos1() { return originalSelectionPos1; }
 	
 	@Nullable
-	public BlockPos getOriginalSelectionPos2()
-	{
-		return originalSelectionPos2;
-	}
+	public BlockPos getOriginalSelectionPos2() { return originalSelectionPos2; }
 	
 	
 	@Nullable
-	public BlockPos getSelectionPos1()
-	{
-		return selectionPos1;
-	}
+	public BlockPos getSelectionPos1() { return selectionPos1; }
 	
 	@Nullable
-	public BlockPos getSelectionPos2()
-	{
-		return selectionPos2;
-	}
+	public BlockPos getSelectionPos2() { return selectionPos2; }
 	
 	public void setToolMode(ToolMode mode)
 	{
@@ -204,15 +141,8 @@ public final class EditTools
 		originalSelectionPos2 = max;
 	}
 	
-	public void setSelectionPos1(BlockPos pos)
-	{
-		selectionPos1 = pos;
-	}
-	
-	public void setSelectionPos2(BlockPos pos)
-	{
-		selectionPos2 = pos;
-	}
+	public void setSelectionPos1(BlockPos pos) { selectionPos1 = pos; }
+	public void setSelectionPos2(BlockPos pos) { selectionPos2 = pos; }
 	
 	public void setEditTrace(Vec3 hit, Direction direction)
 	{

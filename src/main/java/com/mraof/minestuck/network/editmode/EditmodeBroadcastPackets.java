@@ -3,7 +3,6 @@ package com.mraof.minestuck.network.editmode;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.computer.editmode.ClientMoveTransitions;
-import com.mraof.minestuck.computer.editmode.EditTools;
 import com.mraof.minestuck.computer.editmode.RemoteEditSessions;
 import com.mraof.minestuck.computer.editmode.ServerEditHandler;
 import com.mraof.minestuck.network.MSPacket;
@@ -158,8 +157,7 @@ public final class EditmodeBroadcastPackets
 		}
 	}
 	
-	public record BroadcastMoveTransition(BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor,
-	                                      int rotation) implements MSPacket.PlayToServer
+	public record BroadcastMoveTransition(BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<BroadcastMoveTransition> ID = new Type<>(Minestuck.id("editmode_broadcast/move_transition"));
 		public static final StreamCodec<FriendlyByteBuf, BroadcastMoveTransition> STREAM_CODEC = StreamCodec.composite(
@@ -171,10 +169,7 @@ public final class EditmodeBroadcastPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type()
-		{
-			return ID;
-		}
+		public Type<? extends CustomPacketPayload> type() { return ID; }
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -186,8 +181,7 @@ public final class EditmodeBroadcastPackets
 		}
 	}
 	
-	public record ClientMoveTransition(UUID editorId, BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor,
-	                                   int rotation) implements MSPacket.PlayToClient
+	public record ClientMoveTransition(UUID editorId, BlockPos oldPos1, BlockPos oldPos2, BlockPos anchor, int rotation) implements MSPacket.PlayToClient
 	{
 		public static final Type<ClientMoveTransition> ID = new Type<>(Minestuck.id("editmode_broadcast/client_move_transition"));
 		public static final StreamCodec<FriendlyByteBuf, ClientMoveTransition> STREAM_CODEC = StreamCodec.composite(
@@ -200,10 +194,7 @@ public final class EditmodeBroadcastPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type()
-		{
-			return ID;
-		}
+		public Type<? extends CustomPacketPayload> type() { return ID; }
 		
 		@Override
 		public void execute(IPayloadContext context)
@@ -213,7 +204,7 @@ public final class EditmodeBroadcastPackets
 				return;
 			
 			BlockPos min = new BlockPos(Math.min(oldPos1.getX(), oldPos2.getX()), Math.min(oldPos1.getY(), oldPos2.getY()), Math.min(oldPos1.getZ(), oldPos2.getZ()));
-			Rotation rot = EditTools.getRotationFromInt(rotation);
+			Rotation rot = Rotation.values()[Math.floorMod(rotation, 4)];
 			
 			List<BlockPos> from = new ArrayList<>();
 			List<BlockPos> to = new ArrayList<>();

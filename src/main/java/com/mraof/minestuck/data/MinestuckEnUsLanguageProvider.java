@@ -1536,6 +1536,10 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addItem(MSItems.DERSE_SHIRT, "Derse Shirt");
 		addItem(MSItems.DERSE_PANTS, "Derse Pants");
 		addItem(MSItems.DERSE_SHOES, "Derse Shoes");
+		addItem(MSItems.HARLEQUIN_HAT, "Harlequin Hat");
+		addItem(MSItems.HARLEQUIN_SHIRT, "Harlequin Shirt");
+		addItem(MSItems.HARLEQUIN_PANTS, "Harlequin Pants");
+		addItem(MSItems.HARLEQUIN_SHOES, "Harlequin Shoes");
 		addItem(MSItems.AMPHIBEANIE, "Amphibeanie");
 		addItem(MSItems.NOSTRILDAMUS, "Nostrildamus");
 		addItem(MSItems.PONYTAIL, "Ponytail");
@@ -1543,6 +1547,8 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addItemTooltip(MSItems.ANOMALOCARIS_HAT, "An anomalocaris does their best!");
 		addItem(MSItems.ALIEN_BOPPERS, "Alien Boppers");
 		addItemTooltip(MSItems.ALIEN_BOPPERS, "They call outwards to the stars, signaling a message of friendliness.");
+		addItem(MSItems.HOOD_OF_THE_HUNTRESS, "Hood of the Huntress");
+		addItemTooltip(MSItems.HOOD_OF_THE_HUNTRESS, "A well loved cap. It has been patched up countless times.");
 		addItem(MSItems.BOONDOLLARS, "Boondollars");
 		addItemExtra(MSItems.BOONDOLLARS, "amount", "Amount: %s");
 		addItem(MSItems.RAW_CRUXITE, "Raw Cruxite");
@@ -1558,6 +1564,9 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addItemExtra(MSItems.TEMPLE_SCANNER, "noFuelMessage", "This device requires uranium to run");
 		addItem(MSItems.CRUXITE_APPLE, "Cruxite Artifact");
 		addItem(MSItems.CRUXITE_POTION, "Cruxite Artifact");
+		addItem(MSItems.CRUXITE_SHEARS, "Cruxite Artifact");
+		addItem(MSItems.CRUXITE_DISK, "Cruxite Artifact");
+		addItem(MSItems.CRUXITE_DISC, "Cruxite Artifact");
 		addItem(MSItems.SBURB_CODE, "SBURB Code");
 		addItemTooltip(MSItems.SBURB_CODE, "It seems hieroglyphs can be translated into genetic code. Perhaps this genetic code could in turn be made into computer code?");
 		addItemExtra(MSItems.SBURB_CODE, "completion", "§dPercent completion: %s%%§r"); //section signs result in the percent number being light purple, double percent symbol required to get it to show up in game
@@ -1572,6 +1581,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		addItemTooltip(MSItems.BLANK_DISK, "Can be put into a computer, has space to write a program on to it.");
 		addItem(MSItems.CLIENT_DISK, "SBURB Client Disk");
 		addItem(MSItems.SERVER_DISK, "SBURB Server Disk");
+		addItem(MSItems.TORRENT_DISK, "GristTorrent Disk");
 		addItem(MSItems.CAPTCHA_CARD, "Captchalogue Card");
 		addItemExtra(MSItems.CAPTCHA_CARD, "empty", "Empty");
 		addItemExtra(MSItems.CAPTCHA_CARD, "invalid", "Invalid Data");
@@ -2444,6 +2454,13 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(SettingsAppGui.THEME, "Choose Theme");
 		add(SettingsAppGui.DISK_MANAGER, "Disk Manager");
 		add(SettingsAppGui.TITLE, "Sburb Settings");
+		add(GristTorrentGui.NAME, "Grist Torrent");
+		add(GristTorrentGui.TITLE, "Grist Torrent");
+		add(GristTorrentGui.TOOLTIP_SEEDING_ON, "\nIs being seeded");
+		add(GristTorrentGui.TOOLTIP_SEEDING_OFF, "\nWill be seeded");
+		add(GristTorrentGui.TOOLTIP_LEECHING_ON, "\nIs being leeched");
+		add(GristTorrentGui.TOOLTIP_LEECHING_OFF, "\nWill be leeched");
+		add(GristTorrentGui.GUTTER_LOADING, "Loading...");
 		
 		add(EntryProcess.WRONG_DIMENSION, "Entry not permitted from this dimension");
 		add(EntryProcess.BUSY, "Someone else is already entering");
@@ -2501,6 +2518,7 @@ public class MinestuckEnUsLanguageProvider extends MinestuckLanguageProvider
 		add(GristCommand.FAILURE, "Failed to modify the grist cache for %s.");
 		add(GristCommand.SET, "Set the grist cache for %s players to %s.");
 		add(RungCommand.SET_SUCCESS, "Successfully changed the echeladder of %s players to rung %d with %d%% progress.");
+		add(RungCommand.ADD_SUCCESS, "Successfully added %d rungs to %s players on the echeladder.");
 		add(RungCommand.GET_SUCCESS, "%s's current echeladder rung is: %d.");
 		add(PorkhollowCommand.SEND, "Successfully sent %s boondollars to %s.");
 		add(PorkhollowCommand.RECEIVE, "Received %s boondollars from %s.");

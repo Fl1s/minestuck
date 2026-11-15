@@ -1,5 +1,6 @@
 package com.mraof.minestuck.network.editmode;
 
+import com.mojang.datafixers.util.Pair;
 import com.mraof.minestuck.Minestuck;
 import com.mraof.minestuck.MinestuckConfig;
 import com.mraof.minestuck.alchemy.GristHelper;
@@ -8,10 +9,8 @@ import com.mraof.minestuck.api.alchemy.GristSet;
 import com.mraof.minestuck.api.alchemy.GristTypes;
 import com.mraof.minestuck.api.alchemy.MutableGristSet;
 import com.mraof.minestuck.api.alchemy.recipe.GristCostRecipe;
-import com.mraof.minestuck.block.machine.MachineMultiblock;
 import com.mraof.minestuck.computer.editmode.*;
 import com.mraof.minestuck.item.components.EncodedItemComponent;
-import com.mraof.minestuck.item.block.MultiblockItem;
 import com.mraof.minestuck.item.components.MSItemComponents;
 import com.mraof.minestuck.network.MSPacket;
 import com.mraof.minestuck.player.GristCache;
@@ -43,13 +42,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.piston.MovingPistonBlock;
-import net.minecraft.world.level.block.piston.PistonBaseBlock;
-import net.minecraft.world.level.block.piston.PistonHeadBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -58,7 +52,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,15 +63,6 @@ import static com.mraof.minestuck.network.MSPayloads.VEC3_STREAM_CODEC;
 public final class EditmodeDragPackets
 {
 	private static final int MAX_CONTAINER_RECURSION_DEPTH = 8;
-	
-	public static final String SELECTION_TOO_LARGE = "minestuck.editmode.selection_too_large";
-	public static final String UNMOVABLE_BLOCK = "minestuck.editmode.unmovable_block";
-	public static final String MOVING_PISTON = "minestuck.editmode.moving_piston";
-	public static final String PARTIAL_MULTIBLOCK = "minestuck.editmode.partial_multiblock";
-	public static final String NO_GRIST_COST = "minestuck.editmode.no_grist_cost";
-	public static final String ITEM_NO_GRIST_COST = "minestuck.editmode.item_no_grist_cost";
-	public static final String CANT_FIT = "minestuck.editmode.cant_fit";
-	public static final String ENTITY_IN_THE_WAY = "minestuck.editmode.entity_in_the_way";
 	
 	public static BlockPos rotateOffset(BlockPos offset, int sizeX, int sizeZ, Rotation rotation)
 	{
@@ -131,7 +115,8 @@ public final class EditmodeDragPackets
 	}
 	
 	
-	public record Fill(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector, Direction side) implements MSPacket.PlayToServer
+	public record Fill(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector,
+	                   Direction side) implements MSPacket.PlayToServer
 	{
 		public static final Type<Fill> ID = new Type<>(Minestuck.id("editmode_drag/fill"));
 		public static final StreamCodec<FriendlyByteBuf, Fill> STREAM_CODEC = StreamCodec.composite(
@@ -211,9 +196,14 @@ public final class EditmodeDragPackets
 		}
 	}
 	
-	private record Captured(BlockPos sourcePos, BlockState state, CompoundTag blockEntityTag, GristSet.Immutable blockCost, boolean secondaryPart) {}
+	private record Captured(BlockPos sourcePos, BlockState state, CompoundTag blockEntityTag,
+	                        GristSet.Immutable blockCost)
+	{
+	}
 	
-	private record ItemCostResult(GristSet.Immutable cost, boolean truncated) {}
+	private record ItemCostResult(GristSet.Immutable cost, boolean truncated)
+	{
+	}
 	
 	private static ItemCostResult computeItemStackCost(ItemStack stack, SburbPlayerData playerData, Level level, int depth)
 	{
@@ -226,7 +216,7 @@ public final class EditmodeDragPackets
 		boolean truncated = false;
 		
 		DeployEntry entry = DeployList.getEntryForItem(stack, playerData, level);
-		GristSet baseCost = entry != null ? entry.getRepeatCost(playerData) : GristCostRecipe.findCostForItem(stack, null, false, level);
+		GristSet baseCost = entry != null ? entry.getCurrentCost(playerData) : GristCostRecipe.findCostForItem(stack, null, false, level);
 		if(baseCost == null)
 			return new ItemCostResult(MutableGristSet.newDefault().asImmutable(), true);
 		total.add(baseCost.asImmutable());
@@ -260,9 +250,10 @@ public final class EditmodeDragPackets
 			target.add(amount.type(), amount.amount() * count);
 	}
 	
-	private static void executeSelectionTransfer(ServerPlayer player, EditData data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, Rotation rotation)
+	private static void executeSelectionTransfer(ServerPlayer player, EditData data, BlockPos corner1, BlockPos corner2, BlockPos anchor, boolean isCopy, int rotationInt)
 	{
 		Level level = player.level();
+		Rotation rotation = EditTools.getRotationFromInt(rotationInt);
 		
 		BlockPos min = new BlockPos(Math.min(corner1.getX(), corner2.getX()), Math.min(corner1.getY(), corner2.getY()), Math.min(corner1.getZ(), corner2.getZ()));
 		BlockPos max = new BlockPos(Math.max(corner1.getX(), corner2.getX()), Math.max(corner1.getY(), corner2.getY()), Math.max(corner1.getZ(), corner2.getZ()));
@@ -286,7 +277,7 @@ public final class EditmodeDragPackets
 		if(!validateDestinations(player, level, captured, min, max, anchor, sizeX, sizeZ, rotation))
 			return;
 		
-		GristSet.Immutable worstCase = isCopy ? captureResult.worstCaseCost() : moveCost(countObjects(captured));
+		GristSet.Immutable worstCase = isCopy ? captureResult.worstCaseCost() : moveCost(captured.size());
 		if(!data.getGristCache().canAfford(worstCase))
 		{
 			player.sendSystemMessage(GristCache.createMissingMessage(worstCase), true);
@@ -301,19 +292,9 @@ public final class EditmodeDragPackets
 		
 		finalizeWorld(level, captured, placedPositions, isCopy);
 		
-		calculateActualCost(level, data, captured, placedPositions, isCopy);
+		MutableGristSet actualCost = calculateActualCost(level, data, captured, placedPositions, isCopy);
 		
 		announceResult(player, level, min, max, anchor, sizeX, sizeZ, isCopy, rotation);
-	}
-	
-	//counts multipart objects
-	private static int countObjects(List<Captured> captured)
-	{
-		int count = 0;
-		for(Captured c : captured)
-			if(!c.secondaryPart())
-				count++;
-		return count;
 	}
 	
 	private static boolean validateVolume(ServerPlayer player, BlockPos min, BlockPos max, int sizeX, int sizeZ)
@@ -321,21 +302,22 @@ public final class EditmodeDragPackets
 		long volume = (long) sizeX * (max.getY() - min.getY() + 1) * sizeZ;
 		if(volume > MinestuckConfig.SERVER.maxSelectionVolume.get())
 		{
-			player.sendSystemMessage(Component.translatable(SELECTION_TOO_LARGE, volume, MinestuckConfig.SERVER.maxSelectionVolume.get()), true);
+			player.sendSystemMessage(Component.literal("Selection too large (" + volume + " blocks, max " + MinestuckConfig.SERVER.maxSelectionVolume.get() + ")"), true);
 			ServerEditHandler.removeCursorEntity(player, true);
 			return false;
 		}
 		return true;
 	}
 	
-	private record CaptureResult(List<Captured> captured, GristSet.Immutable worstCaseCost) {}
+	private record CaptureResult(List<Captured> captured, GristSet.Immutable worstCaseCost)
+	{
+	}
 	
 	private static CaptureResult captureBlocks(ServerPlayer player, EditData data, Level level, BlockPos min, BlockPos max, boolean isCopy)
 	{
 		boolean hasBlockWithoutCost = false;
 		List<Captured> captured = new ArrayList<>();
 		MutableGristSet worstCaseCost = MutableGristSet.newDefault();
-		Set<Object> chargedParts = new HashSet<>();
 		
 		for(BlockPos pos : BlockPos.betweenClosed(min, max))
 		{
@@ -344,22 +326,7 @@ public final class EditmodeDragPackets
 				continue;
 			if(state.getDestroySpeed(level, pos) < 0 || state.is(MSTags.Blocks.EDITMODE_BREAK_BLACKLIST))
 			{
-				player.sendSystemMessage(Component.translatable(UNMOVABLE_BLOCK), true);
-				ServerEditHandler.removeCursorEntity(player, true);
-				return null;
-			}
-			
-			if(state.getBlock() instanceof MovingPistonBlock)
-			{
-				player.sendSystemMessage(Component.translatable(MOVING_PISTON), true);
-				ServerEditHandler.removeCursorEntity(player, true);
-				return null;
-			}
-			
-			Multipart multipart = findMultipart(level, pos, state);
-			if(multipart != null && !multipart.isFullyInside(min, max))
-			{
-				player.sendSystemMessage(Component.translatable(PARTIAL_MULTIBLOCK), true);
+				player.sendSystemMessage(Component.literal("Selection contains a block that can't be moved!"), true);
 				ServerEditHandler.removeCursorEntity(player, true);
 				return null;
 			}
@@ -367,119 +334,34 @@ public final class EditmodeDragPackets
 			var blockEntity = level.getBlockEntity(pos);
 			CompoundTag beTag = blockEntity != null ? blockEntity.saveWithFullMetadata(level.registryAccess()) : null;
 			
-			Object partKey = multipart != null ? multipart.key() : null;
-			boolean secondaryPart = partKey != null && chargedParts.contains(partKey);
+			ItemStack stack = state.getCloneItemStack(null, level, pos, player);
+			ItemStack bareStack = stack.copy();
+			bareStack.remove(DataComponents.BLOCK_ENTITY_DATA);
+			bareStack.remove(DataComponents.CONTAINER);
+			bareStack.remove(DataComponents.CONTAINER_LOOT);
+			bareStack.remove(DataComponents.LOCK);
 			
-			MutableGristSet blockCost;
-			if(secondaryPart)
-				blockCost = MutableGristSet.newDefault();
-			else
+			DeployEntry entry = DeployList.getEntryForItem(bareStack, data.sburbData(), level);
+			GristSet blockCostRaw = entry != null ? entry.getCurrentCost(data.sburbData()) : GristCostRecipe.findCostForItem(bareStack, null, false, level);
+			if(blockCostRaw == null && isCopy)
 			{
-				ItemStack stack = state.getCloneItemStack(null, level, pos, player);
-				ItemStack bareStack = stack.copy();
-				bareStack.remove(DataComponents.BLOCK_ENTITY_DATA);
-				bareStack.remove(DataComponents.CONTAINER);
-				bareStack.remove(DataComponents.CONTAINER_LOOT);
-				bareStack.remove(DataComponents.LOCK);
-				
-				DeployEntry entry = DeployList.getEntryForItem(bareStack, data.sburbData(), level);
-				GristSet blockCostRaw = entry != null ? entry.getRepeatCost(data.sburbData()) : GristCostRecipe.findCostForItem(bareStack, null, false, level);
-				if(blockCostRaw == null && isCopy)
-				{
-					hasBlockWithoutCost = true;
-					continue;
-				}
-				blockCost = blockCostRaw != null ? blockCostRaw.mutableCopy() : MutableGristSet.newDefault();
-				
-				if(partKey != null)
-					chargedParts.add(partKey);
+				hasBlockWithoutCost = true;
+				continue;
 			}
+			MutableGristSet blockCost = blockCostRaw != null ? blockCostRaw.mutableCopy() : MutableGristSet.newDefault();
 			
 			if(isCopy && blockEntity instanceof Container container)
 				beTag = accumulateContainerCost(player, level, pos, state, container, beTag, data, blockCost);
 			
 			GristSet.Immutable blockCostImmutable = blockCost.asImmutable();
-			captured.add(new Captured(pos.immutable(), state, beTag, blockCostImmutable, secondaryPart));
+			captured.add(new Captured(pos.immutable(), state, beTag, blockCostImmutable));
 			worstCaseCost.add(blockCostImmutable);
 		}
 		
 		if(hasBlockWithoutCost)
-			player.sendSystemMessage(Component.translatable(NO_GRIST_COST), true);
+			player.sendSystemMessage(Component.literal("Some blocks were not pasted because they do not have a grist cost!"), true);
 		
 		return new CaptureResult(captured, worstCaseCost.asImmutable());
-	}
-	
-	private static boolean isInside(BlockPos pos, BlockPos min, BlockPos max)
-	{
-		return pos.getX() >= min.getX() && pos.getX() <= max.getX() && pos.getY() >= min.getY() && pos.getY() <= max.getY() && pos.getZ() >= min.getZ() && pos.getZ() <= max.getZ();
-	}
-	
-	private record Multipart(Object key, List<BlockPos> positions)
-	{
-		boolean isFullyInside(BlockPos min, BlockPos max)
-		{
-			for(BlockPos pos : positions)
-				if(!isInside(pos, min, max)) return false;
-			return true;
-		}
-	}
-	
-	@Nullable
-	private static Multipart findMultipart(Level level, BlockPos pos, BlockState state)
-	{
-		Block block = state.getBlock();
-		
-		if(block.asItem() instanceof MultiblockItem multiblockItem)
-		{
-			MachineMultiblock multiblock = multiblockItem.getMultiblock();
-			return multiblock.findValidPlacement(level, pos, state).map(placement -> new Multipart(new MachineKey(multiblock, placement), multiblock.getRequiredPositions(placement))).orElse(null);
-		}
-		
-		if(state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF))
-		{
-			BlockPos lowerPos = (state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos).immutable();
-			BlockPos upperPos = lowerPos.above();
-			BlockState lower = level.getBlockState(lowerPos), upper = level.getBlockState(upperPos);
-			if(lower.is(block) && upper.is(block) && lower.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER && upper.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER)
-				return new Multipart(lowerPos, List.of(lowerPos, upperPos));
-			return null;
-		}
-		
-		if(state.hasProperty(BlockStateProperties.BED_PART) && state.hasProperty(BlockStateProperties.HORIZONTAL_FACING))
-		{
-			Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-			BlockPos footPos = (state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD ? pos.relative(facing.getOpposite()) : pos).immutable();
-			BlockPos headPos = footPos.relative(facing);
-			BlockState foot = level.getBlockState(footPos), head = level.getBlockState(headPos);
-			if(foot.is(block) && head.is(block) && foot.getValue(BlockStateProperties.BED_PART) == BedPart.FOOT && head.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD)
-				return new Multipart(footPos, List.of(footPos, headPos));
-			return null;
-		}
-		
-		if(block instanceof PistonHeadBlock)
-		{
-			Direction facing = state.getValue(BlockStateProperties.FACING);
-			BlockPos basePos = pos.relative(facing.getOpposite()).immutable();
-			BlockState base = level.getBlockState(basePos);
-			if(base.getBlock() instanceof PistonBaseBlock && base.getValue(BlockStateProperties.EXTENDED) && base.getValue(BlockStateProperties.FACING) == facing)
-				return new Multipart(basePos, List.of(basePos, pos.immutable()));
-			return null;
-		}
-		if(block instanceof PistonBaseBlock && state.getValue(BlockStateProperties.EXTENDED))
-		{
-			Direction facing = state.getValue(BlockStateProperties.FACING);
-			BlockPos headPos = pos.relative(facing).immutable();
-			BlockState head = level.getBlockState(headPos);
-			if(head.getBlock() instanceof PistonHeadBlock && head.getValue(BlockStateProperties.FACING) == facing)
-				return new Multipart(pos.immutable(), List.of(pos.immutable(), headPos));
-			return null;
-		}
-		
-		return null;
-	}
-	
-	private record MachineKey(MachineMultiblock multiblock, MachineMultiblock.Placement placement)
-	{
 	}
 	
 	private static CompoundTag accumulateContainerCost(ServerPlayer player, Level level, BlockPos pos, BlockState state, Container container, CompoundTag beTag, EditData data, MutableGristSet blockCost)
@@ -494,7 +376,7 @@ public final class EditmodeDragPackets
 			ItemCostResult containedResult = computeItemStackCost(contained, data.sburbData(), level, 0);
 			if(containedResult.truncated())
 			{
-				player.sendSystemMessage(Component.translatable(ITEM_NO_GRIST_COST), true);
+				player.sendSystemMessage(Component.literal("Selection contains an item that does not have a grist cost or nested too deeply!"), true);
 				slotsToStrip.add(slot);
 				continue;
 			}
@@ -529,14 +411,14 @@ public final class EditmodeDragPackets
 			
 			if(!destInsideSelection && !level.getBlockState(dest).canBeReplaced())
 			{
-				player.sendSystemMessage(Component.translatable(CANT_FIT), true);
+				player.sendSystemMessage(Component.literal("Can't fit the selection there!"), true);
 				ServerEditHandler.removeCursorEntity(player, true);
 				return false;
 			}
 			
 			if(!destInsideSelection && wouldSuffocateEntity(level, dest, c.state().rotate(rotation)))
 			{
-				player.sendSystemMessage(Component.translatable(ENTITY_IN_THE_WAY), true);
+				player.sendSystemMessage(Component.literal("An entity is in the way!"), true);
 				ServerEditHandler.removeCursorEntity(player, true);
 				return false;
 			}
@@ -554,15 +436,11 @@ public final class EditmodeDragPackets
 	private static void clearSourceBlocks(Level level, List<Captured> captured)
 	{
 		for(Captured c : captured)
-			if(c.state().getBlock() instanceof PistonBaseBlock) clearSourceBlock(level, c);
-		for(Captured c : captured)
-			if(!(c.state().getBlock() instanceof PistonBaseBlock)) clearSourceBlock(level, c);
-	}
-	
-	private static void clearSourceBlock(Level level, Captured c)
-	{
-		if(c.blockEntityTag() != null) level.removeBlockEntity(c.sourcePos());
-		level.setBlock(c.sourcePos(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+		{
+			if(c.blockEntityTag() != null)
+				level.removeBlockEntity(c.sourcePos());
+			level.setBlock(c.sourcePos(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+		}
 	}
 	
 	private static List<BlockPos> placeBlocks(Level level, List<Captured> captured, BlockPos min, BlockPos anchor, int sizeX, int sizeZ, Rotation rotation)
@@ -574,6 +452,8 @@ public final class EditmodeDragPackets
 			BlockPos dest = computeDest(c.sourcePos(), min, anchor, sizeX, sizeZ, rotation);
 			
 			BlockState toPlace = c.state().rotate(rotation);
+			if(toPlace.hasProperty(BlockStateProperties.EXTENDED))
+				toPlace = toPlace.setValue(BlockStateProperties.EXTENDED, false);
 			level.setBlock(dest, toPlace, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
 			
 			if(c.blockEntityTag() != null && level.getBlockEntity(dest) != null)
@@ -601,15 +481,6 @@ public final class EditmodeDragPackets
 					affected.add(c.sourcePos().relative(dir));
 		}
 		
-		if(!isCopy)
-		{
-			for(Captured c : captured)
-			{
-				BlockPos source = c.sourcePos();
-				level.updateNeighborsAt(source, level.getBlockState(source).getBlock());
-			}
-		}
-		
 		for(BlockPos pos : affected)
 			finalizeUpdate(level, pos);
 	}
@@ -629,7 +500,7 @@ public final class EditmodeDragPackets
 			{
 				if(isCopy)
 					actualCost.add(c.blockCost());
-				else if(!c.secondaryPart())
+				else
 					successfullyMovedCount++;
 			}
 		}
@@ -651,19 +522,16 @@ public final class EditmodeDragPackets
 		
 		if(isCopy)
 		{
-			boolean swapXZ = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
-			int rotatedSizeX = swapXZ ? sizeZ : sizeX;
-			int rotatedSizeZ = swapXZ ? sizeX : sizeZ;
+			Pair<Integer, Integer> rotatedXZ = EditTools.getRotatedXZ(rotation, sizeX, sizeZ);
 			int sizeY = max.getY() - min.getY() + 1;
 			
 			BlockPos newMin = anchor;
-			BlockPos newMax = anchor.offset(rotatedSizeX - 1, sizeY - 1, rotatedSizeZ - 1);
+			BlockPos newMax = anchor.offset(rotatedXZ.getFirst() - 1, sizeY - 1, rotatedXZ.getSecond() - 1);
 			PacketDistributor.sendToPlayer(player, new ServerEditPackets.SelectionUpdate(false, newMin, newMax));
 			
 			if(MinestuckConfig.SERVER.visualsToOthers.get())
 				PacketDistributor.sendToPlayersTrackingEntity(player, new EditmodeBroadcastPackets.ClientSelectionBox(player.getUUID(), true, newMin, newMax));
-		}
-		else
+		} else
 		{
 			PacketDistributor.sendToPlayer(player, new ServerEditPackets.SelectionUpdate(true, BlockPos.ZERO, BlockPos.ZERO));
 			
@@ -682,7 +550,7 @@ public final class EditmodeDragPackets
 		return !level.getEntities((Entity) null, box, entity -> !entity.isSpectator()).isEmpty();
 	}
 	
-/*	*//** 5% of the item normal cost per grist type rounded; floor of 1 per type present. *//*
+	/*	*//** 5% of the item normal cost per grist type rounded; floor of 1 per type present. *//*
 	private static GristSet.Immutable moveCost(GristSet fullCost)
 	{
 		long totalValue = 0;
@@ -702,7 +570,8 @@ public final class EditmodeDragPackets
 		return GristTypes.BUILD.get().amount(amount);
 	}
 	
-	public record MoveSelection(BlockPos corner1, BlockPos corner2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
+	public record MoveSelection(BlockPos corner1, BlockPos corner2, BlockPos anchor,
+	                            int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<MoveSelection> ID = new Type<>(Minestuck.id("editmode_drag/move_selection"));
 		public static final StreamCodec<FriendlyByteBuf, MoveSelection> STREAM_CODEC = StreamCodec.composite(
@@ -714,7 +583,10 @@ public final class EditmodeDragPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -722,11 +594,12 @@ public final class EditmodeDragPackets
 			EditData data = ServerEditHandler.getData(player);
 			if(data == null)
 				return;
-			executeSelectionTransfer(player, data, corner1, corner2, anchor, false, Rotation.values()[Math.floorMod(rotation, 4)]);
+			executeSelectionTransfer(player, data, corner1, corner2, anchor, false, rotation);
 		}
 	}
 	
-	public record CopySelection(BlockPos corner1, BlockPos corner2, BlockPos anchor, int rotation) implements MSPacket.PlayToServer
+	public record CopySelection(BlockPos corner1, BlockPos corner2, BlockPos anchor,
+	                            int rotation) implements MSPacket.PlayToServer
 	{
 		public static final Type<CopySelection> ID = new Type<>(Minestuck.id("editmode_drag/copy_selection"));
 		public static final StreamCodec<FriendlyByteBuf, CopySelection> STREAM_CODEC = StreamCodec.composite(
@@ -738,7 +611,10 @@ public final class EditmodeDragPackets
 		);
 		
 		@Override
-		public Type<? extends CustomPacketPayload> type() { return ID; }
+		public Type<? extends CustomPacketPayload> type()
+		{
+			return ID;
+		}
 		
 		@Override
 		public void execute(IPayloadContext context, ServerPlayer player)
@@ -746,11 +622,12 @@ public final class EditmodeDragPackets
 			EditData data = ServerEditHandler.getData(player);
 			if(data == null)
 				return;
-			executeSelectionTransfer(player, data, corner1, corner2, anchor, true, Rotation.values()[Math.floorMod(rotation, 4)]);
+			executeSelectionTransfer(player, data, corner1, corner2, anchor, true, rotation);
 		}
 	}
 	
-	public record Destroy(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector, Direction side) implements MSPacket.PlayToServer
+	public record Destroy(boolean isDown, BlockPos positionStart, BlockPos positionEnd, Vec3 hitVector,
+	                      Direction side) implements MSPacket.PlayToServer
 	{
 		public static final Type<Destroy> ID = new Type<>(Minestuck.id("editmode_drag/destroy"));
 		public static final StreamCodec<FriendlyByteBuf, Destroy> STREAM_CODEC = StreamCodec.composite(

@@ -15,7 +15,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import javax.annotation.Nullable;
 
@@ -35,6 +34,7 @@ public final class ClientEditmodeData
 	{
 		return activated;
 	}
+	
 	public static boolean isBroadcastEnabled()
 	{
 		return broadcastEnabled;

@@ -11,24 +11,31 @@ import java.util.UUID;
 
 public final class RemoteEditSessions
 {
-	public record PreviewEntry(BlockPos localOffset, BlockState state) {}
+	public record PreviewEntry(BlockPos localOffset, BlockState state)
+	{
+	}
 	
 	public static final class Session
 	{
 		public boolean dragActive;
 		public int toolKind = -1;
-		@Nullable public BlockPos dragPos1;
-		@Nullable public BlockPos dragPos2;
+		@Nullable
+		public BlockPos dragPos1;
+		@Nullable
+		public BlockPos dragPos2;
 		
 		public boolean selectionActive;
-		@Nullable public BlockPos selectionPos1;
-		@Nullable public BlockPos selectionPos2;
+		@Nullable
+		public BlockPos selectionPos1;
+		@Nullable
+		public BlockPos selectionPos2;
 		
 		public List<PreviewEntry> previewBlocks = List.of();
 		public int previewSizeX = 1, previewSizeY = 1, previewSizeZ = 1;
 		
 		public boolean previewActive;
-		@Nullable public BlockPos previewAnchor;
+		@Nullable
+		public BlockPos previewAnchor;
 		public int previewRotation;
 		public boolean previewIsCopy;
 	}
